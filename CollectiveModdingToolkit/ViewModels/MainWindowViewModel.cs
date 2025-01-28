@@ -8,9 +8,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-
-//using static CollectiveModdingToolkit.Models.ParentProcessUtilities;
-
 namespace CollectiveModdingToolkit.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
@@ -118,14 +115,11 @@ public partial class MainWindowViewModel : ViewModelBase
 		{
 			Computer computer = new();
 			ModManager?.RefreshSettings();
-			//await Task.Delay(1500);
-			//IModManager? modManager = DetectModManager();
 			Game game = new(ModManager);
 
 			await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
 			{
 				Computer = computer;
-				//ModManager = modManager;
 				Game = game;
 				CanRefresh = true;
 			});

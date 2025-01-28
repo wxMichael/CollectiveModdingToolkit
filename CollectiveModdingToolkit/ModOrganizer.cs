@@ -14,10 +14,6 @@ namespace CollectiveModdingToolkit;
 
 internal partial class ModOrganizer : ObservableObject, IModManager
 {
-	//[ObservableProperty] public partial string Name { get; set; }
-	//[ObservableProperty] private string _name;
-	//[ObservableProperty] private string _path;
-	//[ObservableProperty] private Version _version;
 	public string AppName { get; } = "Mod Organizer";
 	public string AppPath { get; }
 	public DirectoryInfo AppFolder { get; }
@@ -99,7 +95,6 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		AppPath = @"C:\Modding\MO2\ModOrganizer.exe";
 		AppFolder = Directory.GetParent(AppPath)!;
 		AppVersion = new Version("2.5.2");
-		//ReadSettings();2.5.2-ML1.5
 		RefreshSettings();
 #else
 		throw new NotImplementedException();
@@ -118,7 +113,6 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 			_moddingLinked = true;
 			AppVersionString = ver;
 		}
-		//ReadSettings();
 		RefreshSettings();
 	}
 

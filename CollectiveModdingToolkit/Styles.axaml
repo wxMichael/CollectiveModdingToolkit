@@ -1,5 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:ctrl="using:CollectiveModdingToolkit.Controls">
 	<Design.PreviewWith>
 		<Border Padding="20">
@@ -8,26 +8,33 @@
 	</Design.PreviewWith>
 
 	<Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
-		<Setter Property="Padding" Value="5" />
+		<Setter Property="Padding"
+				Value="5" />
 	</Style>
 
 	<Style Selector="Grid.Table">
-		<Setter Property="Margin" Value="5,0" />
+		<Setter Property="Margin"
+				Value="5,0" />
 		<Style Selector="^ > TextBlock[(Grid.Column)=0]">
-			<Setter Property="TextAlignment" Value="Right" />
-			<Setter Property="Margin" Value="0, 0, 5, 0" />
+			<Setter Property="TextAlignment"
+					Value="Right" />
+			<Setter Property="Margin"
+					Value="0, 0, 5, 0" />
 		</Style>
 		<Style Selector="^ > TextBlock[(Grid.Column)=1]">
 			<!--<Setter Property="TextAlignment" Value="Right" />-->
-			<Setter Property="Foreground" Value="#FFE4C4" />
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
 			<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
 		</Style>
 		<Style Selector="^ > TextBlock[(Grid.Column)=2]">
-			<Setter Property="Foreground" Value="#FFE4C4" />
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
 			<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
 		</Style>
 		<Style Selector="^ > Grid[(Grid.Column)=1] > TextBlock">
-			<Setter Property="Foreground" Value="#FFE4C4" />
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
 		</Style>
 	</Style>
 
@@ -37,63 +44,84 @@
 
 
 		<Style Selector="^[(Grid.Column)=0]">
-			<Setter Property="TextAlignment" Value="Right" />
-			<Setter Property="Margin" Value="0, 0, 5, 0" />
+			<Setter Property="TextAlignment"
+					Value="Right" />
+			<Setter Property="Margin"
+					Value="0, 0, 5, 0" />
 		</Style>
 		<Style Selector="^[(Grid.Column)=1]">
-			<Setter Property="TextAlignment" Value="Left" />
-			<Setter Property="Foreground" Value="#FFE4C4" />
-			<Setter Property="Margin" Value="0, 0, 0, 0" />
+			<Setter Property="TextAlignment"
+					Value="Left" />
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
+			<Setter Property="Margin"
+					Value="0, 0, 0, 0" />
 		</Style>
 		<Style Selector="^[(Grid.Column)=2]">
-			<Setter Property="TextAlignment" Value="Left" />
-			<Setter Property="Foreground" Value="#FFE4C4" />
-			<Setter Property="Margin" Value="0, 0, 0, 0" />
+			<Setter Property="TextAlignment"
+					Value="Left" />
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
+			<Setter Property="Margin"
+					Value="0, 0, 0, 0" />
 		</Style>
 
 	</Style>
 
 	<Style Selector="ctrl|GroupBox:nth-child(3)">
-		<Setter Property="Margin" Value="5, 0" />
+		<Setter Property="Margin"
+				Value="5, 0" />
 	</Style>
 
 	<Style Selector="TextBlock">
-		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
-		<Setter Property="FontSize" Value="16" />
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize"
+				Value="16" />
 		<!-- <Setter Property="FontWeight" Value="Bold" /> -->
-		<Setter Property="Foreground" Value="#CACACA" />
+		<Setter Property="Foreground"
+				Value="#CACACA" />
 	</Style>
 
 	<Style Selector="Label#GBHeaderText">
-		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
-		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize"
+				Value="12" />
 	</Style>
 
 	<Style Selector="TabItem /template/ ContentPresenter">
-		<Setter Property="FontSize" Value="40" />
+		<Setter Property="FontSize"
+				Value="40" />
 	</Style>
 
 	<Style Selector="Button">
-		<Setter Property="Foreground" Value="LimeGreen" />
+		<Setter Property="Foreground"
+				Value="LimeGreen" />
 	</Style>
 
 	<Style Selector="Separator">
-		<Setter Property="Background" Value="#CACACA" />
+		<Setter Property="Background"
+				Value="#CACACA" />
 	</Style>
 
 	<Style Selector="TextBlock.Neutral">
-		<Setter Property="Foreground" Value="Gray" />
+		<Setter Property="Foreground"
+				Value="Gray" />
 	</Style>
 
 	<Style Selector="TextBlock.Good">
-		<Setter Property="Foreground" Value="LimeGreen" />
+		<Setter Property="Foreground"
+				Value="LimeGreen" />
 	</Style>
 
 	<Style Selector="TextBlock.Warning">
-		<Setter Property="Foreground" Value="Orange" />
+		<Setter Property="Foreground"
+				Value="Orange" />
 	</Style>
 
 	<Style Selector="TextBlock.Bad:not(.Neutral):not(.Good)">
-		<Setter Property="Foreground" Value="Tomato" />
+		<Setter Property="Foreground"
+				Value="Tomato" />
 	</Style>
 </Styles>

@@ -97,27 +97,6 @@ public partial class Computer : ObservableObject
 		return "Unknown CPU";
 	}
 
-	//private static string GetGPUWMI()
-	//{
-	//	ManagementObjectSearcher objvida = new("select * from Win32_VideoController ");
-
-	//	string? vc1 = null;
-	//	string? vc2 = null;
-
-	//	foreach (ManagementObject obj in objvida.Get())
-	//	{
-	//		if (obj["CurrentBitsPerPixel"] != null && obj["CurrentHorizontalResolution"] != null)
-	//		{
-	//			string deviceID = (string)obj["DeviceID"];
-	//			if (deviceID == "VideoController1") vc1 = (string)obj["Description"];
-	//			else if (deviceID == "VideoController2") vc2 = (string)obj["Description"];
-	//		}
-	//	}
-	//	if (vc2 != null) return vc2;
-	//	if (vc1 != null) return vc1;
-	//	return "Unknown GPU";
-	//}
-
 	private static Tuple<string, long> GetGPU()
 	{
 		List<Tuple<string, long>> adapters = [];

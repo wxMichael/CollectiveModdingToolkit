@@ -16,18 +16,18 @@ namespace CollectiveModdingToolkit.Models;
 
 public partial class Game : ObservableObject
 {
-	[ObservableProperty] public partial string GamePath { get; set; } = "";
-	[ObservableProperty] public partial string GameVersion { get; set; } = "";
-	[ObservableProperty] public partial string Source { get; set; } = "";
+	[ObservableProperty] public partial string GamePath { get; set; } = string.Empty;
+	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Source { get; set; } = string.Empty;
 
-	[ObservableProperty] public partial string Fallout4Version { get; set; } = "";
-	[ObservableProperty] public partial string Fallout4LauncherVersion { get; set; } = "";
-	[ObservableProperty] public partial string Steam_api64Version { get; set; } = "";
-	[ObservableProperty] public partial string F4se_loaderVersion { get; set; } = "";
-	[ObservableProperty] public partial string F4se_steam_loaderVersion { get; set; } = "";
-	[ObservableProperty] public partial string CreationKitVersion { get; set; } = "";
-	[ObservableProperty] public partial string Archive2Version { get; set; } = "";
-	[ObservableProperty] public partial string Archive2InteropVersion { get; set; } = "";
+	[ObservableProperty] public partial string Fallout4Version { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Fallout4LauncherVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Steam_api64Version { get; set; } = string.Empty;
+	[ObservableProperty] public partial string F4se_loaderVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string F4se_steam_loaderVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string CreationKitVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Archive2Version { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Archive2InteropVersion { get; set; } = string.Empty;
 
 	internal IniData? Config { get; private set; }
 	internal IniData? Prefs { get; private set; }
@@ -99,7 +99,7 @@ public partial class Game : ObservableObject
 		AllowDuplicateKeys = true,
 		AllowDuplicateSections = true,
 		AllowKeysWithoutSection = true,
-		AssigmentSpacer = "",
+		AssigmentSpacer = string.Empty,
 		CaseInsensitive = true,
 		SkipInvalidLines = true,
 	};
@@ -272,8 +272,6 @@ public partial class Game : ObservableObject
 
 	private void GetBinaryInfo()
 	{
-		//BinaryInfo binaryInfo = new();
-
 		Dictionary<string, string> binariesGood;
 		Dictionary<string, string> binariesBad;
 		string gameVersionBad;
@@ -307,7 +305,6 @@ public partial class Game : ObservableObject
 		{
 			throw new NotImplementedException("File missing: Fallout4.exe");
 		}
-		//OnPropertyChanged(nameof(Fallout4LauncherVersion));
 		Fallout4Good = Fallout4Version == GameVersion;
 
 
