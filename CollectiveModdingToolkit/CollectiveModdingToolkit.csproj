@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<PublishTrimmed>False</PublishTrimmed>
+		<TrimMode>partial</TrimMode>
+		<ApplicationIcon>Assets\Images\icon-64.ico</ApplicationIcon>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputType>Exe</OutputType>
+		<DebugType>portable</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputType>Exe</OutputType>
+		<DebugType>portable</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="Assets\**" />
+		<Content Include="Assets\Images\icon-64.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<TrimmerRootAssembly Include="Avalonia" />
+		<TrimmerRootAssembly Include="Avalonia.DesignerSupport" />
+		<TrimmerRootAssembly Include="Avalonia.Markup.Xaml.Loader" />
+		<TrimmerRootAssembly Include="Semi.Avalonia" />
+		<TrimmerRootAssembly Include="CommunityToolkit.Mvvm" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.2.3" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+		<PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.2.3" />
+		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+		<PackageReference Include="Avalonia.Diagnostics" Version="11.2.3">
+			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+		<PackageReference Include="Semi.Avalonia" Version="11.2.1.4" />
+		<PackageReference Include="System.IO.Hashing" Version="9.0.1" />
+	</ItemGroup>
+</Project>

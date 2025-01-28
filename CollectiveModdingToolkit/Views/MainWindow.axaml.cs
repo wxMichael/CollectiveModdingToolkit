@@ -1,0 +1,18 @@
+using Avalonia.Controls;
+using Avalonia.Input;
+
+namespace CollectiveModdingToolkit.Views;
+
+public partial class MainWindow : Window
+{
+	public MainWindow()
+	{
+		InitializeComponent();
+		KeyDown += MainWindow_KeyDown;
+	}
+	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
+	{
+		if (e.Key == Key.Escape)
+			Close();
+	}
+}

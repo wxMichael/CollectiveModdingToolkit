@@ -1,0 +1,22 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:semi="https://irihi.tech/semi"
+             x:Class="CollectiveModdingToolkit.App"
+			 xmlns:local="using:CollectiveModdingToolkit"
+             RequestedThemeVariant="Dark">
+			 <!--xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"-->
+
+	<!--<Application.DataTemplates>
+		<local:ViewLocator />
+	</Application.DataTemplates>-->
+
+	<Application.Resources>
+		<FontFamily x:Key="CascadiaMono">avares://CollectiveModdingToolkit/Assets/Fonts#Cascadia Mono SemiBold</FontFamily>
+	</Application.Resources>
+
+	<Application.Styles>
+		<semi:SemiTheme Locale="en-US" />
+		<!--<dialogHostAvalonia:DialogHostStyles />-->
+		<StyleInclude Source="Styles.axaml" />
+	</Application.Styles>
+</Application>

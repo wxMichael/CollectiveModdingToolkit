@@ -1,0 +1,35 @@
+old/
+
+# User-specific files
+#*.suo
+*.user
+#*.sln.docstates
+.vs/
+
+# Build results
+#*.sln.ide/
+#[Dd]ebug/
+#[Rr]elease/
+#x64/
+bin/
+obj/
+
+# Visual C++ cache files
+#ipch/
+#*.aps
+#*.ncb
+#*.opensdf
+#*.sdf
+#*.cachefile
+
+# Visual Studio profiler
+#*.psess
+#*.vsp
+#*.vspx
+
+# Click-Once directory
+#publish/
+
+# Publish Web Output
+#*.Publish.xml
+*.pubxml

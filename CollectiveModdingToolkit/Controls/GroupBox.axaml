@@ -1,0 +1,89 @@
+﻿<HeaderedContentControl x:Class="CollectiveModdingToolkit.Controls.GroupBox"
+                        xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:conv="using:CollectiveModdingToolkit.Converters"
+                        xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+                        xmlns:sys="using:System">
+
+	<HeaderedContentControl.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary>
+					<Color x:Key="ThemeBorderMidColor">#FF808080</Color>
+					<ControlTheme x:Key="{x:Type ctrl:GroupBox}"
+					              TargetType="ctrl:GroupBox">
+						<Setter Property="BorderBrush"
+						        Value="{StaticResource ThemeBorderMidColor}" />
+						<Setter Property="CornerRadius"
+						        Value="3" />
+						<Setter Property="FontWeight"
+						        Value="Bold" />
+						<Setter Property="Padding"
+						        Value="8" />
+						<Setter Property="Template">
+							<ControlTemplate>
+								<Grid Name="GBGrid"
+								      ColumnDefinitions="Auto *"
+								      RowDefinitions="Auto *">
+									<Grid.Resources>
+										<ResourceDictionary>
+											<sys:Double x:Key="GbBorderPadding">3</sys:Double>
+											<sys:Double x:Key="GbBorderMargin">0</sys:Double>
+											<SolidColorBrush x:Key="ThemeBorderMidBrush" Color="{StaticResource ThemeBorderMidColor}" />
+										</ResourceDictionary>
+									</Grid.Resources>
+
+									<Label Name="GBHeaderText"
+									       Margin="5,1"
+									       Padding="5,0"
+									       Content="{TemplateBinding Header}"
+									       FontWeight="{TemplateBinding FontWeight}" />
+									<Border Name="GBBorder"
+									        Grid.Row="0"
+									        Grid.RowSpan="2"
+									        Grid.ColumnSpan="2"
+									        Grid.Column="0"
+									        BorderBrush="{DynamicResource ThemeBorderMidBrush}"
+									        BorderThickness="1"
+									        CornerRadius="3"
+									        RenderOptions.EdgeMode="Unspecified">
+										<Border.Clip>
+											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertBoundsToOuterBorder}">
+												<Binding Path="#GBGrid.Bounds" />
+												<Binding Path="#GBHeaderText.Bounds" />
+												<Binding Converter="{x:Static conv:StaticConverters.ThicknessRectConverter}"
+												         Path="#GBBorder.Margin" />
+											</MultiBinding>
+										</Border.Clip>
+										<Border.Padding>
+											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertDoublesToThickness}">
+												<Binding Source="{StaticResource GbBorderPadding}" />
+												<Binding Converter="{x:Static conv:StaticConverters.BoundsToHeaderHeightDividedByTwo}"
+												         Path="#GBHeaderText.Bounds" />
+												<Binding Source="{StaticResource GbBorderPadding}" />
+												<Binding Source="{StaticResource GbBorderPadding}" />
+											</MultiBinding>
+										</Border.Padding>
+										<Border.Margin>
+											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertDoublesToThickness}">
+												<Binding Source="{StaticResource GbBorderMargin}" />
+												<Binding Converter="{x:Static conv:StaticConverters.BoundsToHeaderHeightDividedByTwo}"
+												         Path="#GBHeaderText.Bounds" />
+												<Binding Source="{StaticResource GbBorderMargin}" />
+												<Binding Source="{StaticResource GbBorderMargin}" />
+											</MultiBinding>
+										</Border.Margin>
+
+										<ContentPresenter Name="PART_ContentPresenter"
+										                  Content="{TemplateBinding Content}"
+										                  RenderOptions.EdgeMode="Antialias" />
+									</Border>
+								</Grid>
+							</ControlTemplate>
+						</Setter>
+					</ControlTheme>
+				</ResourceDictionary>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</HeaderedContentControl.Resources>
+</HeaderedContentControl>

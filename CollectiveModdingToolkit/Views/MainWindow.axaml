@@ -1,0 +1,252 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+        xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+        xmlns:m="using:CollectiveModdingToolkit.Models"
+        mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="450"
+        x:Class="CollectiveModdingToolkit.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+		x:CompileBindings="True"
+        Icon="/Assets/Images/icon-64.png"
+        Title="{Binding WindowTitle}"
+        Width="760"
+        Height="450"
+		MinWidth="760"
+		MinHeight="450">
+	<!--xmlns:conv="using:CollectiveModdingToolkit.Converters"-->
+	<!--xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"-->
+	<Design.DataContext><vm:MainWindowViewModel/></Design.DataContext>
+
+	<TabControl>
+		<TabItem Header="Overview">
+			<Grid ColumnDefinitions="1.1*,*,*" RowDefinitions="Auto, *">
+				<Grid Name="OverviewTopPanel" Classes="Table" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+				      ColumnDefinitions="Auto,*,Auto"
+				      RowDefinitions="Auto,Auto,Auto,Auto" Margin="0">
+					<TextBlock Grid.Row="0" Grid.Column="0" Text="Mod Manager:" />
+					<TextBlock Grid.Row="1" Grid.Column="0" Text="Game Path:" />
+					<TextBlock Grid.Row="2" Grid.Column="0" Text="Version:" />
+					<TextBlock Grid.Row="3" Grid.Column="0" Text="PC Specs:" />
+					<TextBlock Grid.Row="0" Grid.Column="1">
+						<Run Text="{Binding ModManager.AppName, Mode=OneWay}" />
+						<Run Text="{Binding ModManager.AppVersionString, StringFormat='v{0}'}" />
+						<Run Text="{Binding ModManager.Profile, Mode=OneWay,
+							 StringFormat='[Profile: {0}]',
+							 TargetNullValue='[Profile: Unknown]'}" />
+					</TextBlock>
+					<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Game.GamePath}" />
+					<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Game.GameVersion}" Classes="Good" />
+					<Grid Grid.Row="3" Grid.Column="1" RowDefinitions="Auto,Auto" ColumnDefinitions="*,*">
+						<TextBlock Grid.Row="0" Grid.Column="0">
+							<Run Text="{Binding Computer.Os}" />
+							<Run Text="{Binding Computer.Bits, StringFormat='{}{0}-bit'}" />
+						</TextBlock>
+						<TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Computer.Ram, StringFormat='{}{0} GB RAM', Mode=OneWay}" />
+						<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Computer.Cpu}" />
+						<TextBlock Grid.Row="1" Grid.Column="1">
+							<Run Text="{Binding Computer.Gpu}" />
+							<Run Text="{Binding Computer.Vram, StringFormat='{}{0} GB', Mode=OneWay}" />
+						</TextBlock>
+					</Grid>
+					<Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2" Command="{Binding RefreshCommand}">Refresh</Button>
+				</Grid>
+				<ctrl:GroupBox Grid.Row="1" Grid.Column="0" Header="Binaries (EXE/DLL/BIN)">
+					<Grid Classes="Table"
+					      ColumnDefinitions="Auto,*"
+					      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0">
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="Fallout4:" />
+						<TextBlock Grid.Row="0" Grid.Column="1"
+								   Classes.Good="{Binding Game.Fallout4Good}"
+								   Classes.Bad="{Binding !Game.Fallout4Good}"
+								   Text="{Binding Game.Fallout4Version}" />
+
+						<TextBlock Grid.Row="1" Grid.Column="0" Text="Fallout4Launcher:" />
+						<TextBlock Grid.Row="1" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.Fallout4LauncherGood}"
+								   Classes.Neutral="{Binding Game.Fallout4LauncherGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.Fallout4LauncherVersion}" />
+
+						<TextBlock Grid.Row="2" Grid.Column="0" Text="steam_api64:" />
+						<TextBlock Grid.Row="2" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.Steam_api64Good}"
+								   Classes.Neutral="{Binding Game.Steam_api64Good, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.Steam_api64Version}" />
+
+						<TextBlock Grid.Row="3" Grid.Column="0" Text="f4se_loader:" />
+						<TextBlock Grid.Row="3" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.F4se_loaderGood}"
+								   Classes.Neutral="{Binding Game.F4se_loaderGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.F4se_loaderVersion}" />
+
+						<TextBlock Grid.Row="4" Grid.Column="0" Text="f4se_steam_loader:" />
+						<TextBlock Grid.Row="4" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.F4se_steam_loaderGood}"
+								   Classes.Neutral="{Binding Game.F4se_steam_loaderGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.F4se_steam_loaderVersion}" />
+
+						<TextBlock Grid.Row="5" Grid.Column="0" Text="CreationKit:" />
+						<TextBlock Grid.Row="5" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.CreationKitGood}"
+								   Classes.Neutral="{Binding Game.CreationKitGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.CreationKitVersion}" />
+
+						<TextBlock Grid.Row="6" Grid.Column="0" Text="Archive2:" />
+						<TextBlock Grid.Row="6" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.Archive2Good}"
+								   Classes.Neutral="{Binding Game.Archive2Good, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.Archive2Version}" />
+
+						<TextBlock Grid.Row="7" Grid.Column="0" Text="Archive2Interop:" />
+						<TextBlock Grid.Row="7" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.Archive2InteropGood}"
+								   Classes.Neutral="{Binding Game.Archive2InteropGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.Archive2InteropVersion}" />
+
+						<!--<TextBlock Grid.Row="7" Grid.Column="0" Text="Address Library:" />
+						<TextBlock Grid.Row="7" Grid.Column="1"
+								   Classes="Bad"
+								   Classes.Good="{Binding Game.Archive2InteropGood}"
+								   Classes.Neutral="{Binding Game.Archive2InteropGood, Converter={x:Static ObjectConverters.IsNull}}"
+								   Text="{Binding Game.Archive2InteropVersion}" />-->
+
+					</Grid>
+				</ctrl:GroupBox>
+				<ctrl:GroupBox Grid.Row="1" Grid.Column="1" Header="Archives (BA2)">
+					<Grid Classes="Table"
+					      ColumnDefinitions="Auto,Auto,*"
+					      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0">
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="General:" />
+						<TextBlock Grid.Row="0" Grid.Column="1"
+								   Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ArchivesGeneralWarning}"
+								   Classes.Bad="{Binding Game.ArchivesGeneralMaxed}" />
+						<TextBlock Grid.Row="0" Grid.Column="2"
+								   Text="{Binding Game.MaxArchives, StringFormat=' / {0}'}" />
+
+						<TextBlock Grid.Row="1" Grid.Column="0" Text="Texture:" />
+						<TextBlock Grid.Row="1" Grid.Column="1"
+								   Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ArchivesTextureWarning}"
+								   Classes.Bad="{Binding Game.ArchivesTextureMaxed}" />
+						<TextBlock Grid.Row="1" Grid.Column="2"
+								   Text="{Binding Game.MaxArchives, StringFormat=' / {0}'}" />
+
+						<TextBlock Grid.Row="2" Grid.Column="0" Text="Total:" />
+						<TextBlock Grid.Row="2" Grid.Column="1"
+								   Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.TotalArchivesWarning}"
+								   Classes.Bad="{Binding Game.TotalArchivesMaxed}" />
+						<TextBlock Grid.Row="2" Grid.Column="2"
+								   Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
+
+						<TextBlock Grid.Row="3" Grid.Column="0" Text="Unreadable:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+						<TextBlock Grid.Row="3" Grid.Column="1"
+								   Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+						
+						<Separator Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" />
+
+						<TextBlock Grid.Row="5" Grid.Column="0" Text="(OG) v1   :" />
+						<TextBlock Grid.Row="5" Grid.Column="1"
+								   Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
+
+						<TextBlock Grid.Row="6" Grid.Column="0" Text="(NG) v7/8 :" />
+						<TextBlock Grid.Row="6" Grid.Column="1"
+								   Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+
+						<TextBlock Grid.Row="7" Grid.Column="0" Text="v????:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+						<TextBlock Grid.Row="7" Grid.Column="1"
+								   Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+						<!--<TextBlock.Text>
+							<MultiBinding StringFormat="(r: {0:0.}, g: {1:0.}, b: {2:0.})">
+								<Binding Path="Value" ElementName="red" />
+								<Binding Path="Value" ElementName="green" />
+								<Binding Path="Value" ElementName="blue" />
+							</MultiBinding>
+						</TextBlock.Text>-->
+					</Grid>
+				</ctrl:GroupBox>
+				<ctrl:GroupBox Grid.Row="1" Grid.Column="2" Header="Modules (ESM/ESL/ESP)">
+					<Grid Classes="Table"
+					      ColumnDefinitions="Auto,Auto,*"
+					      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0">
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="Full:" />
+						<TextBlock Grid.Row="0" Grid.Column="1"
+								   Text="{Binding Game.ModulesFull.Count, StringFormat='{}{0,5}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ModulesFullWarning}"
+								   Classes.Bad="{Binding Game.ModulesFullMaxed}" />
+						<TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Game.MaxModulesFull, StringFormat=' /  {0}'}" />
+
+						<TextBlock Grid.Row="1" Grid.Column="0" Text="Light:" />
+						<TextBlock Grid.Row="1" Grid.Column="1"
+								   Text="{Binding Game.ModulesLight.Count, StringFormat='{}{0,5}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ModulesLightWarning}"
+								   Classes.Bad="{Binding Game.ModulesLightMaxed}" />
+						<TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Game.MaxModulesLight, StringFormat=' / {0}'}" />
+
+						<TextBlock Grid.Row="2" Grid.Column="0" Text="Total:" />
+						<TextBlock Grid.Row="2" Grid.Column="1"
+								   Text="{Binding Game.TotalModules, StringFormat='{}{0,5}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.TotalModulesWarning}"
+								   Classes.Bad="{Binding Game.TotalModulesMaxed}" />
+						<TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Game.TotalModulesMax, StringFormat=' / {0}'}" />
+
+						<TextBlock Grid.Row="3" Grid.Column="0" Text="Unreadable:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+						<TextBlock Grid.Row="3" Grid.Column="1"
+								   Text="{Binding Game.ModulesUnreadable.Count, StringFormat='{}{0,5}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+
+						<Separator Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" />
+
+						<TextBlock Grid.Row="5" Grid.Column="0" Text="HEDR v1.00:" />
+						<TextBlock Grid.Row="5" Grid.Column="1"
+								   Text="{Binding Game.Modules100.Count, StringFormat='{}{0,5}'}" />
+
+						<TextBlock Grid.Row="6" Grid.Column="0" Text="HEDR v0.95:" />
+						<TextBlock Grid.Row="6" Grid.Column="1"
+								   Text="{Binding Game.Modules095.Count, StringFormat='{}{0,5}'}" />
+
+						<TextBlock Grid.Row="7" Grid.Column="0" Text="HEDR v????:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasModulesUnknown}" />
+						<TextBlock Grid.Row="7" Grid.Column="1"
+								   Text="{Binding Game.ModulesUnknown.Count, StringFormat='{}{0,5}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasModulesUnknown}" />
+					</Grid>
+				</ctrl:GroupBox>
+			</Grid>
+		</TabItem>
+		<TabItem Header="F4SE" />
+		<TabItem Header="Scanner" />
+		<TabItem Header="Tools" />
+		<TabItem Header="Settings" />
+		<TabItem Header="About" />
+	</TabControl>
+
+</Window>
