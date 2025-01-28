@@ -143,23 +143,25 @@ public partial class Game : ObservableObject
 	};
 
 	private readonly string _pluginsTxt;
+	private readonly string? _modListTxt;
 	private readonly string _gameIniPath;
 
-	public Game(IModManager? managerInfo)
+	public Game(IModManager? manager)
 	{
-		//_Computer = computer;
-
 		BA2Suffixes = new(_default_ba2_suffixes); // TODO: Remove
-		GamePath = FindGamePath(managerInfo);
+		GamePath = FindGamePath(manager);
 		DataPath = Path.Combine(GamePath, "Data");
 		F4SEPath = Path.Combine(DataPath, "F4SE", "Plugins");
 
-
-		_pluginsTxt = managerInfo?.PluginsTxt ?? Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
+		_pluginsTxt = manager?.PluginsTxt ?? Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
 		if (!File.Exists(_pluginsTxt))
 			throw new FileNotFoundException(_pluginsTxt);
 
-		_gameIniPath = managerInfo?.GameIniPath ?? Computer.DocumentsFallout4;
+		_modListTxt = manager?.ModListTxt;
+		if (!File.Exists(_modListTxt))
+			throw new FileNotFoundException(_modListTxt);
+
+		_gameIniPath = manager?.GameIniPath ?? Computer.DocumentsFallout4;
 		if (!Directory.Exists(_gameIniPath))
 			throw new DirectoryNotFoundException(_gameIniPath);
 
@@ -176,10 +178,10 @@ public partial class Game : ObservableObject
 		//Source = string.Empty;
 	}
 
-	private static string FindGamePath(IModManager? managerInfo)
+	private static string FindGamePath(IModManager? manager)
 	{
-		if (managerInfo != null && managerInfo.GamePath != null)
-			return managerInfo.GamePath;
+		if (manager != null && manager.GamePath != null)
+			return manager.GamePath;
 		else
 		{
 			// TODO: Detect steam library folders and find game
