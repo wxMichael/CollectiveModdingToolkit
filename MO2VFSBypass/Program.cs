@@ -8,7 +8,7 @@ internal class Program
 	{
 		string dataPath = @"C:\Program Files (x86)\Steam\steamapps\common\Fallout 4\Data";
 		string pluginPath = Path.Combine(dataPath, "community fixes merged.esp");
-		Console.WriteLine($"community fixes merged.esp Exists: {File.Exists(pluginPath)}");
+		Console.WriteLine($"MO2VFSBypass: community fixes merged.esp Exists: {File.Exists(pluginPath)}");
 
 		//string bypassPath = @"C:\Users\Michael\source\repos\MO2VFSBypass\GameOverlayUI.exe";
 		//ProcessStartInfo info = new()
