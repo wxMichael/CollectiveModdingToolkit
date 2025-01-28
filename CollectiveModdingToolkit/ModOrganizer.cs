@@ -25,6 +25,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 
 	public string? StagePath { get; private set; }
 	public string? PluginsTxt { get; private set; }
+	public string? ModListTxt { get; private set; }
 	public string? GameIniPath { get; private set; }
 
 	private static readonly IniParserConfiguration IniParserConfig = new()
@@ -225,6 +226,10 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 			string pluginsTxt = Path.Combine(_profilesDirectory, Profile, "plugins.txt");
 			if (File.Exists(pluginsTxt))
 				PluginsTxt = pluginsTxt;
+
+			string modListTxt = Path.Combine(_profilesDirectory, Profile, "modlist.txt");
+			if (File.Exists(modListTxt))
+				ModListTxt = modListTxt;
 
 			// TODO: use settings.ini (and _profile_local_inis ??)
 			string gameIniPath = Path.Combine(_profilesDirectory, Profile);
