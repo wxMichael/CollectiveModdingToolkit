@@ -13,6 +13,7 @@ public interface IModManager
 	string Profile { get; }
 	string? StagePath { get; }
 	string? PluginsTxt { get; }
+	string? ModListTxt { get; }
 	string? GameIniPath { get; }
 
 	void ReadSettings();
