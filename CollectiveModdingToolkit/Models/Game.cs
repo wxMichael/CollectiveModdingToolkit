@@ -1,3 +1,4 @@
+using CollectiveModdingToolkit.Managers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IniParser;
 using IniParser.Model;
@@ -9,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Hashing;
-using System.Linq;
 using System.Text;
 
 namespace CollectiveModdingToolkit.Models;
@@ -143,54 +143,46 @@ public partial class Game : ObservableObject
 	};
 
 	private readonly string _pluginsTxt;
-	private readonly string? _modListTxt;
-	private readonly string _gameIniPath;
 
-	public Game(IModManager? manager)
+	public Game(IModManager manager)
 	{
 		BA2Suffixes = new(_default_ba2_suffixes); // TODO: Remove
 		GamePath = FindGamePath(manager);
 		DataPath = Path.Combine(GamePath, "Data");
 		F4SEPath = Path.Combine(DataPath, "F4SE", "Plugins");
 
-		_pluginsTxt = manager?.PluginsTxt ?? Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
+		_pluginsTxt = manager.PluginsTxtPath;
 		if (!File.Exists(_pluginsTxt))
 			throw new FileNotFoundException(_pluginsTxt);
 
-		_modListTxt = manager?.ModListTxt;
-		if (!File.Exists(_modListTxt))
-			throw new FileNotFoundException(_modListTxt);
+		//_modListTxt = manager?.ModListTxt;
+		//if (!File.Exists(_modListTxt))
+		//	throw new FileNotFoundException(_modListTxt);
 
-		_gameIniPath = manager?.GameIniPath ?? Computer.DocumentsFallout4;
-		if (!Directory.Exists(_gameIniPath))
-			throw new DirectoryNotFoundException(_gameIniPath);
+		if (!Directory.Exists(manager.GameIniPath))
+			throw new DirectoryNotFoundException(manager.GameIniPath);
 
-		ReadGameINIs(_gameIniPath);
+		ReadGameINIs(manager.GameIniPath);
 
 		GetBinaryInfo();
-		GetModuleLists();
-		GetArchiveLists();
+		GetModuleLists(manager);
+		GetArchiveLists(manager);
 
-		GetModuleInfo();
-		GetArchiveInfo();
+		GetModuleInfo(manager);
+		GetArchiveInfo(manager);
 
 		//GameVersion = string.Empty;
 		//Source = string.Empty;
 	}
 
-	private static string FindGamePath(IModManager? manager)
-	{
-		if (manager != null && manager.GamePath != null)
-			return manager.GamePath;
-		else
-		{
-			// TODO: Detect steam library folders and find game
-			// TODO: Prompt user to choose between all non-manager game install detections or manual entry
-			// TODO: Game source
-			string? path = GetRegistryInstallPath() ?? GetRegistryInstallPathGOG();
-			return path ?? throw new NotImplementedException();
-		}
-	}
+	// TODO: Detect steam library folders and find game
+	// TODO: Prompt user to choose between all non-manager game install detections or manual entry
+	// TODO: Game source
+	private static string FindGamePath(IModManager manager) =>
+		manager.GamePath
+		?? GetRegistryInstallPath()
+		?? GetRegistryInstallPathGOG()
+		?? throw new NotImplementedException();
 
 	private static string? GetRegistryInstallPath()
 	{
@@ -532,16 +524,25 @@ public partial class Game : ObservableObject
 		//foreach (KeyValuePair<string, string> s in BinaryInfo) Console.WriteLine(s);
 	}
 
-	private void GetModuleLists()
+	private void GetModuleLists(IModManager manager)
 	{
 		ModulesEnabled.Clear();
 
-		foreach (string module in _gameMasters)
+		// TODO: Make case-insensitive
+		foreach (string moduleName in _gameMasters)
 		{
-			string modulePath = Path.Combine(DataPath, module);
+			//if (manager.ModulesWinning.ContainsKey(moduleName))
+			//	continue;
+
+			string modulePath = Path.Combine(DataPath, moduleName);
 			if (File.Exists(modulePath))
-				ModulesEnabled.Add(module);
-			// TODO: store path?
+			{
+				Module module = new(moduleName, modulePath);
+				manager.Modules.Add(module);
+				manager.ModulesWinning.TryAdd(moduleName, module);
+				manager.ModulesWinning[moduleName].IsEnabled = true;
+				ModulesEnabled.Add(moduleName);
+			}
 		}
 
 		// TODO: check if force enabled or if its even possible to disable
@@ -549,77 +550,164 @@ public partial class Game : ObservableObject
 		string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
 		if (!File.Exists(cccPath))
 			throw new NotImplementedException("Fallout4.ccc missing");
+		// TODO: Encoding
 		string[] contents = File.ReadAllLines(cccPath, Encoding.UTF8);
-		foreach (string module in contents)
+		foreach (string moduleName in contents)
 		{
-			string modulePath = Path.Combine(DataPath, module);
+			string modulePath = Path.Combine(DataPath, moduleName);
 			if (File.Exists(modulePath))
-				ModulesCCC.Add(module);
-			// TODO: store path?
+			{
+				Module module = new(moduleName, modulePath);
+				manager.Modules.Add(module);
+				manager.ModulesWinning.TryAdd(moduleName, module);
+				manager.ModulesWinning[moduleName].IsEnabled = true;
+				ModulesCCC.Add(moduleName);
+			}
 		}
 		ModulesEnabled.UnionWith(ModulesCCC);
 
 		//string pluginsPath = Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
 		//if (!File.Exists(_pluginsTxt))
 		//	throw new NotImplementedException("plugins.txt missing");
+		// TODO: Encoding
 		contents = File.ReadAllLines(_pluginsTxt, Encoding.UTF8);
-		foreach (string module in contents)
+		foreach (string line in contents)
 		{
-			if (!module.StartsWith('*'))
+			if (!line.StartsWith('*'))
 				continue;
-			string modulePath = Path.Combine(DataPath, module[1..]);
+			string moduleName = line[1..];
+			string modulePath = Path.Combine(DataPath, moduleName);
+			Module? module;
 			if (File.Exists(modulePath))
-				ModulesEnabled.Add(module[1..]);
-			// TODO: store path?
+			{
+				module = new(moduleName, modulePath);
+				manager.Modules.Add(module);
+				manager.ModulesWinning.TryAdd(moduleName, module);
+			}
+			if (manager.ModulesWinning.TryGetValue(moduleName, out module))
+			{
+				module.IsEnabled = true;
+				ModulesEnabled.Add(moduleName);
+			}
 			// TODO: store missing files
 			// TODO: store disabled files
 			// TODO: check first line comment
 		}
 	}
 
-	private void GetModuleInfo()
+	//private void GetModuleLists(IModManager manager)
+	//{
+	//	ModulesEnabled.Clear();
+
+	//	foreach (string moduleName in _gameMasters)
+	//	{
+	//		string modulePath = Path.Combine(DataPath, moduleName);
+	//		if (File.Exists(modulePath))
+	//			ModulesEnabled.Add(moduleName);
+	//		// TODO: store path?
+	//	}
+
+	//	// TODO: check if force enabled or if its even possible to disable
+	//	ModulesCCC.Clear();
+	//	string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
+	//	if (!File.Exists(cccPath))
+	//		throw new NotImplementedException("Fallout4.ccc missing");
+	//	string[] contents = File.ReadAllLines(cccPath, Encoding.UTF8);
+	//	foreach (string moduleName in contents)
+	//	{
+	//		string modulePath = Path.Combine(DataPath, moduleName);
+	//		if (File.Exists(modulePath))
+	//			ModulesCCC.Add(moduleName);
+	//		// TODO: store path?
+	//	}
+	//	ModulesEnabled.UnionWith(ModulesCCC);
+
+	//	//string pluginsPath = Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
+	//	//if (!File.Exists(_pluginsTxt))
+	//	//	throw new NotImplementedException("plugins.txt missing");
+	//	contents = File.ReadAllLines(_pluginsTxt, Encoding.UTF8);
+	//	foreach (string moduleName in contents)
+	//	{
+	//		if (!moduleName.StartsWith('*'))
+	//			continue;
+	//		string modulePath = Path.Combine(DataPath, moduleName[1..]);
+	//		if (File.Exists(modulePath))
+	//			ModulesEnabled.Add(moduleName[1..]);
+	//		// TODO: store path?
+	//		// TODO: store missing files
+	//		// TODO: store disabled files
+	//		// TODO: check first line comment
+	//	}
+	//}
+
+	private void GetModuleInfo(IModManager manager)
 	{
 		ModulesUnreadable.Clear();
+		ModulesUnknown.Clear();
 		ModulesFull.Clear();
 		ModulesLight.Clear();
 		Modules100.Clear();
 		Modules095.Clear();
 
-		foreach (string module in ModulesEnabled)
+		foreach ((string moduleName, Module module) in manager.ModulesWinning)
 		{
-			string modulePath = Path.Combine(DataPath, module);
-			using FileStream file = File.OpenRead(modulePath);
-			byte[] header = new byte[34];
-			int bytesRead = file.Read(header, 0, header.Length);
+			if (module.IsEnabled != true)
+				continue;
 
-			if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.TES4) || !header[24..28].SequenceEqual(Magic.HEDR))
+			module.ReadHeader();
+			if (module.IsReadable != true)
 			{
-				ModulesUnreadable.Add(module); // TOD: check if counted against limits (+ba2)
+				ModulesUnreadable.Add(moduleName);
 				continue;
 			}
-			double hedrVersion = Math.Round(BitConverter.ToSingle(header, 30), 2);
-			if (hedrVersion == 1)
-				Modules100.Add(module);
-			else if (hedrVersion == 0.95)
-				Modules095.Add(module);
+
+			if (module.HEDRVersion == 1)
+				Modules100.Add(moduleName);
+			else if (module.HEDRVersion == 0.95)
+				Modules095.Add(moduleName);
 			else
-				ModulesUnknown.Add(module);
-			if (module.EndsWith(".esl", StringComparison.OrdinalIgnoreCase))
-			{
-				ModulesLight.Add(module);
-			}
+				ModulesUnknown.Add(moduleName);
+
+			if (module.IsLight == true)
+				ModulesLight.Add(moduleName);
 			else
-			{
-				int flags = BitConverter.ToInt32(header, 8);
-				if ((flags & Magic.Light) != 0)
-					ModulesLight.Add(module);
-				else
-					ModulesFull.Add(module);
-			}
+				ModulesFull.Add(moduleName);
 		}
+		//foreach (string module in ModulesEnabled)
+		//{
+		//	string modulePath = Path.Combine(DataPath, module);
+		//	using FileStream file = File.OpenRead(modulePath);
+		//	byte[] header = new byte[34];
+		//	int bytesRead = file.Read(header, 0, header.Length);
+
+		//	if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.TES4) || !header[24..28].SequenceEqual(Magic.HEDR))
+		//	{
+		//		ModulesUnreadable.Add(module); // TODO: check if counted against limits (+ba2)
+		//		continue;
+		//	}
+		//	double hedrVersion = Math.Round(BitConverter.ToSingle(header, 30), 2);
+		//	if (hedrVersion == 1)
+		//		Modules100.Add(module);
+		//	else if (hedrVersion == 0.95)
+		//		Modules095.Add(module);
+		//	else
+		//		ModulesUnknown.Add(module);
+		//	if (module.EndsWith(".esl", StringComparison.OrdinalIgnoreCase))
+		//	{
+		//		ModulesLight.Add(module);
+		//	}
+		//	else
+		//	{
+		//		int flags = BitConverter.ToInt32(header, 8);
+		//		if ((flags & Magic.Light) != 0)
+		//			ModulesLight.Add(module);
+		//		else
+		//			ModulesFull.Add(module);
+		//	}
+		//}
 	}
 
-	private void GetArchiveLists()
+	private void GetArchiveLists(IModManager manager)
 	{
 		ArchivesEnabled.Clear();
 		ArchivesINI.Clear();
@@ -633,13 +721,30 @@ public partial class Game : ObservableObject
 				continue;
 			ArchivesINI.UnionWith(archives.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
 		}
+		// Test with custom Nvflex BA2
 		if (Config?["NVFlex"]["bNVFlexEnable"] == "1")
 			ArchivesINI.Add("Fallout4 - Nvflex.ba2");
 
-		foreach (string archive in ArchivesINI)
+		foreach (string archiveName in ArchivesINI)
 		{
-			if (!File.Exists(Path.Combine(DataPath, archive)))
-				ArchivesINI.Remove(archive);
+			string archivePath = Path.Combine(DataPath, archiveName);
+			Archive? archive;
+			if (File.Exists(archivePath))
+			{
+				archive = new(archiveName, archivePath);
+				manager.Archives.Add(archive);
+				manager.ArchivesWinning.TryAdd(archiveName, archive);
+			}
+			if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
+			{
+				archive.IsEnabled = true;
+				//ArchivesEnabled.Add(archiveName);
+			}
+			else
+			{
+				// TODO: Track missing
+				ArchivesINI.Remove(archiveName);
+			}
 		}
 
 		ArchivesEnabled.UnionWith(ArchivesINI);
@@ -651,16 +756,27 @@ public partial class Game : ObservableObject
 
 			foreach (string suffix in BA2Suffixes)
 			{
+				// TODO: Review this
 				string archiveName = $"{moduleBaseName} - {suffix}.ba2";
 				string archivePath = Path.Combine(DataPath, archiveName);
-				if (File.Exists(archivePath))
+				Archive? archive;
+				if (!ArchivesINI.Contains(archiveName) && File.Exists(archivePath))
+				{
+					archive = new(archiveName, archivePath);
+					manager.Archives.Add(archive);
+					manager.ArchivesWinning.TryAdd(archiveName, archive);
+					//ArchivesEnabled.Add(archiveName);
+				}
+				if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
+				{
+					archive.IsEnabled = true;
 					ArchivesEnabled.Add(archiveName);
-
+				}
 			}
 		}
 	}
 
-	private void GetArchiveInfo()
+	private void GetArchiveInfo(IModManager manager)
 	{
 		ArchivesGeneral.Clear();
 		ArchivesTexture.Clear();
@@ -669,36 +785,76 @@ public partial class Game : ObservableObject
 		ArchivesUnreadable.Clear();
 		ArchivesUnknown.Clear();
 
-		foreach (string archive in ArchivesEnabled)
+		if (GameVersion == Models.GameVersion.OldGen && manager.ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out Archive? startupArchive))
 		{
-			string archivePath = Path.Combine(DataPath, archive);
-			using FileStream file = File.OpenRead(archivePath);
-			byte[] header = new byte[12];
-			int bytesRead = file.Read(header, 0, header.Length);
-
-			if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.BTDX))
+			string hash = $"{Crc32.HashToUInt32(File.ReadAllBytes(startupArchive.PathFull).AsSpan(12)):X8}";
+			Console.WriteLine(hash);
+			if (hash == "A5808F5F")
 			{
-				ArchivesUnreadable.Add(archive);
-				continue;
+				GameVersion = Models.GameVersion.DownGrade;
 			}
-			byte archiveVersion = header[4];
-			if (archiveVersion == 1)
-				ArchivesOG.Add(archive);
-			else if (archiveVersion is 7 or 8)
-				ArchivesNG.Add(archive);
-			else
-			{
-				ArchivesUnknown.Add(archive);
-				continue;
-			}
-
-			byte[] archiveFormat = header[8..12];
-			if (archiveFormat.SequenceEqual(Magic.GNRL))
-				ArchivesGeneral.Add(archive);
-			else if (archiveFormat.SequenceEqual(Magic.DX10))
-				ArchivesTexture.Add(archive);
-			else
-				ArchivesUnknown.Add(archive);
 		}
+
+
+		foreach ((string archiveName, Archive archive) in manager.ArchivesWinning)
+		{
+			if (archive.IsEnabled != true)
+				continue;
+
+			//Console.WriteLine(archiveName);
+			archive.ReadHeader();
+			if (archive.IsReadable != true)
+			{
+				ModulesUnreadable.Add(archiveName);
+				continue;
+			}
+
+			if (archive.ArchiveVersion == 1)
+				ArchivesOG.Add(archiveName);
+			else if (archive.ArchiveVersion is 7 or 8)
+				ArchivesNG.Add(archiveName);
+			else
+				ArchivesUnknown.Add(archiveName);
+
+			if (archive.ArchiveFormat == "GNRL")
+				ArchivesGeneral.Add(archiveName);
+			else if (archive.ArchiveFormat == "DX10")
+				ArchivesTexture.Add(archiveName);
+			else
+				ArchivesUnknown.Add(archiveName);
+		}
+
+
+		//foreach (string archive in ArchivesEnabled)
+		//{
+		//	string archivePath = Path.Combine(DataPath, archive);
+		//	using FileStream file = File.OpenRead(archivePath);
+		//	byte[] header = new byte[12];
+		//	int bytesRead = file.Read(header, 0, header.Length);
+
+		//	if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.BTDX))
+		//	{
+		//		ArchivesUnreadable.Add(archive);
+		//		continue;
+		//	}
+		//	byte archiveVersion = header[4];
+		//	if (archiveVersion == 1)
+		//		ArchivesOG.Add(archive);
+		//	else if (archiveVersion is 7 or 8)
+		//		ArchivesNG.Add(archive);
+		//	else
+		//	{
+		//		ArchivesUnknown.Add(archive);
+		//		continue;
+		//	}
+
+		//	byte[] archiveFormat = header[8..12];
+		//	if (archiveFormat.SequenceEqual(Magic.GNRL))
+		//		ArchivesGeneral.Add(archive);
+		//	else if (archiveFormat.SequenceEqual(Magic.DX10))
+		//		ArchivesTexture.Add(archive);
+		//	else
+		//		ArchivesUnknown.Add(archive);
+		//}
 	}
 }
