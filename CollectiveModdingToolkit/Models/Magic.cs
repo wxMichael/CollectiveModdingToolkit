@@ -18,6 +18,7 @@ internal static class Magic
 
 internal static class GameVersion
 {
+	internal static string DownGrade = "Down-Grade";
 	internal static string OldGen = "Old-Gen";
 	internal static string NextGen = "Next-Gen";
 	internal static string Unknown = "Unknown";
