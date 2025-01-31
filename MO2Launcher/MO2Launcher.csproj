@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>WinExe</OutputType>
 		<TargetFramework>net48</TargetFramework>
 		<RuntimeIdentifier>win-x86</RuntimeIdentifier>
+
+
 		<ApplicationIcon>..\CollectiveModdingToolkit\Assets\Images\icon-64.ico</ApplicationIcon>
 	</PropertyGroup>
 
