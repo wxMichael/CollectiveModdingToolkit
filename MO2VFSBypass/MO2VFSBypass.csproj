@@ -11,6 +11,7 @@
 		<PublishSelfContained>True</PublishSelfContained>
 		<PublishSingleFile>True</PublishSingleFile>
 		<PublishTrimmed>True</PublishTrimmed>
+
 		<ApplicationIcon>..\CollectiveModdingToolkit\Assets\Images\icon-64.ico</ApplicationIcon>
 	</PropertyGroup>
 
