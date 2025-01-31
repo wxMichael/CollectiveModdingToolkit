@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>WinExe</OutputType>
 		<TargetFramework>net9.0-windows</TargetFramework>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<LangVersion>preview</LangVersion>
@@ -9,8 +9,12 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		
 		<PublishTrimmed>False</PublishTrimmed>
 		<TrimMode>partial</TrimMode>
+		<PublishSelfContained>True</PublishSelfContained>
+		<PublishSingleFile>True</PublishSingleFile>
+		
 		<ApplicationIcon>Assets\Images\icon-64.ico</ApplicationIcon>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,7 +22,7 @@
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<OutputType>Exe</OutputType>
+		<OutputType>WinExe</OutputType>
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
 
