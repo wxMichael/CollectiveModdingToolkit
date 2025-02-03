@@ -114,13 +114,13 @@ public partial class DLL : IFile
 		[In] IntPtr Data,
 		[In] int Flags);
 
-	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool SymEnumerateSymbols64(
-		[In] IntPtr hProcess,
-		[In] ulong BaseOfDll,
-		[In] SymEnumerateSymbolsProc64 EnumSymbolsCallback,
-		[In, Optional] IntPtr UserContext);
+	//[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+	//[return: MarshalAs(UnmanagedType.Bool)]
+	//private static extern bool SymEnumerateSymbols64(
+	//	[In] IntPtr hProcess,
+	//	[In] ulong BaseOfDll,
+	//	[In] SymEnumerateSymbolsProc64 EnumSymbolsCallback,
+	//	[In, Optional] IntPtr UserContext);
 
 	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 	private static extern bool SymEnumSymbols(
@@ -131,26 +131,29 @@ public partial class DLL : IFile
 		[In, Optional] IntPtr UserContext);
 
 
-	private delegate bool SymEnumerateSymbolsProc64(string SymbolName, ulong SymbolAddress, uint SymbolSize, IntPtr UserContext);
 	private delegate bool SymEnumSymbolsProc(IntPtr pSymInfo, uint SymbolSize, IntPtr UserContext);
 
-	private bool EnumSyms(string name, ulong address, uint size, IntPtr context)
-	{
-		if (name.StartsWith("F4SEPlugin"))
-		{
-			Console.WriteLine($"{Name}: {name}");
-			_symbols.Add(name);
-		}
-		return true;
-	}
 
-	private bool EnumSymbolsCallback(SYMBOL_INFO pSymInfo, uint SymbolSize, IntPtr UserContext)
+	//private delegate bool SymEnumerateSymbolsProc64(string SymbolName, ulong SymbolAddress, uint SymbolSize, IntPtr UserContext);
+	//private delegate bool SymEnumSymbolsProc(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext);
+
+	//private bool EnumSyms(string name, ulong address, uint size, IntPtr context)
+	//{
+	//	if (name.StartsWith("F4SEPlugin"))
+	//	{
+	//		Console.WriteLine($"{Name}: {name}");
+	//		_symbols.Add(name);
+	//	}
+	//	return true;
+	//}
+
+	private bool EnumSymbolsCallback(SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext)
 	{
 
-		if (pSymInfo.Name.StartsWith("F4SEPlugin"))
+		if (SymbolInfo.Name.StartsWith("F4SEPlugin"))
 		{
-			Console.WriteLine($"{Name}: {pSymInfo.Name}");
-			_symbols.Add(pSymInfo.Name);
+			Console.WriteLine($"{Name}: {SymbolInfo.Name}");
+			_symbols.Add(SymbolInfo.Name);
 		}
 		return true;
 	}
@@ -231,14 +234,4 @@ public struct SYMBOL_INFO
 	public uint MaxNameLen;
 	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
 	public string Name; // Note: This will need to be handled differently for actual usage
-}
-
-public class DbgHelp
-{
-
-	[DllImport("dbghelp.dll", SetLastError = true)]
-	private static extern bool SymEnumSymbols(IntPtr hProcess, ulong BaseOfDll, string Mask, EnumSymbolsCallback Callback, IntPtr UserContext);
-
-	private delegate bool EnumSymbolsCallback(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext);
-
 }
