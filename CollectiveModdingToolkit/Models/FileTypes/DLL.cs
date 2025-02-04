@@ -44,6 +44,26 @@ public partial class DLL : IFile
 		Priority = priority == 0 ? 0 : priority + 1;
 		Mod = modName;
 	}
+	private static void PrintProperties(SYMBOL_INFO symInfo)
+	{
+		foreach (System.Reflection.PropertyInfo prop in symInfo.GetType().GetProperties())
+			Console.WriteLine(prop.Name + ": " + prop.GetValue(symInfo, null));
+
+		foreach (System.Reflection.FieldInfo field in symInfo.GetType().GetFields())
+			Console.WriteLine(field.Name + ": " + field.GetValue(symInfo));
+	}
+
+	private delegate bool SymEnumSymbolsProc(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext);
+
+	private bool EnumSymbolsCallback(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, nint UserContext)
+	{
+		Console.WriteLine($"==== {SymbolInfo.Name} ================");
+		PrintProperties(SymbolInfo);
+		//if (!SymbolInfo.Name.Contains("$dtor"))
+		//	Console.WriteLine($"{SymbolInfo.Name} | {SymbolInfo.Name.Length} | {SymbolInfo.NameLen} | {SymbolInfo.MaxNameLen}");
+		_symbols.Add(SymbolInfo.Name);
+		return true;
+	}
 
 	internal void Read()
 	{
@@ -65,22 +85,24 @@ public partial class DLL : IFile
 				int error = Marshal.GetLastWin32Error();
 				Console.WriteLine($"Failed to load module. {WinErrors.GetSystemMessage((uint)error)}");
 				IsReadable = false;
-				//SymCleanup(hCurrentProcess);
 				return;
 			}
 
-			//if (!SymEnumerateSymbols64(hCurrentProcess, baseOfDll, EnumSyms, IntPtr.Zero))
-			if (!SymEnumSymbols(hCurrentProcess, baseOfDll, "", EnumSymbolsCallback, IntPtr.Zero))
+
+			Console.WriteLine(Name);
+			bool status = SymEnumSymbols(hCurrentProcess, baseOfDll, "F4SEPlugin*", EnumSymbolsCallback, IntPtr.Zero);
+			if (!status)
 			{
 				Console.WriteLine("Failed to enum symbols.");
 				IsReadable = false;
 				return;
 			}
 			IsReadable = true;
+
 		}
 		catch (Exception ex)
 		{
-			//IsReadable = false;
+			IsReadable = false;
 			Console.WriteLine(ex.Message);
 		}
 		finally
@@ -131,7 +153,6 @@ public partial class DLL : IFile
 		[In, Optional] IntPtr UserContext);
 
 
-	private delegate bool SymEnumSymbolsProc(IntPtr pSymInfo, uint SymbolSize, IntPtr UserContext);
 
 
 	//private delegate bool SymEnumerateSymbolsProc64(string SymbolName, ulong SymbolAddress, uint SymbolSize, IntPtr UserContext);
@@ -147,16 +168,7 @@ public partial class DLL : IFile
 	//	return true;
 	//}
 
-	private bool EnumSymbolsCallback(SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext)
-	{
 
-		if (SymbolInfo.Name.StartsWith("F4SEPlugin"))
-		{
-			Console.WriteLine($"{Name}: {SymbolInfo.Name}");
-			_symbols.Add(SymbolInfo.Name);
-		}
-		return true;
-	}
 
 	//private void readit()
 	//{
@@ -214,7 +226,7 @@ public static class WinErrors
 
 
 
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 public struct SYMBOL_INFO
 {
 	public uint SizeOfStruct;
@@ -232,6 +244,6 @@ public struct SYMBOL_INFO
 	public uint Tag;
 	public uint NameLen;
 	public uint MaxNameLen;
-	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
 	public string Name; // Note: This will need to be handled differently for actual usage
 }
