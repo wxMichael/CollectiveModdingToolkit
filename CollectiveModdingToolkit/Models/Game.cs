@@ -425,8 +425,7 @@ public partial class Game : ObservableObject
 		Fallout4Good = Fallout4Version == GameVersion;
 
 
-		//string fileName = "Fallout4Launcher.exe";
-		fileName = "Fallout4Launcher.exe";
+		string fileName = "Fallout4Launcher.exe";
 		filePath = Path.Combine(GamePath, fileName);
 		if (File.Exists(filePath))
 		{
