@@ -1,4 +1,6 @@
 using CollectiveModdingToolkit.Managers;
+using CollectiveModdingToolkit.Models.FileTypes;
+using CollectiveModdingToolkit.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IniParser;
 using IniParser.Model;
@@ -7,15 +9,18 @@ using IniParser.Parser;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Hashing;
+using System.Linq;
 using System.Text;
 
 namespace CollectiveModdingToolkit.Models;
 
 public partial class Game : ObservableObject
 {
+	public static Game? Instance { get; private set; }
+
 	[ObservableProperty] public partial string GamePath { get; set; } = string.Empty;
 	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
 	[ObservableProperty] public partial string Source { get; set; } = string.Empty;
@@ -29,11 +34,21 @@ public partial class Game : ObservableObject
 	[ObservableProperty] public partial string Archive2Version { get; set; } = string.Empty;
 	[ObservableProperty] public partial string Archive2InteropVersion { get; set; } = string.Empty;
 
-	internal IniData? Config { get; private set; }
-	internal IniData? Prefs { get; private set; }
-	public string DataPath { get; private set; }
-	public string F4SEPath { get; private set; }
+	[ObservableProperty] public partial bool? Fallout4Good { get; private set; } = null;
+	[ObservableProperty] public partial bool? Fallout4LauncherGood { get; private set; } = null;
+	[ObservableProperty] public partial bool? Steam_api64Good { get; private set; } = null;
+	[ObservableProperty] public partial bool? F4se_loaderGood { get; private set; } = null;
+	[ObservableProperty] public partial bool? F4se_steam_loaderGood { get; private set; } = null;
+	[ObservableProperty] public partial bool? CreationKitGood { get; private set; } = null;
+	[ObservableProperty] public partial bool? Archive2Good { get; private set; } = null;
+	[ObservableProperty] public partial bool? Archive2InteropGood { get; private set; } = null;
+
+	public ObservableCollection<DLL> Dlls { get; set; } = [];
+
+	public string DataPath { get; private set; } = string.Empty;
+	public string F4SEPath { get; private set; } = string.Empty;
 	public string Language { get; private set; } = "en";
+
 	public SortedSet<string> ArchivesINI { get; } = [];
 	public SortedSet<string> ArchivesEnabled { get; } = [];
 	public SortedSet<string> ArchivesGeneral { get; } = [];
@@ -51,6 +66,11 @@ public partial class Game : ObservableObject
 	public SortedSet<string> ModulesLight { get; } = [];
 	public SortedSet<string> ModulesUnreadable { get; } = [];
 	public SortedSet<string> ModulesUnknown { get; } = [];
+	public SortedSet<string> DllsUnreadable { get; } = [];
+
+	// TODO: remove .DownGrade and just have IsDG
+	public bool IsOG => GameVersion == Models.GameVersion.DownGrade || GameVersion == Models.GameVersion.OldGen;
+	public bool IsNG => GameVersion == Models.GameVersion.NextGen;
 
 	public int TotalArchives => ArchivesGeneral.Count + ArchivesTexture.Count;
 	public int TotalModules => ModulesFull.Count + ModulesLight.Count;
@@ -75,15 +95,6 @@ public partial class Game : ObservableObject
 	public bool HasArchivesUnreadable => ArchivesUnreadable.Count > 0;
 	public bool HasArchivesUnknown => ArchivesUnreadable.Count > 0;
 
-	[ObservableProperty] public partial bool? Fallout4Good { get; private set; } = null;
-	[ObservableProperty] public partial bool? Fallout4LauncherGood { get; private set; } = null;
-	[ObservableProperty] public partial bool? Steam_api64Good { get; private set; } = null;
-	[ObservableProperty] public partial bool? F4se_loaderGood { get; private set; } = null;
-	[ObservableProperty] public partial bool? F4se_steam_loaderGood { get; private set; } = null;
-	[ObservableProperty] public partial bool? CreationKitGood { get; private set; } = null;
-	[ObservableProperty] public partial bool? Archive2Good { get; private set; } = null;
-	[ObservableProperty] public partial bool? Archive2InteropGood { get; private set; } = null;
-
 	public SortedSet<string> BA2Suffixes { get; private set; }
 	private static readonly string[] _default_ba2_suffixes = ["main", "textures", "voices_en"];
 
@@ -92,6 +103,9 @@ public partial class Game : ObservableObject
 	public static int MaxModulesLight { get; } = 4096;
 	public static int TotalArchivesMax { get; } = MaxArchives * 2;
 	public static int TotalModulesMax { get; } = MaxModulesFull + MaxModulesLight;
+
+	internal IniData? Config { get; private set; }
+	internal IniData? Prefs { get; private set; }
 
 	private static readonly IniParserConfiguration IniParserConfig = new()
 	{
@@ -104,7 +118,6 @@ public partial class Game : ObservableObject
 		SkipInvalidLines = true,
 	};
 
-	//private Computer _Computer;
 	private readonly string[] _gameMasters = [
 		"Fallout4.esm",
 		"Fallout4_VR.esm",
@@ -120,7 +133,9 @@ public partial class Game : ObservableObject
 	private static readonly string Fallout4exeOG = "1.10.163.0";
 	private static readonly string Fallout4exeNG = "1.10.984.0";
 	//{ "Fallout4.exe", "1.10.980.0" },
-	private static readonly string steam_api64_OG_GOG = "BD3AA35F";
+	//private static readonly string steam_api64_OG_GOG = "BD3AA35F";
+
+	private static readonly string _mainExe = "Fallout4.exe";
 	private static readonly Dictionary<string, string> binariesOG = new()
 	{
 		{ "Fallout4Launcher.exe", "02445570" },
@@ -142,34 +157,68 @@ public partial class Game : ObservableObject
 		{ Path.Combine("Tools", "Archive2", "Archive2Interop.dll"), "EFBE3622" },
 	};
 
-	private readonly string _pluginsTxt;
-
 	public Game(IModManager manager)
 	{
+		Instance = this;
+
 		BA2Suffixes = new(_default_ba2_suffixes); // TODO: Remove
-		GamePath = FindGamePath(manager);
+		string? gamePath = FindGamePath(manager);
+		if (gamePath == null)
+		{
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), "Fallout 4 install folder.");
+			return;
+		}
+		GamePath = gamePath;
 		DataPath = Path.Combine(GamePath, "Data");
 		F4SEPath = Path.Combine(DataPath, "F4SE", "Plugins");
 
-		_pluginsTxt = manager.PluginsTxtPath;
-		if (!File.Exists(_pluginsTxt))
-			throw new FileNotFoundException(_pluginsTxt);
+		if (!Directory.Exists(GamePath))
+		{
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), GamePath);
+			return;
+		}
+
+		if (!Directory.Exists(DataPath))
+		{
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), DataPath);
+			return;
+		}
+
+		if (!File.Exists(manager.PluginsTxtPath))
+		{
+			MainWindow.CriticalError(typeof(FileNotFoundException), manager.PluginsTxtPath);
+			return;
+		}
 
 		//_modListTxt = manager?.ModListTxt;
 		//if (!File.Exists(_modListTxt))
 		//	throw new FileNotFoundException(_modListTxt);
 
 		if (!Directory.Exists(manager.GameIniPath))
-			throw new DirectoryNotFoundException(manager.GameIniPath);
+		{
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), manager.GameIniPath);
+			return;
+		}
 
 		ReadGameINIs(manager.GameIniPath);
 
-		GetBinaryInfo();
-		GetModuleLists(manager);
+		if (!GetBinaryInfo())
+			return;
+		if (!GetModuleLists(manager))
+			return;
 		GetArchiveLists(manager);
 
 		GetModuleInfo(manager);
 		GetArchiveInfo(manager);
+
+		GetDllLists(manager);
+		GetDllInfo(manager);
+		Dlls = new(manager.DllsWinning.Values.Where(x => x.IsF4SE));
+
+		//foreach (DLL dll in manager.DllsWinning.Values)
+		//{
+		//	Dlls.Add(dll);
+		//}
 
 		//GameVersion = string.Empty;
 		//Source = string.Empty;
@@ -178,11 +227,10 @@ public partial class Game : ObservableObject
 	// TODO: Detect steam library folders and find game
 	// TODO: Prompt user to choose between all non-manager game install detections or manual entry
 	// TODO: Game source
-	private static string FindGamePath(IModManager manager) =>
+	private static string? FindGamePath(IModManager manager) =>
 		manager.GamePath
 		?? GetRegistryInstallPath()
-		?? GetRegistryInstallPathGOG()
-		?? throw new NotImplementedException();
+		?? GetRegistryInstallPathGOG();
 
 	private static string? GetRegistryInstallPath()
 	{
@@ -228,16 +276,29 @@ public partial class Game : ObservableObject
 			}
 		}
 		else
-			throw new NotImplementedException("Fallout4.ini Not Present");
+		{
+			MainWindow.CriticalError(typeof(NotImplementedException), "Fallout4.ini Not Present");
+			return;
+		}
 
-		Prefs = File.Exists(iniPrefsPath)
-			? parser.ReadFile(iniPrefsPath)
-			: throw new NotImplementedException("Fallout4Prefs.ini Not Present");
+		if (!File.Exists(iniPrefsPath))
+		{
+			MainWindow.CriticalError(typeof(NotImplementedException), "Fallout4Prefs.ini Not Present");
+			return;
+		}
+		Prefs = parser.ReadFile(iniPrefsPath);
 
 		if (Config == null)
-			throw new NotImplementedException("Config is null");
+		{
+			MainWindow.CriticalError(typeof(NotImplementedException), "Config is null");
+			return;
+		}
+
 		if (Prefs == null)
-			throw new NotImplementedException("Prefs is null");
+		{
+			MainWindow.CriticalError(typeof(NotImplementedException), "Prefs is null");
+			return;
+		}
 
 		BA2Suffixes = new(_default_ba2_suffixes);
 		string? lang = Config["General"]["sLanguage"];
@@ -253,58 +314,119 @@ public partial class Game : ObservableObject
 		Language = lang;
 	}
 
-	private static string GetFileVersion(string filePath, bool hashOnly = false)
-	{
-		if (hashOnly)
-			return $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}";
-		FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-		string versionString = version.FileVersion == null
-			? $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}"
-			: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}.{version.FilePrivatePart}";
-		return versionString;
-	}
+	//private static string GetFileVersion(string filePath, bool hashOnly = false)
+	//{
+	//	if (hashOnly)
+	//		return $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}";
+	//	FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
+	//	string versionString = version.FileVersion == null
+	//		? $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}"
+	//		: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}.{version.FilePrivatePart}";
+	//	return versionString;
+	//}
 
-	private void GetBinaryInfo()
+	private bool GetBinaryInfo()
 	{
 		Dictionary<string, string> binariesGood;
 		Dictionary<string, string> binariesBad;
 		string gameVersionBad;
-		string filePath = Path.Combine(GamePath, "Fallout4.exe");
-		if (File.Exists(filePath))
+
+		foreach (string relativePath in binariesOG.Keys)
 		{
-			string version = GetFileVersion(filePath);
-			if (version == Fallout4exeOG)
+			string fullPath = Path.Combine(GamePath, relativePath);
+			string fileName = relativePath.Contains(Path.DirectorySeparatorChar) ? Path.GetFileName(relativePath) : relativePath;
+			string fileExt = Path.GetExtension(fileName);
+			if (File.Exists(fullPath))
 			{
-				GameVersion = Models.GameVersion.OldGen;
-				Fallout4Version = Models.GameVersion.OldGen;
-				gameVersionBad = Models.GameVersion.NextGen;
-				binariesGood = binariesOG;
-				binariesBad = binariesNG;
-			}
-			else if (version == Fallout4exeNG)
-			{
-				GameVersion = Models.GameVersion.NextGen;
-				Fallout4Version = Models.GameVersion.NextGen;
-				gameVersionBad = Models.GameVersion.OldGen;
-				binariesGood = binariesNG;
-				binariesBad = binariesOG;
+				// TODO: Support files from mod managers
+				Binary binary = new(fileName, fileExt, fullPath, relativePath);
+				if (fileName == _mainExe)
+				{
+					GameVersion = binary.GameVersion;
+					if (GameVersion == Models.GameVersion.OldGen)
+					{
+						gameVersionBad = Models.GameVersion.NextGen;
+						binariesGood = binariesOG;
+						binariesBad = binariesNG;
+					}
+					else if (GameVersion == Models.GameVersion.NextGen)
+					{
+						gameVersionBad = Models.GameVersion.OldGen;
+						binariesGood = binariesNG;
+						binariesBad = binariesOG;
+					}
+					else
+					{
+						// TODO: Handle this gracefully in case of future game updates
+						MainWindow.CriticalError(typeof(NotImplementedException), $"Unknown version:\n{filePath}");
+						return false;
+					}
+					//Fallout4Good = Fallout4Version == GameVersion;
+				}
+
+				//throw new NotImplementedException($"File shouldn't exist: ${fileName}");
+				if (binariesGood[relativePath] == NO_FILE)
+					BinaryInfo[relativePath] = gameVersionBad;
+				else
+				{
+					bool hashOnly = !binariesGood[relativePath].Contains('.');
+					string version = Utilities.GetFileVersionOrHash(fullPath, hashOnly);
+					BinaryInfo[relativePath] = version == binariesGood[relativePath]
+						? GameVersion
+						: version == binariesBad[relativePath] ? gameVersionBad : Models.GameVersion.Unknown;
+				}
+
 			}
 			else
 			{
-				GameVersion = Models.GameVersion.Unknown;
-				throw new NotImplementedException("Unknown version: Fallout4.exe");
+				BinaryInfo[relativePath] = binariesGood[relativePath] == NO_FILE ? Models.GameVersion.NotFoundGood : Models.GameVersion.NotFoundBad;
 			}
+		}
+		foreach (KeyValuePair<string, string> s in BinaryInfo)
+			Console.WriteLine(s);
+
+
+
+
+
+
+
+		string filePath = Path.Combine(GamePath, "Fallout4.exe");
+		if (!File.Exists(filePath))
+		{
+			MainWindow.CriticalError(typeof(FileNotFoundException), filePath);
+			return false;
+		}
+
+		string version = Utilities.GetFileVersionOrHash(filePath);
+		if (version == Fallout4exeOG)
+		{
+			GameVersion = Models.GameVersion.OldGen;
+			Fallout4Version = Models.GameVersion.OldGen;
+			gameVersionBad = Models.GameVersion.NextGen;
+			binariesGood = binariesOG;
+			binariesBad = binariesNG;
+		}
+		else if (version == Fallout4exeNG)
+		{
+			GameVersion = Models.GameVersion.NextGen;
+			Fallout4Version = Models.GameVersion.NextGen;
+			gameVersionBad = Models.GameVersion.OldGen;
+			binariesGood = binariesNG;
+			binariesBad = binariesOG;
 		}
 		else
 		{
-			throw new NotImplementedException("File missing: Fallout4.exe");
+			GameVersion = Models.GameVersion.Unknown;
+			// TODO: Handle this gracefully in case of future game updates
+			MainWindow.CriticalError(typeof(NotImplementedException), $"Unknown version:\n{filePath}");
+			return false;
 		}
 		Fallout4Good = Fallout4Version == GameVersion;
 
 
-
-
-		string fileName = "Fallout4Launcher.exe";
+		//string fileName = "Fallout4Launcher.exe";
+		fileName = "Fallout4Launcher.exe";
 		filePath = Path.Combine(GamePath, fileName);
 		if (File.Exists(filePath))
 		{
@@ -313,7 +435,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				Fallout4LauncherVersion = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -340,7 +462,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				Steam_api64Version = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -367,7 +489,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				F4se_loaderVersion = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -394,7 +516,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				F4se_steam_loaderVersion = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -421,7 +543,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				CreationKitVersion = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -448,7 +570,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				Archive2Version = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -475,7 +597,7 @@ public partial class Game : ObservableObject
 			else
 			{
 				bool hashOnly = !binariesGood[fileName].Contains('.');
-				string version = GetFileVersion(filePath, hashOnly);
+				version = Utilities.GetFileVersionOrHash(filePath, hashOnly);
 				Archive2InteropVersion = version == binariesGood[fileName]
 					? GameVersion
 					: version == binariesBad[fileName] ? gameVersionBad : Models.GameVersion.Unknown;
@@ -493,84 +615,55 @@ public partial class Game : ObservableObject
 			Archive2InteropGood = false;
 		}
 
-
-		//foreach (string fileName in binariesGood.Keys)
-		//{
-		//	filePath = Path.Combine(GamePath, fileName);
-		//	if (File.Exists(filePath))
-		//	{
-		//		//throw new NotImplementedException($"File shouldn't exist: ${fileName}");
-		//		if (binariesGood[fileName] == NO_FILE) BinaryInfo[fileName] = gameVersionBad;
-		//		else
-		//		{
-		//			bool hashOnly = !binariesGood[fileName].Contains('.');
-		//			string version = GetFileVersion(filePath, hashOnly);
-		//			if (version == binariesGood[fileName]) BinaryInfo[fileName] = GameVersion;
-		//			else if (version == binariesBad[fileName]) BinaryInfo[fileName] = gameVersionBad;
-		//			else BinaryInfo[fileName] = Models.GameVersion.Unknown;
-		//		}
-
-		//	}
-		//	else if (binariesGood[fileName] == NO_FILE)
-		//	{
-		//		BinaryInfo[fileName] = Models.GameVersion.NotFoundGood;
-		//	}
-		//	else
-		//	{
-		//		BinaryInfo[fileName] = Models.GameVersion.NotFoundBad;
-		//		//throw new NotImplementedException($"File missing: {fileName}");
-		//	}
-		//}
-		//foreach (KeyValuePair<string, string> s in BinaryInfo) Console.WriteLine(s);
+		return true;
 	}
 
-	private void GetModuleLists(IModManager manager)
+	private bool GetModuleLists(IModManager manager)
 	{
 		ModulesEnabled.Clear();
 
 		// TODO: Make case-insensitive
 		foreach (string moduleName in _gameMasters)
 		{
-			//if (manager.ModulesWinning.ContainsKey(moduleName))
-			//	continue;
-
 			string modulePath = Path.Combine(DataPath, moduleName);
-			if (File.Exists(modulePath))
-			{
-				Module module = new(moduleName, modulePath);
-				manager.Modules.Add(module);
-				manager.ModulesWinning.TryAdd(moduleName, module);
-				manager.ModulesWinning[moduleName].IsEnabled = true;
-				ModulesEnabled.Add(moduleName);
-			}
+			if (!File.Exists(modulePath))
+				continue;
+
+			Module module = new(moduleName, modulePath);
+			manager.Modules.Add(module);
+			manager.ModulesWinning.TryAdd(moduleName, module);
+			manager.ModulesWinning[moduleName].IsEnabled = true;
+			ModulesEnabled.Add(moduleName);
 		}
 
 		// TODO: check if force enabled or if its even possible to disable
 		ModulesCCC.Clear();
 		string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
 		if (!File.Exists(cccPath))
-			throw new NotImplementedException("Fallout4.ccc missing");
+		{
+			// TODO: Handle gracefully
+			MainWindow.CriticalError(typeof(FileNotFoundException), cccPath);
+			return false;
+		}
+
 		// TODO: Encoding
 		string[] contents = File.ReadAllLines(cccPath, Encoding.UTF8);
 		foreach (string moduleName in contents)
 		{
 			string modulePath = Path.Combine(DataPath, moduleName);
-			if (File.Exists(modulePath))
-			{
-				Module module = new(moduleName, modulePath);
-				manager.Modules.Add(module);
-				manager.ModulesWinning.TryAdd(moduleName, module);
-				manager.ModulesWinning[moduleName].IsEnabled = true;
-				ModulesCCC.Add(moduleName);
-			}
+			if (!File.Exists(modulePath))
+				continue;
+
+			Module module = new(moduleName, modulePath);
+			manager.Modules.Add(module);
+			manager.ModulesWinning.TryAdd(moduleName, module);
+			manager.ModulesWinning[moduleName].IsEnabled = true;
+			ModulesCCC.Add(moduleName);
 		}
 		ModulesEnabled.UnionWith(ModulesCCC);
 
-		//string pluginsPath = Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
-		//if (!File.Exists(_pluginsTxt))
-		//	throw new NotImplementedException("plugins.txt missing");
 		// TODO: Encoding
-		contents = File.ReadAllLines(_pluginsTxt, Encoding.UTF8);
+		contents = File.ReadAllLines(manager.PluginsTxtPath, Encoding.UTF8);
 		foreach (string line in contents)
 		{
 			if (!line.StartsWith('*'))
@@ -592,6 +685,53 @@ public partial class Game : ObservableObject
 			// TODO: store missing files
 			// TODO: store disabled files
 			// TODO: check first line comment
+		}
+
+		return true;
+	}
+
+	private void GetDllLists(IModManager manager)
+	{
+		Dlls?.Clear();
+		if (Directory.Exists(F4SEPath)) // TODO: Handle not existing in Data or Stage
+		{
+			foreach (string filePath in Directory.EnumerateFiles(F4SEPath))
+			{
+				// TODO: Get mod name from meta.ini
+				string fileName = Path.GetFileName(filePath);
+				string fileExt = Path.GetExtension(fileName);
+				if (fileExt == string.Empty)
+					continue;
+				string fileExtLower = fileExt.ToLower();
+
+				if (fileExtLower == ".dll")
+				{
+					DLL dll = new(fileName, filePath);
+					//Console.WriteLine(dll.PathRelative);
+					manager.Dlls.Add(dll);
+					manager.DllsWinning.TryAdd(fileName, dll);
+					// TODO: Check if already present and add to DllsLosing
+					continue;
+				}
+			}
+		}
+	}
+
+	private void GetDllInfo(IModManager manager)
+	{
+		//DllsUnreadable.Clear();
+
+		foreach ((string dllName, DLL dll) in manager.DllsWinning)
+		{
+			//if (dll.IsEnabled != true)
+			//	continue;
+
+			dll.Read();
+			if (dll.IsReadable != true)
+			{
+				DllsUnreadable.Add(dllName);
+				continue;
+			}
 		}
 	}
 
@@ -738,16 +878,10 @@ public partial class Game : ObservableObject
 			if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
 			{
 				archive.IsEnabled = true;
-				//ArchivesEnabled.Add(archiveName);
+				ArchivesEnabled.Add(archiveName);
 			}
-			else
-			{
-				// TODO: Track missing
-				ArchivesINI.Remove(archiveName);
-			}
+			// TODO: Track missing
 		}
-
-		ArchivesEnabled.UnionWith(ArchivesINI);
 
 		foreach (string module in ModulesEnabled)
 		{
@@ -765,7 +899,6 @@ public partial class Game : ObservableObject
 					archive = new(archiveName, archivePath);
 					manager.Archives.Add(archive);
 					manager.ArchivesWinning.TryAdd(archiveName, archive);
-					//ArchivesEnabled.Add(archiveName);
 				}
 				if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
 				{
@@ -788,11 +921,8 @@ public partial class Game : ObservableObject
 		if (GameVersion == Models.GameVersion.OldGen && manager.ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out Archive? startupArchive))
 		{
 			string hash = $"{Crc32.HashToUInt32(File.ReadAllBytes(startupArchive.PathFull).AsSpan(12)):X8}";
-			Console.WriteLine(hash);
 			if (hash == "A5808F5F")
-			{
 				GameVersion = Models.GameVersion.DownGrade;
-			}
 		}
 
 
@@ -801,7 +931,6 @@ public partial class Game : ObservableObject
 			if (archive.IsEnabled != true)
 				continue;
 
-			//Console.WriteLine(archiveName);
 			archive.ReadHeader();
 			if (archive.IsReadable != true)
 			{
