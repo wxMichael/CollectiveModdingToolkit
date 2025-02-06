@@ -34,10 +34,15 @@ public static class OperatingSystem
 
 public partial class Computer : ObservableObject
 {
+	public static Computer? Instance { get; private set; }
+
 	public static readonly string AppDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 	public static readonly string AppDataRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 	public static readonly string Documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	public static readonly string DocumentsFallout4 = Path.Combine(Documents, "My Games", "Fallout4");
+
+	[ObservableProperty] public partial bool CriticalErrorOpen { get; set; } = false;
+	[ObservableProperty] public partial string ErrorMessage { get; set; } = string.Empty;
 
 	[ObservableProperty] public partial string Os { get; private set; }
 	[ObservableProperty] public partial byte Bits { get; private set; }
@@ -48,6 +53,8 @@ public partial class Computer : ObservableObject
 
 	public Computer()
 	{
+		Instance = this;
+
 		Os = GetOS();
 		Bits = (byte)(Environment.Is64BitOperatingSystem ? 64 : 32);
 		Cpu = GetCPU();
@@ -55,7 +62,6 @@ public partial class Computer : ObservableObject
 		Ram = (byte)(ram / 1024 / 1024);
 		(Gpu, long vram) = GetGPU();
 		Vram = (byte)Math.Round((double)vram / 1024 / 1024 / 1024);
-
 	}
 
 	private static string GetOS()
