@@ -1,4 +1,6 @@
 ﻿using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Models.FileTypes;
+using CollectiveModdingToolkit.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IniParser;
 using IniParser.Model;
@@ -35,7 +37,10 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	public Dictionary<string, Archive> ArchivesWinning { get; private set; } = [];
 	//public List<string> ModulesEnabled { get; private set; } = [];
 	//public List<string> ArchivesEnabled { get; private set; } = [];
+	public List<DLL> Dlls { get; private set; } = [];
+	public Dictionary<string, DLL> DllsWinning { get; private set; } = [];
 
+	private const string MO2RegistryPath = @"Software\Mod Organizer Team\Mod Organizer";
 	private string? _modListTxtPath;
 	private readonly string[] _moduleExtensions = [".esm", ".esl", ".esp"];
 
@@ -55,11 +60,22 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	{
 		get
 		{
+			// TODO: Handling for ERROR return value.
 			if (field != string.Empty)
 				return field;
-			using RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Mod Organizer Team\Mod Organizer")
-				?? throw new NullReferenceException();
-			object value = key.GetValue("CurrentInstance") ?? throw new NullReferenceException();
+			using RegistryKey? key = Registry.CurrentUser.OpenSubKey(MO2RegistryPath);
+			if (key == null)
+			{
+				MainWindow.CriticalError(typeof(NullReferenceException), $"Registry key missing:\n{MO2RegistryPath}");
+				return "ERROR";
+			}
+
+			object? value = key.GetValue("CurrentInstance");
+			if (value == null)
+			{
+				MainWindow.CriticalError(typeof(NullReferenceException), $"Registry key missing:\n{MO2RegistryPath}\\CurrentInstance");
+				return "ERROR";
+			}
 			field = (string)value;
 			return field;
 		}
@@ -83,12 +99,12 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	private string _modDirectory = string.Empty;
 	private string _overwriteDirectory = string.Empty;
 	private string _profilesDirectory = string.Empty;
-	private bool _profile_local_inis = true;
-	private bool _profile_local_saves = false;
-	private bool _profile_archive_invalidation = false;
-	private string[] _skip_file_suffixes = [];
-	private string[] _skip_directories = [];
-	private string[] _executable_blacklist = [];
+	//private bool _profile_local_inis = true;
+	//private bool _profile_local_saves = false;
+	//private bool _profile_archive_invalidation = false;
+	//private string[] _skip_file_suffixes = [];
+	//private string[] _skip_directories = [];
+	//private string[] _executable_blacklist = [];
 	//private readonly bool _moddingLinked = false;
 
 	public ModOrganizer()
@@ -133,6 +149,8 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		ModulesWinning.Clear();
 		Archives.Clear();
 		ArchivesWinning.Clear();
+		Dlls.Clear();
+		DllsWinning.Clear();
 		_modListTxtPath = null;
 		_appIniData = null;
 		//_profileIniData = null;
@@ -143,19 +161,20 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		_modDirectory = string.Empty;
 		_overwriteDirectory = string.Empty;
 		_profilesDirectory = string.Empty;
-		_profile_local_inis = true;
-		_profile_local_saves = false;
-		_profile_archive_invalidation = false;
-		_skip_file_suffixes = [];
-		_skip_directories = [];
-		_executable_blacklist = [];
+		//_profile_local_inis = true;
+		//_profile_local_saves = false;
+		//_profile_archive_invalidation = false;
+		//_skip_file_suffixes = [];
+		//_skip_directories = [];
+		//_executable_blacklist = [];
 
-		ReadSettings();
+		if (!ReadSettings())
+			return;
 		GetOverviewInfo();
 	}
 
 	[MemberNotNull(nameof(GameIniPath), nameof(PluginsTxtPath))]
-	public void ReadSettings()
+	public bool ReadSettings()
 	{
 		string iniPath = IsPortable
 			? Path.Combine(AppFolder.FullName, "ModOrganizer.ini")
@@ -168,7 +187,12 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		_appIniData = parser.ReadFile(iniPath, Encoding.UTF8);
 		// TODO: handle null. test if even actually possible?
 		if (_appIniData == null)
-			throw new NullReferenceException($"Content of {iniPath}");
+		{
+			MainWindow.CriticalError(typeof(NullReferenceException), $"Unable to read file:\n{iniPath}");
+			GameIniPath = string.Empty;
+			PluginsTxtPath = string.Empty;
+			return false;
+		}
 
 		KeyDataCollection general = _appIniData["General"];
 		//gameName=Fallout 4
@@ -191,54 +215,73 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		_baseDirectory = base_directory ?? (IsPortable ? AppPath : Path.Combine(Computer.AppDataLocal, "ModOrganizer", CurrentInstance));
 
 		if (!Directory.Exists(_baseDirectory))
-			throw new DirectoryNotFoundException(base_directory);
+		{
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), _baseDirectory);
+			GameIniPath = string.Empty;
+			PluginsTxtPath = string.Empty;
+			return false;
+		}
 
 		_modDirectory = (settings["mod_directory"] ?? "%BASE_DIR%/mods").Replace("%BASE_DIR%", _baseDirectory);
 		_overwriteDirectory = (settings["overwrite_directory"] ?? "%BASE_DIR%/overwrite").Replace("%BASE_DIR%", _baseDirectory);
 		_profilesDirectory = (settings["profiles_directory"] ?? "%BASE_DIR%/profiles").Replace("%BASE_DIR%", _baseDirectory);
 
-		//profile_local_inis=true
-		try
-		{
-			_profile_local_inis = Convert.ToBoolean(settings["profile_local_inis"] ?? bool.TrueString);
-		}
-		catch (FormatException)
-		{
-			_profile_local_inis = true;
-		}
 
-		//profile_local_saves=false
-		try
-		{
-			_profile_local_saves = Convert.ToBoolean(settings["profile_local_saves"] ?? bool.FalseString);
-		}
-		catch (FormatException)
-		{
-			_profile_local_saves = false;
-		}
+		// TODO: use settings.ini (and _profile_local_inis ??)
+		GameIniPath = Path.Combine(_profilesDirectory, Profile);
+		PluginsTxtPath = Path.Combine(_profilesDirectory, Profile, "plugins.txt");
 
-		//profile_archive_invalidation=false
-		try
+		string modListTxtPath = Path.Combine(_profilesDirectory, Profile, "modlist.txt");
+		if (!File.Exists(modListTxtPath))
 		{
-			_profile_archive_invalidation = Convert.ToBoolean(settings["profile_archive_invalidation"] ?? bool.FalseString);
+			MainWindow.CriticalError(typeof(FileNotFoundException), modListTxtPath);
+			return false;
 		}
-		catch (FormatException)
-		{
-			_profile_archive_invalidation = false;
-		}
+		_modListTxtPath = modListTxtPath;
 
-		//skip_file_suffixes=.mohidden
-		// Delimited with comma-space
-		_skip_file_suffixes = (settings["skip_file_suffixes"] ?? ".mohidden").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-		//skip_directories=.git
-		// Delimited with comma-space
-		_skip_directories = (settings["skip_directories"] ?? ".git").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+		////profile_local_inis=true
+		//try
+		//{
+		//	_profile_local_inis = Convert.ToBoolean(settings["profile_local_inis"] ?? bool.TrueString);
+		//}
+		//catch (FormatException)
+		//{
+		//	_profile_local_inis = true;
+		//}
 
-		//executable_blacklist="Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe"
-		// Delimited with semicolon and quoted if more than one item.
-		string default_exes = "Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe";
-		_executable_blacklist = (settings["executable_blacklist"] ?? default_exes).Trim('"').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+		////profile_local_saves=false
+		//try
+		//{
+		//	_profile_local_saves = Convert.ToBoolean(settings["profile_local_saves"] ?? bool.FalseString);
+		//}
+		//catch (FormatException)
+		//{
+		//	_profile_local_saves = false;
+		//}
+
+		////profile_archive_invalidation=false
+		//try
+		//{
+		//	_profile_archive_invalidation = Convert.ToBoolean(settings["profile_archive_invalidation"] ?? bool.FalseString);
+		//}
+		//catch (FormatException)
+		//{
+		//	_profile_archive_invalidation = false;
+		//}
+
+		////skip_file_suffixes=.mohidden
+		//// Delimited with comma-space
+		//_skip_file_suffixes = (settings["skip_file_suffixes"] ?? ".mohidden").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+		////skip_directories=.git
+		//// Delimited with comma-space
+		//_skip_directories = (settings["skip_directories"] ?? ".git").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+		////executable_blacklist="Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe"
+		//// Delimited with semicolon and quoted if more than one item.
+		//string default_exes = "Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe";
+		//_executable_blacklist = (settings["executable_blacklist"] ?? default_exes).Trim('"').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
 		//filter_regex=false
 		//regex_case_sensitive=false
@@ -246,15 +289,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		//force_enable_core_files=true
 		//archive_parsing_experimental=false
 
-		PluginsTxtPath = Path.Combine(_profilesDirectory, Profile, "plugins.txt");
-
-		string modListTxtPath = Path.Combine(_profilesDirectory, Profile, "modlist.txt");
-		_modListTxtPath = File.Exists(modListTxtPath)
-			? modListTxtPath
-			: throw new FileNotFoundException(modListTxtPath);
-
-		// TODO: use settings.ini (and _profile_local_inis ??)
-		GameIniPath = Path.Combine(_profilesDirectory, Profile);
+		return true;
 	}
 
 	//[Settings]
@@ -305,7 +340,8 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		// TODO: Scanner: Option to scan overridden files
 		foreach ((int index, string modFolder) in StagePaths.Index())
 		{
-			foreach (string filePath in Directory.EnumerateFiles(Path.Combine(_modDirectory, modFolder)))
+			string modFolderPath = Path.Combine(_modDirectory, modFolder);
+			foreach (string filePath in Directory.EnumerateFiles(modFolderPath))
 			{
 				// TODO: Get mod name from meta.ini
 				string fileName = Path.GetFileName(filePath);
@@ -328,6 +364,28 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 					Modules.Add(module);
 					ModulesWinning[fileName] = module;
 					continue;
+				}
+			}
+			string f4sePluginsPath = Path.Combine(modFolderPath, "F4SE", "Plugins");
+			if (Directory.Exists(f4sePluginsPath))
+			{
+				foreach (string filePath in Directory.EnumerateFiles(modFolderPath))
+				{
+					// TODO: Get mod name from meta.ini
+					string fileName = Path.GetFileName(filePath);
+					string fileExt = Path.GetExtension(fileName);
+					if (fileExt == string.Empty)
+						continue;
+					string fileExtLower = fileExt.ToLower();
+
+					if (fileExtLower == ".dll")
+					{
+						DLL dll = new(fileName, filePath, modFolder, index, modFolder);
+						Dlls.Add(dll);
+						DllsWinning[fileName] = dll;
+						// TODO: Check if already present and add to DllsLosing
+						continue;
+					}
 				}
 			}
 		}
