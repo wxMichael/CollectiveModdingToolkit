@@ -1,14 +1,32 @@
-﻿using System;
+﻿using CollectiveModdingToolkit.Imports;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace CollectiveModdingToolkit.Models;
+namespace CollectiveModdingToolkit.Models.FileTypes;
 
 public partial class DLL : IFile
 {
+	private static readonly HashSet<string> _OGNGWhitelist = [
+		"AchievementsModsEnablerLoader.dll",
+		"BetterConsole.dll",
+		"Buffout4.dll",
+		"ClockWidget.dll",
+		"FloatingDamage.dll",
+		"GCBugFix.dll",
+		"HUDPlusPlus.dll",
+		"IndirectFire.dll",
+		"MinimalMinimap.dll",
+		"MoonRotationFix.dll",
+		"mute_on_focus_loss.dll",
+		"SprintStutteringFix.dll",
+		"UnlimitedFastTravel.dll",
+		"WeaponDebrisCrashFix.dll",
+		"x-cell-fo4.dll",
+	];
+
 	public string Name { get; private set; }
 	public string Ext { get; } = ".dll";
 	public string PathFull { get; private set; }
@@ -26,10 +44,17 @@ public partial class DLL : IFile
 	public bool IsF4SE => _symbols.Contains("F4SEPlugin_Load");
 	public bool SupportsOG => _symbols.Contains("F4SEPlugin_Query");
 	public bool SupportsNG => _symbols.Contains("F4SEPlugin_Version");
+	public bool SupportsOGNG => SupportsOG && SupportsNG;
+	public bool SupportsOGNGVerified => SupportsOGNG && _OGNGWhitelist.Contains(Name);
+	public bool SupportsOGNGUnverified => SupportsOGNG && !_OGNGWhitelist.Contains(Name);
+	public bool? SupportsCurrent =>
+		Game.Instance != null
+		&& ((Game.Instance.IsOG && SupportsOG)
+		 || (Game.Instance.IsNG && SupportsNG));
 
 	private readonly HashSet<string> _symbols = [];
 
-	private static readonly IntPtr hCurrentProcess = Process.GetCurrentProcess().Handle;
+	public static readonly nint hCurrentProcess = Process.GetCurrentProcess().Handle;
 
 	internal DLL(
 		string name,
@@ -44,24 +69,12 @@ public partial class DLL : IFile
 		Priority = priority == 0 ? 0 : priority + 1;
 		Mod = modName;
 	}
-	private static void PrintProperties(SYMBOL_INFO symInfo)
+
+
+	internal bool EnumSymbolsCallback(ref DbgHelp.SYMBOL_INFO SymbolInfo, uint SymbolSize, nint UserContext)
 	{
-		foreach (System.Reflection.PropertyInfo prop in symInfo.GetType().GetProperties())
-			Console.WriteLine(prop.Name + ": " + prop.GetValue(symInfo, null));
-
-		foreach (System.Reflection.FieldInfo field in symInfo.GetType().GetFields())
-			Console.WriteLine(field.Name + ": " + field.GetValue(symInfo));
-	}
-
-	private delegate bool SymEnumSymbolsProc(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext);
-
-	private bool EnumSymbolsCallback(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, nint UserContext)
-	{
-		Console.WriteLine($"==== {SymbolInfo.Name} ================");
-		PrintProperties(SymbolInfo);
-		//if (!SymbolInfo.Name.Contains("$dtor"))
-		//	Console.WriteLine($"{SymbolInfo.Name} | {SymbolInfo.Name.Length} | {SymbolInfo.NameLen} | {SymbolInfo.MaxNameLen}");
-		_symbols.Add(SymbolInfo.Name);
+		if (!SymbolInfo.Name.Contains("$dtor"))
+			_symbols.Add(SymbolInfo.Name);
 		return true;
 	}
 
@@ -72,25 +85,22 @@ public partial class DLL : IFile
 
 		try
 		{
-			if (!SymInitializeW(hCurrentProcess, null!, false))
+			if (!DbgHelp.SymInitializeW(hCurrentProcess, null!, false))
 			{
 				Console.WriteLine("Failed to initialize sym.");
 				return;
 			}
 
-			ulong baseOfDll = SymLoadModuleExW(hCurrentProcess, nint.Zero, PathFull, null!, 0, 0, nint.Zero, 0);
-
+			ulong baseOfDll = DbgHelp.SymLoadModuleExW(hCurrentProcess, nint.Zero, PathFull, null!, 0, 0, nint.Zero, 0);
 			if (baseOfDll == 0)
 			{
 				int error = Marshal.GetLastWin32Error();
-				Console.WriteLine($"Failed to load module. {WinErrors.GetSystemMessage((uint)error)}");
+				Console.WriteLine($"Failed to load DLL: {Marshal.GetPInvokeErrorMessage(error)}");
 				IsReadable = false;
 				return;
 			}
 
-
-			Console.WriteLine(Name);
-			bool status = SymEnumSymbols(hCurrentProcess, baseOfDll, "F4SEPlugin*", EnumSymbolsCallback, IntPtr.Zero);
+			bool status = DbgHelp.SymEnumSymbols(hCurrentProcess, baseOfDll, "F4SEPlugin*", EnumSymbolsCallback, nint.Zero);
 			if (!status)
 			{
 				Console.WriteLine("Failed to enum symbols.");
@@ -98,152 +108,15 @@ public partial class DLL : IFile
 				return;
 			}
 			IsReadable = true;
-
 		}
 		catch (Exception ex)
 		{
-			IsReadable = false;
 			Console.WriteLine(ex.Message);
+			IsReadable = false;
 		}
 		finally
 		{
-			bool v = SymCleanup(hCurrentProcess);
-			if (!v)
-				Console.WriteLine(v);
+			DbgHelp.SymCleanup(hCurrentProcess);
 		}
 	}
-
-	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool SymInitializeW(
-		[In] IntPtr hProcess,
-		[In, Optional] string UserSearchPath,
-		[In][MarshalAs(UnmanagedType.Bool)] bool fInvadeProcess);
-
-	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool SymCleanup(
-		[In] IntPtr hProcess);
-
-	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	private static extern ulong SymLoadModuleExW(
-		[In] IntPtr hProcess,
-		[In] IntPtr hFile,
-		[In] string ImageName,
-		[In] string ModuleName,
-		[In] long BaseOfDll,
-		[In] int DllSize,
-		[In] IntPtr Data,
-		[In] int Flags);
-
-	//[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	//[return: MarshalAs(UnmanagedType.Bool)]
-	//private static extern bool SymEnumerateSymbols64(
-	//	[In] IntPtr hProcess,
-	//	[In] ulong BaseOfDll,
-	//	[In] SymEnumerateSymbolsProc64 EnumSymbolsCallback,
-	//	[In, Optional] IntPtr UserContext);
-
-	[DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-	private static extern bool SymEnumSymbols(
-		[In] IntPtr hProcess,
-		[In] ulong BaseOfDll,
-		[In, Optional] string Mask,
-		[In] SymEnumSymbolsProc EnumSymbolsCallback,
-		[In, Optional] IntPtr UserContext);
-
-
-
-
-	//private delegate bool SymEnumerateSymbolsProc64(string SymbolName, ulong SymbolAddress, uint SymbolSize, IntPtr UserContext);
-	//private delegate bool SymEnumSymbolsProc(ref SYMBOL_INFO SymbolInfo, uint SymbolSize, IntPtr UserContext);
-
-	//private bool EnumSyms(string name, ulong address, uint size, IntPtr context)
-	//{
-	//	if (name.StartsWith("F4SEPlugin"))
-	//	{
-	//		Console.WriteLine($"{Name}: {name}");
-	//		_symbols.Add(name);
-	//	}
-	//	return true;
-	//}
-
-
-
-	//private void readit()
-	//{
-	//	IntPtr processHandle = Process.GetCurrentProcess().Handle;
-	//	NtQueryInformationProcessWrapper comWrapper = new();
-	//	uint bufferSize = (uint)Marshal.SizeOf<SYMBOL_INFO>();
-	//	IntPtr? pSymInfo = null;
-	//	try
-	//	{
-	//		pSymInfo = Marshal.AllocHGlobal((int)bufferSize);
-	//		int status;
-	//		SYMBOL_INFO symInfo;
-	//		Process? parent = null;
-	//		for (int i = 0; i < 10; i++)
-	//		{
-	//			status = comWrapper.NtQueryInformationProcess(processHandle, PROCESSINFOCLASS.ProcessBasicInformation, pSymInfo.Value, bufferSize, out _);
-	//			if (status != 0)
-	//				return new Unmanaged();
-
-	//			symInfo = Marshal.PtrToStructure<SYMBOL_INFO>(pSymInfo.Value);
-	//		}
-	//		//if (Name == null) return new Unmanaged();
-	//		// TODO: Handle nulls
-	//	}
-	//	catch (Exception e)
-	//	{
-	//		Console.WriteLine(e.Message);
-	//		return new Unmanaged();
-	//	}
-	//	finally
-	//	{
-	//		if (pSymInfo.HasValue)
-	//			Marshal.FreeHGlobal(pSymInfo.Value);
-	//	}
-	//}
-}
-
-public static class WinErrors
-{
-	/// <summary>
-	/// Gets a user friendly string message for a system error code
-	/// </summary>
-	/// <param name="errorCode">System error code</param>
-	/// <returns>Error string</returns>
-	public static string GetSystemMessage(uint errorCode)
-	{
-		Win32Exception exception = new((int)errorCode);
-		return exception.Message;
-	}
-}
-
-
-//public delegate IntPtr PSYMBOL_INFO();
-
-
-
-
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-public struct SYMBOL_INFO
-{
-	public uint SizeOfStruct;
-	public uint TypeIndex;
-	[MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-	public ulong[] Reserved;
-	public uint Index;
-	public uint Size;
-	public ulong ModBase;
-	public uint Flags;
-	public ulong Value;
-	public ulong Address;
-	public uint Register;
-	public uint Scope;
-	public uint Tag;
-	public uint NameLen;
-	public uint MaxNameLen;
-	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
-	public string Name; // Note: This will need to be handled differently for actual usage
 }
