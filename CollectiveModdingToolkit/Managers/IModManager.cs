@@ -1,4 +1,4 @@
-﻿using CollectiveModdingToolkit.Models;
+﻿using CollectiveModdingToolkit.Models.FileTypes;
 using System;
 using System.Collections.Generic;
 
@@ -22,8 +22,10 @@ public interface IModManager
 	Dictionary<string, Module> ModulesWinning { get; }
 	List<Archive> Archives { get; }
 	Dictionary<string, Archive> ArchivesWinning { get; }
+	List<DLL> Dlls { get; }
+	Dictionary<string, DLL> DllsWinning { get; }
 
-	void ReadSettings();
+	bool ReadSettings();
 
 	void Refresh();
 }
