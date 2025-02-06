@@ -1,4 +1,4 @@
-﻿using CollectiveModdingToolkit.Models;
+﻿using CollectiveModdingToolkit.Models.FileTypes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
@@ -40,6 +40,10 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	public Dictionary<string, Archive> ArchivesWinning => throw new NotImplementedException();
 
-	public void ReadSettings() => throw new NotImplementedException();
+	public List<DLL> Dlls => throw new NotImplementedException();
+
+	public Dictionary<string, DLL> DllsWinning => throw new NotImplementedException();
+
+	public bool ReadSettings() => throw new NotImplementedException();
 	public void Refresh() => throw new NotImplementedException();
 }
