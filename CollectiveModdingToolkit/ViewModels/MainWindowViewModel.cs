@@ -1,5 +1,6 @@
 ﻿using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NtQueryProcessCOMWrapper;
@@ -30,7 +31,18 @@ public partial class MainWindowViewModel : ViewModelBase
 #if DEBUG
 		DEBUG_MODE = true;
 #endif
-		Refresh();//.Wait();
+		Computer = new();
+		try
+		{
+			CanRefresh = false;
+			ModManager = DetectModManager();
+			Game = new(ModManager);
+			CanRefresh = true;
+		}
+		catch (Exception e)
+		{
+			MainWindow.CriticalError(e.GetType(), e.Message);
+		}
 
 		//string dataPath = @"C:\Program Files (x86)\Steam\steamapps\common\Fallout 4\Data";
 		//string pluginPath = Path.Combine(dataPath, "community fixes merged.esp");
@@ -46,12 +58,12 @@ public partial class MainWindowViewModel : ViewModelBase
 	}
 
 	[RelayCommand(CanExecute = nameof(CanRefresh))]
-	public Task Refresh()
+	public void Refresh()
 	{
 		CanRefresh = false;
-		return Task.Run(async () =>
+		Task.Run(() =>
 		{
-			Computer computer = new();
+			//Computer computer = new();
 			IModManager modManager;
 			if (ModManager == null)
 			{
@@ -73,13 +85,14 @@ public partial class MainWindowViewModel : ViewModelBase
 			}
 			Game game = new(modManager);
 
-			await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+			Avalonia.Threading.Dispatcher.UIThread.Post(() =>
 			{
-				Computer = computer;
+				//Computer = computer;
 				ModManager = modManager;
 				Game = game;
 				CanRefresh = true;
 			});
+
 		});
 	}
 
@@ -89,6 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
 			return new ModOrganizer();
 
 		// TODO: Abstract code
+		// TODO: Use static global process handle
 		IntPtr processHandle = Process.GetCurrentProcess().Handle;
 		NtQueryInformationProcessWrapper comWrapper = new();
 		uint bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
