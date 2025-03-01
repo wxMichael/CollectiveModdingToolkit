@@ -5,8 +5,6 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CollectiveModdingToolkit", "CollectiveModdingToolkit\CollectiveModdingToolkit.csproj", "{F8C8582C-683F-4FC6-A017-ED5607D875AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MO2VFSBypass", "MO2VFSBypass\MO2VFSBypass.csproj", "{6375B2B8-5396-445B-868D-384E1E126535}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MO2Launcher", "MO2Launcher\MO2Launcher.csproj", "{28AF8308-D239-4B5E-BD6F-8B570BFE3448}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{F8C8582C-683F-4FC6-A017-ED5607D875AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8C8582C-683F-4FC6-A017-ED5607D875AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8C8582C-683F-4FC6-A017-ED5607D875AD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6375B2B8-5396-445B-868D-384E1E126535}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6375B2B8-5396-445B-868D-384E1E126535}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6375B2B8-5396-445B-868D-384E1E126535}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6375B2B8-5396-445B-868D-384E1E126535}.Release|Any CPU.Build.0 = Release|Any CPU
 		{28AF8308-D239-4B5E-BD6F-8B570BFE3448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{28AF8308-D239-4B5E-BD6F-8B570BFE3448}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28AF8308-D239-4B5E-BD6F-8B570BFE3448}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -30,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {06802A61-B5A5-4388-ABD4-55D3B9C0E822}
 	EndGlobalSection
 EndGlobal
