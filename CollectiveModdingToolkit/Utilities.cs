@@ -7,24 +7,25 @@ namespace CollectiveModdingToolkit;
 
 internal static class Utilities
 {
-	internal static string GetFileVersionOrHash(string filePath, bool hashOnly = false)
+	internal static string GetFileHash(string filePath, bool skipBA2Header = false) => $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan(skipBA2Header ? 12 : 0)):X8}";
+
+	internal static string? GetFileVersion(string filePath, bool skipPrivate = false)
 	{
-		if (hashOnly)
-			return $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}";
 		FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-		string versionString = version.FileVersion == null
-			? $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}"
-			: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}.{version.FilePrivatePart}";
-		return versionString;
+		string privatePart = skipPrivate ? "" : $".{version.FilePrivatePart}";
+		return version.FileVersion == null
+			? null
+			: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}{privatePart}";
 	}
 
-	//internal static string? GetFileVersion(string filePath)
-	//{
-	//	FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-	//	return version.FileVersion == null
-	//		? null
-	//		: (string?)$"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}.{version.FilePrivatePart}";
-	//}
+	internal static string GetFileVersionOrHash(string filePath, bool hashOnly = false) => hashOnly ? GetFileHash(filePath) : GetFileVersion(filePath) ?? GetFileHash(filePath);
 
-	//internal static string GetFileHash(string filePath) => $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}";
+	internal static void OpenURL(string url) => Process.Start(new ProcessStartInfo()
+	{
+		FileName = "explorer.exe",
+		ArgumentList = { url },
+		UseShellExecute = true,
+	});
+
+
 }
