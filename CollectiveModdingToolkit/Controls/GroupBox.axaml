@@ -34,11 +34,11 @@
 										</ResourceDictionary>
 									</Grid.Resources>
 
-									<Label Name="GBHeaderText"
-										   Margin="5,1"
-										   Padding="5,0"
-										   Content="{TemplateBinding Header}"
-										   FontWeight="{TemplateBinding FontWeight}" />
+									<TextBlock Name="GBHeaderText"
+											   Margin="5,1"
+											   Padding="5,0"
+											   Text="{TemplateBinding Header}"
+											   FontWeight="{TemplateBinding FontWeight}" />
 									<Border Name="GBBorder"
 											Grid.Row="0"
 											Grid.RowSpan="2"
