@@ -12,11 +12,11 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	public string AppName => throw new NotImplementedException();
 
-	public string AppPath => throw new NotImplementedException();
+	public string? AppPath => throw new NotImplementedException();
 
 	public Version? AppVersion => throw new NotImplementedException();
 
-	public string AppVersionString => throw new NotImplementedException();
+	public string? AppVersionString => throw new NotImplementedException();
 
 	public string? GameName => throw new NotImplementedException();
 
@@ -24,9 +24,9 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	public string Profile => throw new NotImplementedException();
 
-	public string StagePath => throw new NotImplementedException();
+	//public string StagePath => throw new NotImplementedException();
 
-	public string GameIniPath => throw new NotImplementedException();
+	public string GameIniFolderPath => throw new NotImplementedException();
 
 	public List<string> StagePaths => throw new NotImplementedException();
 
