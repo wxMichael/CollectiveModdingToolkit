@@ -3,47 +3,56 @@ using CollectiveModdingToolkit.Models.FileTypes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace CollectiveModdingToolkit.Managers;
 
 internal class Unmanaged : ObservableObject, IModManager
 {
-	public string AppName => "Not Found";
+	public string AppName { get; } = "Not Found";
 
-	public string AppPath => string.Empty;
+	public string? AppPath { get; } = null;
 
-	public Version? AppVersion => null;
+	public Version? AppVersion { get; } = null;
 
-	public string AppVersionString => string.Empty;
+	public string? AppVersionString { get; } = null;
 
-	public string? GameName => null;
+	public string? GameName { get; } = null;
 
-	public string? GamePath => null;
+	public string? GamePath { get; } = null;
 
-	public string? Profile => null;
+	public string? Profile { get; } = null;
 
-	public string? StagePath => null;
+	//public string? StagePath { get; } = null;
 
-	public string PluginsTxtPath => string.Empty;
+	public string PluginsTxtPath { get; } = Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
 
-	public string GameIniPath => Computer.DocumentsFallout4;
+	public string GameIniFolderPath { get; } = Computer.DocumentsFallout4;
 
-	public List<string> StagePaths => [];
+	public List<string> StagePaths { get; } = [];
 
-	public List<Module> Modules => throw new NotImplementedException();
+	public List<Module> Modules { get; } = [];
 
-	public Dictionary<string, Module> ModulesWinning => throw new NotImplementedException();
+	public Dictionary<string, Module> ModulesWinning { get; } = [];
 
-	public List<Archive> Archives => throw new NotImplementedException();
+	public List<Archive> Archives { get; } = [];
 
-	public Dictionary<string, Archive> ArchivesWinning => throw new NotImplementedException();
+	public Dictionary<string, Archive> ArchivesWinning { get; } = [];
 
-	public List<DLL> Dlls => throw new NotImplementedException();
+	public List<DLL> Dlls { get; } = [];
 
-	public Dictionary<string, DLL> DllsWinning => throw new NotImplementedException();
+	public Dictionary<string, DLL> DllsWinning { get; } = [];
 
-	public bool ReadSettings() => throw new NotImplementedException();
+	//public bool ReadSettings() => throw new NotImplementedException();
 
-	public void Refresh() => throw new NotImplementedException();
+	public void Refresh()
+	{
+		StagePaths.Clear();
+		Modules.Clear();
+		ModulesWinning.Clear();
+		Archives.Clear();
+		ArchivesWinning.Clear();
+		Dlls.Clear();
+		DllsWinning.Clear();
+	}
 }
-//Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
