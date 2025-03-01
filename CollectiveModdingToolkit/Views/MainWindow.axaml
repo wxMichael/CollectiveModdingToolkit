@@ -12,7 +12,7 @@
 		x:Class="CollectiveModdingToolkit.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		x:CompileBindings="True"
-		Icon="/Assets/Images/icon-64.png"
+		Icon="/Assets/Images/icon-cm-64.png"
 		Title="{Binding WindowTitle}"
 		Width="760"
 		Height="450"
