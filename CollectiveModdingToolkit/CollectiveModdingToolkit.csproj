@@ -44,16 +44,16 @@
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia"
-						  Version="11.2.3" />
+						  Version="11.2.5" />
 		<PackageReference Include="Avalonia.Controls.DataGrid"
-						  Version="11.2.3" />
+						  Version="11.2.5" />
 		<PackageReference Include="Avalonia.Desktop"
-						  Version="11.2.3" />
+						  Version="11.2.5" />
 		<PackageReference Include="Avalonia.Markup.Xaml.Loader"
-						  Version="11.2.3" />
+						  Version="11.2.5" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
 		<PackageReference Include="Avalonia.Diagnostics"
-						  Version="11.2.3">
+						  Version="11.2.5">
 			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
 			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
 		</PackageReference>
@@ -66,11 +66,11 @@
 		<PackageReference Include="ini-parser-netstandard"
 						  Version="2.5.2" />
 		<PackageReference Include="Semi.Avalonia"
-						  Version="11.2.1.4" />
+						  Version="11.2.1.5" />
 		<PackageReference Include="Semi.Avalonia.DataGrid"
-						  Version="11.2.1.4" />
+						  Version="11.2.1.5" />
 		<PackageReference Include="System.IO.Hashing"
-						  Version="9.0.2" />
+						  Version="10.0.0-preview.1.25080.5" />
 	</ItemGroup>
 
 	<Target Name="PreBuild"
