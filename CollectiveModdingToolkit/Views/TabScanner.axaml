@@ -9,5 +9,9 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabScanner"
 			 x:DataType="vm:MainWindowViewModel">
 
-	<TextBlock>TabScanner stuff here.</TextBlock>
+	<TextBlock DockPanel.Dock="Top"
+			   HorizontalAlignment="Center"
+			   VerticalAlignment="Center">
+		Scanner is a work-in-progress and not currently available.
+	</TextBlock>
 </UserControl>
