@@ -1,4 +1,7 @@
 using Avalonia.Controls;
+using CollectiveModdingToolkit.Models;
+using System.Diagnostics;
+using System.IO;
 
 namespace CollectiveModdingToolkit.Views;
 
@@ -27,5 +30,17 @@ public partial class TabOverview : UserControl
 		binary.DisplayText = binary.GameVersion.PadRight(10);
 		//e.PreventGestureRecognition();
 		e.Handled = true;
+	}
+
+	internal void GamePath_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+	{
+		if (Game.Instance == null)
+			return;
+		Process.Start(new ProcessStartInfo()
+		{
+			FileName = Game.Instance.GamePath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+			UseShellExecute = true,
+			Verb = "open"
+		});
 	}
 }
