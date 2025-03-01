@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Text;
 
@@ -77,21 +76,21 @@ public partial class Game : ObservableObject
 	public int TotalModules => ModulesFull.Count + ModulesLight.Count;
 
 	public bool ModulesFullWarning => ModulesFull.Count >= MaxModulesFull * 0.95;
-	public bool ModulesFullMaxed => ModulesFull.Count >= MaxModulesFull;
+	public bool ModulesFullMaxed => ModulesFull.Count > MaxModulesFull;
 	public bool ModulesLightWarning => ModulesLight.Count >= MaxModulesLight * 0.95;
-	public bool ModulesLightMaxed => ModulesLight.Count >= MaxModulesLight;
+	public bool ModulesLightMaxed => ModulesLight.Count > MaxModulesLight;
 	public bool TotalModulesWarning => TotalModules >= TotalModulesMax * 0.95;
-	public bool TotalModulesMaxed => TotalModules >= TotalModulesMax;
+	public bool TotalModulesMaxed => TotalModules > TotalModulesMax;
 
 	public bool HasModulesUnreadable => ModulesUnreadable.Count > 0;
 	public bool HasModulesUnknown => ModulesUnreadable.Count > 0;
 
-	public bool ArchivesGeneralWarning => ArchivesGeneral.Count >= MaxArchives * 0.95;
-	public bool ArchivesGeneralMaxed => ArchivesGeneral.Count >= MaxArchives;
-	public bool ArchivesTextureWarning => ArchivesTexture.Count >= MaxArchives * 0.95;
-	public bool ArchivesTextureMaxed => ArchivesTexture.Count >= MaxArchives;
+	public bool ArchivesGeneralWarning => ArchivesGeneral.Count >= MaxArchivesGeneral * 0.95;
+	public bool ArchivesGeneralMaxed => ArchivesGeneral.Count > MaxArchivesGeneral;
+	public bool ArchivesTextureWarning => ArchivesTexture.Count >= MaxArchivesTexture * 0.95;
+	public bool ArchivesTextureMaxed => ArchivesTexture.Count > MaxArchivesTexture;
 	public bool TotalArchivesWarning => TotalArchives >= TotalArchivesMax * 0.95;
-	public bool TotalArchivesMaxed => TotalArchives >= TotalArchivesMax;
+	public bool TotalArchivesMaxed => TotalArchives > TotalArchivesMax;
 
 	public bool HasArchivesUnreadable => ArchivesUnreadable.Count > 0;
 	public bool HasArchivesUnknown => ArchivesUnreadable.Count > 0;
@@ -99,10 +98,11 @@ public partial class Game : ObservableObject
 	public SortedSet<string> BA2Suffixes { get; private set; }
 	private static readonly string[] _default_ba2_suffixes = ["main", "textures", "voices_en"];
 
-	public static int MaxArchives { get; } = 256;
+	public static int MaxArchivesGeneral { get; } = 256;
+	public static int MaxArchivesTexture { get; } = 255;
 	public static int MaxModulesFull { get; } = 254;
 	public static int MaxModulesLight { get; } = 4096;
-	public static int TotalArchivesMax { get; } = MaxArchives * 2;
+	public static int TotalArchivesMax { get; } = MaxArchivesGeneral + MaxArchivesTexture;
 	public static int TotalModulesMax { get; } = MaxModulesFull + MaxModulesLight;
 
 	internal IniData? Config { get; private set; }
@@ -161,7 +161,7 @@ public partial class Game : ObservableObject
 	{
 		Instance = this;
 
-		BA2Suffixes = new(_default_ba2_suffixes); // TODO: Remove
+		BA2Suffixes = [.. _default_ba2_suffixes]; // TODO: Remove
 		string? gamePath = FindGamePath(manager);
 		if (gamePath == null)
 		{
@@ -197,17 +197,13 @@ public partial class Game : ObservableObject
 			return;
 		}
 
-		//_modListTxt = manager?.ModListTxt;
-		//if (!File.Exists(_modListTxt))
-		//	throw new FileNotFoundException(_modListTxt);
-
-		if (!Directory.Exists(manager.GameIniPath))
+		if (!Directory.Exists(manager.GameIniFolderPath))
 		{
-			MainWindow.CriticalError(typeof(DirectoryNotFoundException), manager.GameIniPath);
+			MainWindow.CriticalError(typeof(DirectoryNotFoundException), manager.GameIniFolderPath);
 			return;
 		}
 
-		ReadGameINIs(manager.GameIniPath);
+		ReadGameINIs(manager.GameIniFolderPath);
 
 		if (!GetBinaryInfo())
 			return;
@@ -220,18 +216,13 @@ public partial class Game : ObservableObject
 
 		GetDllLists(manager);
 		GetDllInfo(manager);
-		Dlls = new(manager.DllsWinning.Values.Where(x => x.IsF4SE));
-
-		//foreach (DLL dll in manager.DllsWinning.Values)
-		//{
-		//	Dlls.Add(dll);
-		//}
+		Dlls = [.. manager.DllsWinning.Values.Where(x => x.IsF4SE)];
 
 		//GameVersion = string.Empty;
 		//Source = string.Empty;
 	}
 
-	// TODO: Detect steam library folders and find game
+	// TODO: Detect steam library folders to find game
 	// TODO: Prompt user to choose between all non-manager game install detections or manual entry
 	// TODO: Game source
 	private static string? FindGamePath(IModManager manager) =>
@@ -307,7 +298,7 @@ public partial class Game : ObservableObject
 			return;
 		}
 
-		BA2Suffixes = new(_default_ba2_suffixes);
+		BA2Suffixes = [.. _default_ba2_suffixes];
 		string? lang = Config["General"]["sLanguage"];
 		// TODO: Test if empty string is valid
 		if (string.IsNullOrEmpty(lang))
@@ -320,17 +311,6 @@ public partial class Game : ObservableObject
 		}
 		Language = lang;
 	}
-
-	//private static string GetFileVersion(string filePath, bool hashOnly = false)
-	//{
-	//	if (hashOnly)
-	//		return $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}";
-	//	FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-	//	string versionString = version.FileVersion == null
-	//		? $"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan()):X8}"
-	//		: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}.{version.FilePrivatePart}";
-	//	return versionString;
-	//}
 
 	private bool GetBinaryInfo()
 	{
@@ -394,7 +374,7 @@ public partial class Game : ObservableObject
 			ModulesEnabled.Add(moduleName);
 		}
 
-		// TODO: check if force enabled or if its even possible to disable
+		// TODO: check if force enabled or if its possible to disable
 		ModulesCCC.Clear();
 		string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
 		if (!File.Exists(cccPath))
@@ -440,9 +420,9 @@ public partial class Game : ObservableObject
 				module.IsEnabled = true;
 				ModulesEnabled.Add(moduleName);
 			}
-			// TODO: store missing files
-			// TODO: store disabled files
-			// TODO: check first line comment
+			// TODO: Store missing files
+			// TODO: Store disabled files
+			// TODO: Check first line comment
 		}
 
 		return true;
@@ -493,51 +473,6 @@ public partial class Game : ObservableObject
 		}
 	}
 
-	//private void GetModuleLists(IModManager manager)
-	//{
-	//	ModulesEnabled.Clear();
-
-	//	foreach (string moduleName in _gameMasters)
-	//	{
-	//		string modulePath = Path.Combine(DataPath, moduleName);
-	//		if (File.Exists(modulePath))
-	//			ModulesEnabled.Add(moduleName);
-	//		// TODO: store path?
-	//	}
-
-	//	// TODO: check if force enabled or if its even possible to disable
-	//	ModulesCCC.Clear();
-	//	string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
-	//	if (!File.Exists(cccPath))
-	//		throw new NotImplementedException("Fallout4.ccc missing");
-	//	string[] contents = File.ReadAllLines(cccPath, Encoding.UTF8);
-	//	foreach (string moduleName in contents)
-	//	{
-	//		string modulePath = Path.Combine(DataPath, moduleName);
-	//		if (File.Exists(modulePath))
-	//			ModulesCCC.Add(moduleName);
-	//		// TODO: store path?
-	//	}
-	//	ModulesEnabled.UnionWith(ModulesCCC);
-
-	//	//string pluginsPath = Path.Combine(Computer.AppDataLocal, "Fallout4", "plugins.txt");
-	//	//if (!File.Exists(_pluginsTxt))
-	//	//	throw new NotImplementedException("plugins.txt missing");
-	//	contents = File.ReadAllLines(_pluginsTxt, Encoding.UTF8);
-	//	foreach (string moduleName in contents)
-	//	{
-	//		if (!moduleName.StartsWith('*'))
-	//			continue;
-	//		string modulePath = Path.Combine(DataPath, moduleName[1..]);
-	//		if (File.Exists(modulePath))
-	//			ModulesEnabled.Add(moduleName[1..]);
-	//		// TODO: store path?
-	//		// TODO: store missing files
-	//		// TODO: store disabled files
-	//		// TODO: check first line comment
-	//	}
-	//}
-
 	private void GetModuleInfo(IModManager manager)
 	{
 		ModulesUnreadable.Clear();
@@ -571,38 +506,6 @@ public partial class Game : ObservableObject
 			else
 				ModulesFull.Add(moduleName);
 		}
-		//foreach (string module in ModulesEnabled)
-		//{
-		//	string modulePath = Path.Combine(DataPath, module);
-		//	using FileStream file = File.OpenRead(modulePath);
-		//	byte[] header = new byte[34];
-		//	int bytesRead = file.Read(header, 0, header.Length);
-
-		//	if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.TES4) || !header[24..28].SequenceEqual(Magic.HEDR))
-		//	{
-		//		ModulesUnreadable.Add(module); // TODO: check if counted against limits (+ba2)
-		//		continue;
-		//	}
-		//	double hedrVersion = Math.Round(BitConverter.ToSingle(header, 30), 2);
-		//	if (hedrVersion == 1)
-		//		Modules100.Add(module);
-		//	else if (hedrVersion == 0.95)
-		//		Modules095.Add(module);
-		//	else
-		//		ModulesUnknown.Add(module);
-		//	if (module.EndsWith(".esl", StringComparison.OrdinalIgnoreCase))
-		//	{
-		//		ModulesLight.Add(module);
-		//	}
-		//	else
-		//	{
-		//		int flags = BitConverter.ToInt32(header, 8);
-		//		if ((flags & Magic.Light) != 0)
-		//			ModulesLight.Add(module);
-		//		else
-		//			ModulesFull.Add(module);
-		//	}
-		//}
 	}
 
 	private void GetArchiveLists(IModManager manager)
@@ -638,7 +541,7 @@ public partial class Game : ObservableObject
 				archive.IsEnabled = true;
 				ArchivesEnabled.Add(archiveName);
 			}
-			// TODO: Track missing
+			// TODO: Store missing files
 		}
 
 		foreach (string module in ModulesEnabled)
@@ -678,11 +581,10 @@ public partial class Game : ObservableObject
 
 		if (GameVersion == Models.GameVersion.OldGen && manager.ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out Archive? startupArchive))
 		{
-			string hash = $"{Crc32.HashToUInt32(File.ReadAllBytes(startupArchive.PathFull).AsSpan(12)):X8}";
+			string hash = Utilities.GetFileHash(startupArchive.PathFull, skipBA2Header: true);
 			if (hash == "A5808F5F")
 				GameVersion = Models.GameVersion.DownGrade;
 		}
-
 
 		foreach ((string archiveName, Archive archive) in manager.ArchivesWinning)
 		{
@@ -710,38 +612,5 @@ public partial class Game : ObservableObject
 			else
 				ArchivesUnknown.Add(archiveName);
 		}
-
-
-		//foreach (string archive in ArchivesEnabled)
-		//{
-		//	string archivePath = Path.Combine(DataPath, archive);
-		//	using FileStream file = File.OpenRead(archivePath);
-		//	byte[] header = new byte[12];
-		//	int bytesRead = file.Read(header, 0, header.Length);
-
-		//	if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.BTDX))
-		//	{
-		//		ArchivesUnreadable.Add(archive);
-		//		continue;
-		//	}
-		//	byte archiveVersion = header[4];
-		//	if (archiveVersion == 1)
-		//		ArchivesOG.Add(archive);
-		//	else if (archiveVersion is 7 or 8)
-		//		ArchivesNG.Add(archive);
-		//	else
-		//	{
-		//		ArchivesUnknown.Add(archive);
-		//		continue;
-		//	}
-
-		//	byte[] archiveFormat = header[8..12];
-		//	if (archiveFormat.SequenceEqual(Magic.GNRL))
-		//		ArchivesGeneral.Add(archive);
-		//	else if (archiveFormat.SequenceEqual(Magic.DX10))
-		//		ArchivesTexture.Add(archive);
-		//	else
-		//		ArchivesUnknown.Add(archive);
-		//}
 	}
 }
