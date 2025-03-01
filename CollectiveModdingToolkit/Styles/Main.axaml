@@ -1,0 +1,538 @@
+<Styles xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:ac="using:Avalonia.Controls.Presenters"
+		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+		xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+		xmlns:tips="clr-namespace:CollectiveModdingToolkit.Models.Tooltips">
+	<Design.PreviewWith>
+		<Border Padding="20" />
+	</Design.PreviewWith>
+
+	<Styles.Resources>
+		<Color x:Key="DefaultBG">#1C1C1C</Color>
+		<Color x:Key="LightBG">#2C2C2C</Color>
+		<Color x:Key="DefaultFG">#CACACA</Color>
+		<Color x:Key="Neutral">Gray</Color>
+		<Color x:Key="Neutral2">#FFE4C4</Color>
+		<Color x:Key="Good">LimeGreen</Color>
+		<Color x:Key="Bad">Tomato</Color>
+		<Color x:Key="Caution">Yellow</Color>
+		<Color x:Key="Warning">Orange</Color>
+		<FontFamily x:Key="Readable">Bahnschrift</FontFamily>
+		<x:Double x:Key="Small">14</x:Double>
+		<x:Double x:Key="Smaller">12</x:Double>
+	</Styles.Resources>
+
+	<!-- Defaults -->
+	<Style Selector="Window">
+		<Setter Property="Background"
+				Value="{StaticResource DefaultBG}" />
+	</Style>
+
+	<Style Selector="TextBlock:not(#GBHeaderText)">
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize"
+				Value="16" />
+		<Setter Property="Foreground"
+				Value="{StaticResource DefaultFG}" />
+
+		<!-- Mouseover Hitbox Workaround -->
+		<Setter Property="Background"
+				Value="Transparent" />
+	</Style>
+
+	<!-- Mouseover Hitbox Workaround -->
+	<Style Selector="ctrl|GroupBox">
+		<Setter Property="Background"
+				Value="Transparent" />
+	</Style>
+	<Style Selector="Grid">
+		<Setter Property="Background"
+				Value="Transparent" />
+	</Style>
+	<Style Selector="TextBlock">
+		<Setter Property="Background"
+				Value="Transparent" />
+	</Style>
+
+	<!-- Overview Tables -->
+	<Style Selector="Grid#OverviewTopPanel">
+		<Setter Property="Margin"
+				Value="5,0,5,5" />
+
+		<!-- Color all text except first column -->
+		<Style Selector="^ TextBlock">
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+		</Style>
+		<Style Selector="^ > TextBlock[(Grid.Column)=0]">
+			<Setter Property="Foreground"
+					Value="{StaticResource DefaultFG}" />
+		</Style>
+	</Style>
+
+	<Style Selector="#F4SEList DataGridRow TextBlock">
+		<Setter Property="FontFamily"
+				Value="{StaticResource Readable}" />
+		<Setter Property="FontSize"
+				Value="{StaticResource Small}" />
+	</Style>
+
+	<Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
+		<Setter Property="Padding"
+				Value="5" />
+	</Style>
+
+	<!--<Style Selector="Grid.Table">
+		<Setter Property="Margin"
+				Value="5,0" />
+		<Style Selector="^ > TextBlock[(Grid.Column)=0]">
+			<Setter Property="TextAlignment"
+					Value="Right" />
+			<Setter Property="Margin"
+					Value="0, 0, 5, 0" />
+		</Style>
+		<Style Selector="^ > TextBlock[(Grid.Column)=1]">
+			-->
+	<!--<Setter Property="TextAlignment" Value="Right" />-->
+	<!--
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
+			-->
+	<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
+	<!--
+		</Style>
+		<Style Selector="^ > TextBlock[(Grid.Column)=2]">
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
+			-->
+	<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
+	<!--
+		</Style>
+		<Style Selector="^ > Grid[(Grid.Column)=1] > TextBlock">
+			<Setter Property="Foreground"
+					Value="#FFE4C4" />
+		</Style>
+	</Style>-->
+
+	<Style Selector="Grid.Table > TextBlock">
+		<!--<Setter Property="Margin" Value="5" />-->
+
+
+
+		<Style Selector="^[(Grid.Column)=0]">
+			<Setter Property="TextAlignment"
+					Value="Right" />
+			<Setter Property="Margin"
+					Value="0, 0, 5, 0" />
+		</Style>
+		<Style Selector="^[(Grid.Column)=1]">
+			<!--<Setter Property="TextAlignment"
+					Value="Left" />-->
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+			<Setter Property="Margin"
+					Value="0" />
+		</Style>
+		<Style Selector="^[(Grid.Column)=2]">
+			<!--<Setter Property="TextAlignment"
+					Value="Left" />-->
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+			<Setter Property="Margin"
+					Value="0" />
+		</Style>
+	</Style>
+
+	<Style Selector="ctrl|GroupBox:nth-child(3)">
+		<Setter Property="Margin"
+				Value="5, 0" />
+	</Style>
+
+	<Style Selector="Label#GBHeaderText">
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize"
+				Value="12" />
+	</Style>
+
+	<Style Selector="TextBlock#GBHeaderText">
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize"
+				Value="12" />
+	</Style>
+
+	<Style Selector="Span.Emoji">
+		<Setter Property="FontFamily"
+				Value="{StaticResource icomoon}" />
+	</Style>
+
+	<Style Selector="TabItem /template/ ContentPresenter">
+		<Setter Property="FontSize"
+				Value="40" />
+	</Style>
+
+	<Style Selector="Button">
+		<Setter Property="Foreground"
+				Value="{StaticResource DefaultFG}" />
+		<Setter Property="FontFamily"
+				Value="{StaticResource CascadiaMono}" />
+
+
+		<Style Selector="^#RefreshButton">
+			<Setter Property="Foreground"
+					Value="{StaticResource Good}" />
+		</Style>
+	</Style>
+
+	<Style Selector="Separator">
+		<Setter Property="Background"
+				Value="Gray" />
+		<Setter Property="Height"
+				Value="2" />
+	</Style>
+
+	<Style Selector="Span.Neutral">
+		<Setter Property="Foreground"
+				Value="{StaticResource Neutral}" />
+	</Style>
+
+	<Style Selector="Span.Neutral2">
+		<Setter Property="Foreground"
+				Value="{StaticResource Neutral2}" />
+	</Style>
+
+	<Style Selector="Span.Good">
+		<Setter Property="Foreground"
+				Value="{StaticResource Good}" />
+	</Style>
+
+	<Style Selector="Span.Caution">
+		<Setter Property="Foreground"
+				Value="{StaticResource Caution}" />
+	</Style>
+
+	<Style Selector="Border#CriticalErrorContent">
+		<Setter Property="BorderBrush"
+				Value="#BBB" />
+		<Setter Property="BorderThickness"
+				Value="2" />
+		<Setter Property="Padding"
+				Value="5" />
+		<Setter Property="Background"
+				Value="{StaticResource DefaultBG}" />
+	</Style>
+
+	<Style Selector="Run.Bad">
+		<Setter Property="Foreground"
+				Value="{StaticResource Bad}" />
+	</Style>
+
+	<Style Selector="Span.Bad">
+		<Setter Property="Foreground"
+				Value="{StaticResource Bad}" />
+	</Style>
+
+	<Style Selector="dialogHost|DialogHost">
+		<Setter Property="DialogMargin"
+				Value="0" />
+	</Style>
+
+	<Style Selector="Grid.HighlightBG">
+		<Setter Property="Background"
+				Value="#16FFFFFF" />
+	</Style>
+
+	<Style Selector="Grid.HighlightBG">
+		<Setter Property="Background"
+				Value="#16FFFFFF" />
+	</Style>
+
+	<!--<Style Selector="StackPanel">
+		<Setter Property="Spacing"
+				Value="5" />
+	</Style>-->
+
+	<Style Selector="DataGrid#BinariesList">
+		<Style.Resources>
+			<x:Double x:Key="DataGridCellMinHeight">28</x:Double>
+		</Style.Resources>
+		<Style Selector="^ DataGridCell">
+			<Setter Property="Padding"
+					Value="0,2,0,0" />
+			<Setter Property="MinHeight"
+					Value="0" />
+			<Style Selector="^:selected /template/ Rectangle">
+				<Setter Property="Stroke"
+						Value="" />
+			</Style>
+			<Style Selector="^:current /template/ Rectangle">
+				<Setter Property="Stroke"
+						Value="" />
+			</Style>
+		</Style>
+		<Style Selector="^ /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+			<Setter Property="IsVisible"
+					Value="False" />
+		</Style>
+		<Style Selector="^ DataGridRow:pointerover /template/ Border#BackgroundBorder">
+			<Setter Property="Background"
+					Value="Transparent" />
+		</Style>
+		<Style Selector="^ DataGridRow:selected /template/ Border#BackgroundBorder">
+			<Setter Property="Background"
+					Value="Transparent" />
+			<Setter Property="CornerRadius"
+					Value="0" />
+			<Setter Property="Margin"
+					Value="0" />
+		</Style>
+	</Style>
+
+
+
+
+
+
+	<!-- Fonts -->
+	<Style Selector=":is(TextElement)">
+		<Style Selector="^.Small">
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Readable">
+			<Setter Property="FontFamily"
+					Value="{StaticResource Readable}" />
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Neutral">
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral}" />
+		</Style>
+
+		<Style Selector="^.Neutral2">
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+		</Style>
+
+		<Style Selector="^.Good">
+			<Setter Property="Foreground"
+					Value="{StaticResource Good}" />
+		</Style>
+
+		<Style Selector="^.Caution">
+			<Setter Property="Foreground"
+					Value="{StaticResource Caution}" />
+		</Style>
+
+		<Style Selector="^.Warning">
+			<Setter Property="Foreground"
+					Value="{StaticResource Warning}" />
+		</Style>
+
+		<Style Selector="^.Bad">
+			<Setter Property="Foreground"
+					Value="{StaticResource Bad}" />
+		</Style>
+	</Style>
+
+	<Style Selector="TextBlock:not(#GBHeaderText)">
+		<Style Selector="^.Small">
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Readable">
+			<Setter Property="FontFamily"
+					Value="{StaticResource Readable}" />
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Neutral">
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral}" />
+		</Style>
+
+		<Style Selector="^.Neutral2">
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+		</Style>
+
+		<Style Selector="^.Good">
+			<Setter Property="Foreground"
+					Value="{StaticResource Good}" />
+		</Style>
+
+		<Style Selector="^.Caution">
+			<Setter Property="Foreground"
+					Value="{StaticResource Caution}" />
+		</Style>
+
+		<Style Selector="^.Warning">
+			<Setter Property="Foreground"
+					Value="{StaticResource Warning}" />
+		</Style>
+
+		<Style Selector="^.Bad">
+			<Setter Property="Foreground"
+					Value="{StaticResource Bad}" />
+		</Style>
+	</Style>
+
+	<!-- ToolTips -->
+	<Style Selector=":is(Control)">
+		<Setter Property="ToolTip.Placement"
+				Value="Pointer" />
+		<!--Value="LeftEdgeAlignedTop" />-->
+		<!--Value="TopEdgeAlignedLeft" />-->
+		<Setter Property="ToolTip.ShowDelay"
+				Value="200" />
+		<Setter Property="ToolTip.BetweenShowDelay"
+				Value="0" />
+		<Setter Property="ToolTip.HorizontalOffset"
+				Value="15" />
+		<Setter Property="ToolTip.VerticalOffset"
+				Value="10" />
+	</Style>
+
+	<Style Selector="ctrl|GroupBox > StackPanel > Grid">
+		<Setter Property="ToolTip.Placement"
+				Value="LeftEdgeAlignedTop" />
+		<Setter Property="ToolTip.HorizontalOffset"
+				Value="-10" />
+		<Setter Property="ToolTip.VerticalOffset"
+				Value="0" />
+	</Style>
+
+	<Style Selector="ToolTip, FlyoutPresenter">
+		<Setter Property="MinHeight"
+				Value="0" />
+		<Setter Property="Transitions"
+				Value="" />
+		<Setter Property="Background"
+				Value="{StaticResource LightBG}" />
+		<Setter Property="BorderBrush"
+				Value="{StaticResource Neutral}" />
+		<Setter Property="BorderThickness"
+				Value="1" />
+		<Style Selector="^ TextBlock">
+			<Setter Property="FontFamily"
+					Value="{StaticResource Readable}" />
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+			<Setter Property="FontWeight"
+					Value="SemiLight" />
+			<Setter Property="Foreground"
+					Value="{StaticResource Neutral2}" />
+			<Setter Property="TextAlignment"
+					Value="Left" />
+
+			<Style Selector="^ Bold">
+				<Setter Property="Foreground"
+						Value="{StaticResource DefaultFG}" />
+				<Setter Property="FontFamily"
+						Value="{StaticResource CascadiaMono}" />
+				<Setter Property="FontSize"
+						Value="{StaticResource Smaller}" />
+				<Setter Property="FontWeight"
+						Value="Normal" />
+
+				<Style Selector="^ > Run">
+					<Setter Property="BaselineAlignment"
+							Value="Bottom" />
+				</Style>
+			</Style>
+		</Style>
+	</Style>
+
+	<Style Selector="ctrl|GroupBox.CenteredHeader /template/ TextBlock#GBHeaderText">
+		<Setter Property="Grid.ColumnSpan"
+				Value="2" />
+		<Setter Property="HorizontalAlignment"
+				Value="Center" />
+	</Style>
+
+	<Style Selector="StackPanel.ToolBox">
+		<Setter Property="Spacing"
+				Value="5" />
+	</Style>
+
+	<Style Selector="Grid.ToolBox"></Style>
+
+	<Style Selector="StackPanel.ToolBox, Grid.ToolBox">
+		<Setter Property="Margin"
+				Value="5" />
+		<Style Selector="^ Button">
+			<Setter Property="HorizontalAlignment"
+					Value="Stretch" />
+			<Setter Property="Margin"
+					Value="0,5,0,0" />
+			<Setter Property="FontSize"
+					Value="{StaticResource Smaller}" />
+
+			<Style Selector="^ > AccessText">
+				<Setter Property="TextWrapping"
+						Value="Wrap" />
+				<Setter Property="TextAlignment"
+						Value="Center" />
+			</Style>
+		</Style>
+
+		<Style Selector="^ Image.Info">
+			<!--<Setter Property="Stretch"
+					Value="None" />-->
+			<Setter Property="MaxWidth"
+					Value="16" />
+			<Setter Property="MaxHeight"
+					Value="16" />
+			<Setter Property="HorizontalAlignment"
+					Value="Center" />
+			<Setter Property="VerticalAlignment"
+					Value="Center" />
+			<Setter Property="Margin"
+					Value="5,5,0,0" />
+			<Setter Property="ToolTip.Placement"
+					Value="Right" />
+		</Style>
+	</Style>
+	<Style Selector="Button">
+		<Setter Property="Padding"
+				Value="5" />
+	</Style>
+	<Style Selector="RadioButton">
+		<Setter Property="FontWeight"
+				Value="Normal" />
+	</Style>
+	<Style Selector="ctrl|GroupBox > StackPanel">
+		<Setter Property="Margin"
+				Value="5" />
+		<Setter Property="Spacing"
+				Value="5" />
+	</Style>
+
+
+
+	<Style Selector="Svg.Rotating">
+		<Style.Animations>
+			<Animation Duration="0:0:6"
+					   IterationCount="Infinite">
+				<KeyFrame Cue="0%">
+					<Setter Property="Opacity"
+							Value="1"/>
+					<Setter Property="RotateTransform.Angle"
+							Value="0.0"/>
+				</KeyFrame>
+				<KeyFrame Cue="100%">
+					<Setter Property="RotateTransform.Angle"
+							Value="360.0"/>
+				</KeyFrame>
+			</Animation>
+		</Style.Animations>
+	</Style>
+</Styles>

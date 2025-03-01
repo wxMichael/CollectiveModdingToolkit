@@ -17,6 +17,6 @@
 		<dialogHostAvalonia:DialogHostStyles />
 		<semi:SemiTheme Locale="en-US" />
 		<StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-		<StyleInclude Source="Styles.axaml" />
+		<StyleInclude Source="Styles/Main.axaml" />
 	</Application.Styles>
 </Application>
