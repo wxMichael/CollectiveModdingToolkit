@@ -3,11 +3,55 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
 			 mc:Ignorable="d"
 			 d:DesignWidth="760"
 			 d:DesignHeight="450"
 			 x:Class="CollectiveModdingToolkit.Views.TabSettings"
 			 x:DataType="vm:MainWindowViewModel">
 
-	<TextBlock>TabSettings stuff here.</TextBlock>
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Top"
+					Orientation="Horizontal"
+					VerticalAlignment="Top">
+			<ctrl:GroupBox Header="Updates Channel">
+
+				<StackPanel Orientation="Vertical">
+					<RadioButton GroupName="UpdateSource"
+								 Content="All: GitHub &amp; Nexus Mods"
+								 IsEnabled="False" />
+					<RadioButton GroupName="UpdateSource"
+								 Content="Early: GitHub"
+								 IsEnabled="False" />
+					<RadioButton GroupName="UpdateSource"
+								 Content="Stable: Nexus Mods"
+								 IsEnabled="False" />
+					<RadioButton GroupName="UpdateSource"
+								 Content="Never: Don't Check"
+								 IsEnabled="False" />
+				</StackPanel>
+			</ctrl:GroupBox>
+
+			<ctrl:GroupBox Header="Log Level"
+						   Margin="5,0">
+
+				<StackPanel Orientation="Vertical">
+					<RadioButton GroupName="UpdateSource"
+								 Content="Debug"
+								 IsEnabled="False" />
+					<RadioButton GroupName="UpdateSource"
+								 Content="Info"
+								 IsEnabled="False" />
+					<RadioButton GroupName="UpdateSource"
+								 Content="Error"
+								 IsEnabled="False" />
+				</StackPanel>
+			</ctrl:GroupBox>
+		</StackPanel>
+		<TextBlock DockPanel.Dock="Top"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center">
+			Settings are a work-in-progress and not currently available.
+		</TextBlock>
+	</DockPanel>
 </UserControl>
