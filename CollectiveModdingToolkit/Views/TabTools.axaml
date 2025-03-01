@@ -3,11 +3,278 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
 			 mc:Ignorable="d"
 			 d:DesignWidth="760"
 			 d:DesignHeight="450"
 			 x:Class="CollectiveModdingToolkit.Views.TabTools"
 			 x:DataType="vm:MainWindowViewModel">
 
-	<TextBlock>TabTools stuff here.</TextBlock>
+	<UniformGrid Rows="1"
+				 Columns="3">
+
+		<!-- Toolkit Utilities -->
+		<ctrl:GroupBox Classes="CenteredHeader"
+					   Grid.Row="1"
+					   Grid.Column="0"
+					   Margin="5,0,0,0"
+					   Header="Toolkit Utilities">
+			<StackPanel Classes="ToolBox">
+
+				<Button Content="Downgrade Manager"
+						IsEnabled="False" />
+				<Button Content="Archive Patcher"
+						IsEnabled="False" />
+
+			</StackPanel>
+		</ctrl:GroupBox>
+
+		<!-- Other CM Authors' Tools -->
+		<ctrl:GroupBox Classes="CenteredHeader"
+					   Grid.Row="1"
+					   Grid.Column="1"
+					   Margin="5,0,5,0"
+					   Header="Other CM Authors' Tools">
+			<Grid Classes="ToolBox"
+				  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+				  ColumnDefinitions="*,Auto">
+
+				<Button Content="Bethini Pie"
+						Grid.Row="0"
+						Grid.Column="0"
+						Click="Button_Click_OpenBethini" />
+				<Image Classes="Info"
+					   Grid.Row="0"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Bethini Pie (Performance INI Editor) makes editing INI config files simple.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> DoubleYou<LineBreak />
+							<Bold>Channel:</Bold> #⚙-bethini-doubleyou-etc
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="CLASSIC Crash Log Scanner"
+						Grid.Row="1"
+						Grid.Column="0"
+						Click="Button_Click_OpenCLASSIC" />
+				<Image Classes="Info"
+					   Grid.Row="1"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Scans Buffout crash logs for key indicators of crashes. You can also post crash logs to the CM Discord for assistance.<LineBreak />
+							<LineBreak />
+							<Bold>Authors:</Bold> Poet &amp; evildarkarchon<LineBreak />
+							<Bold>Channel:</Bold> #🚨-fo4-crash-logs
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="Vault-Tec Enhanced&#x0d;&#x0a;FaceGen System (VEFS)"
+						Grid.Row="2"
+						Grid.Column="0"
+						Click="Button_Click_OpenVEFS" />
+				<Image Classes="Info"
+					   Grid.Row="2"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Automates the process of generating FaceGen models and textures with xEdit/CK.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> DoubleYou<LineBreak />
+							<Bold>Channel:</Bold> #⚙-bethini-doubleyou-etc
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="PJM's Precombine/Previs Patching Scripts"
+						Grid.Row="3"
+						Grid.Column="0"
+						Click="Button_Click_OpenPJM" />
+				<Image Classes="Info"
+					   Grid.Row="3"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Scripts to find precombine/previs (flickering/occlusion) errors in your mod list, and optionally generate a patch to fix those problems.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> PJM<LineBreak />
+							<Bold>Channel:</Bold> N/A
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="DDS Texture Scanner"
+						Grid.Row="4"
+						Grid.Column="0"
+						Click="Button_Click_OpenDDSScanner" />
+				<Image Classes="Info"
+					   Grid.Row="4"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Sniff out textures that might CTD your game. With BA2 support.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> niston<LineBreak />
+							<Bold>Channel:</Bold> #🔧-nistonmakemod
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+			</Grid>
+		</ctrl:GroupBox>
+
+		<!-- Other Useful Tools -->
+		<ctrl:GroupBox Classes="CenteredHeader"
+					   Grid.Row="1"
+					   Grid.Column="2"
+					   Margin="0,0,5,0"
+					   Header="Other Useful Tools">
+			<Grid Classes="ToolBox"
+				  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+				  ColumnDefinitions="*,Auto">
+
+				<Button Content="xEdit / FO4Edit"
+						Grid.Row="0"
+						Grid.Column="0"
+						Click="Button_Click_OpenxEdit" />
+				<Image Classes="Info"
+					   Grid.Row="0"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Module editor and conflict detector for Bethesda games.<LineBreak />
+							<LineBreak />
+							<Bold>Note: </Bold>FO4Edit/SSEEdit are xEdit, renamed to auto-set a game mode.<LineBreak />
+							<Bold>Authors:</Bold> ElminsterAU and the xEdit Team
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="Creation Kit Platform&#x0d;&#x0a;Extended (CKPE)"
+						Grid.Row="1"
+						Grid.Column="0"
+						Click="Button_Click_OpenCKPE" />
+				<Image Classes="Info"
+					   Grid.Row="1"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Various patches and bug fixes for the Creation Kit to make life easier.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> perchik71
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="Unpackrr"
+						Grid.Row="2"
+						Grid.Column="0"
+						Click="Button_Click_OpenUnpackrr" />
+				<Image Classes="Info"
+					   Grid.Row="2"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Batch unpacks small BA2 files to stay below the limit.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> KazumaKuun
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="Cathedral Assets&#x0d;&#x0a;Optimizer (CAO)"
+						Grid.Row="3"
+						Grid.Column="0"
+						Click="Button_Click_OpenCAO" />
+				<Image Classes="Info"
+					   Grid.Row="3"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							An automation tool used to optimize BSAs, meshes, textures and animations.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold>  G'k
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="BA2 Merging Automation&#x0d;&#x0a;Tool (BMAT)"
+						Grid.Row="4"
+						Grid.Column="0"
+						Click="Button_Click_OpenBMAT" />
+				<Image Classes="Info"
+					   Grid.Row="4"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Automated BA2 files repackaging and merging.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> rjshadowface
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="IceStorm's Texture Tools"
+						Grid.Row="5"
+						Grid.Column="0"
+						Click="Button_Click_OpenIceStormTT" />
+				<Image Classes="Info"
+					   Grid.Row="5"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Converts textures from various formats into a Fallout 4 compatible format.<LineBreak />
+							<LineBreak />
+							<Bold>Author:</Bold> IceStormNG
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+				<Button Content="CapFrameX"
+						Grid.Row="6"
+						Grid.Column="0"
+						Click="Button_Click_OpenCapFrameX" />
+				<Image Classes="Info"
+					   Grid.Row="6"
+					   Grid.Column="1"
+					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+
+					<ToolTip.Tip>
+						<TextBlock>
+							Benchmarking tool - Record FPS, frametime, and sensors; analyse and plot the results.<LineBreak />
+							<LineBreak />
+							<Bold>Authors:</Bold> CapframeX Team
+						</TextBlock>
+					</ToolTip.Tip>
+				</Image>
+
+			</Grid>
+		</ctrl:GroupBox>
+	</UniformGrid>
 </UserControl>
