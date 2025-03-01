@@ -7,16 +7,16 @@ namespace CollectiveModdingToolkit.Managers;
 public interface IModManager
 {
 	string AppName { get; }
-	string AppPath { get; }
+	string? AppPath { get; }
 	Version? AppVersion { get; }
-	string AppVersionString { get; }
+	string? AppVersionString { get; }
 	string? GameName { get; }
 	string? GamePath { get; }
 	string? Profile { get; }
-	string? StagePath { get; }
+	//string? StagePath { get; }
 	string PluginsTxtPath { get; }
 	//string? ModListTxtPath { get; }
-	string GameIniPath { get; }
+	string GameIniFolderPath { get; }
 	List<string> StagePaths { get; }
 	List<Module> Modules { get; }
 	Dictionary<string, Module> ModulesWinning { get; }
@@ -25,7 +25,7 @@ public interface IModManager
 	List<DLL> Dlls { get; }
 	Dictionary<string, DLL> DllsWinning { get; }
 
-	bool ReadSettings();
+	//bool ReadSettings();
 
 	void Refresh();
 }
