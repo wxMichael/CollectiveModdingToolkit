@@ -96,7 +96,7 @@
 										Width="Auto">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
-							<Grid Classes="LightBG">
+							<Grid Classes="HighlightBG">
 								<TextBlock VerticalAlignment="Center"
 										   HorizontalAlignment="Center"
 										   FontFamily="{StaticResource icomoon}"
