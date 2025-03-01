@@ -23,12 +23,12 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	public string AppPath { get; }
 	public DirectoryInfo AppFolder { get; }
 	public Version? AppVersion { get; }
-	public string AppVersionString { get; private set; } = string.Empty;
+	public string? AppVersionString { get; private set; } = string.Empty;
 	public string? GameName { get; private set; }
 	public string? GamePath { get; private set; }
 	public string? Profile { get; private set; } = null;
-	public string? StagePath { get; private set; }
-	public string GameIniPath { get; private set; }
+	//public string? StagePath { get; private set; }
+	public string GameIniFolderPath { get; private set; }
 	public string PluginsTxtPath { get; private set; }
 	public List<string> StagePaths { get; private set; } = [];
 	public List<Module> Modules { get; private set; } = [];
@@ -107,6 +107,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	//private string[] _executable_blacklist = [];
 	//private readonly bool _moddingLinked = false;
 
+#pragma warning disable CS0162 // Unreachable code detected
 	public ModOrganizer()
 	{
 #if !DEBUG
@@ -114,18 +115,19 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 #endif
 		AppPath = @"C:\Modding\MO2\ModOrganizer.exe";
 		AppFolder = Directory.GetParent(AppPath) ?? throw new NullReferenceException($"Parent of {AppPath}");
-		AppVersionString = GetFileVersion(AppPath);
-		AppVersion = new(AppVersionString);
+		AppVersionString = Utilities.GetFileVersion(AppPath, skipPrivate: true);
+		AppVersion = AppVersionString == null ? null : new(AppVersionString);
 		Refresh();
 	}
+#pragma warning restore CS0162 // Unreachable code detected
 
 	public ModOrganizer(ProcessModule? processModule)
 	{
 		ArgumentNullException.ThrowIfNull(processModule);
 		AppPath = processModule.FileName;
 		AppFolder = Directory.GetParent(AppPath)!;
-		AppVersionString = GetFileVersion(AppPath);
-		AppVersion = new(AppVersionString);
+		AppVersionString = Utilities.GetFileVersion(AppPath, skipPrivate: true);
+		AppVersion = AppVersionString == null ? null : new(AppVersionString);
 		string? ver = processModule.FileVersionInfo.FileVersion;
 		if (ver != null && ver.Contains("-ML"))
 		{
@@ -135,14 +137,14 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		Refresh();
 	}
 
-	[MemberNotNull(nameof(GameIniPath), nameof(PluginsTxtPath))]
+	[MemberNotNull(nameof(GameIniFolderPath), nameof(PluginsTxtPath))]
 	public void Refresh()
 	{
 		GameName = null;
 		GamePath = null;
 		Profile = null;
-		StagePath = null;
-		GameIniPath = null!;
+		//StagePath = null;
+		GameIniFolderPath = null!;
 		PluginsTxtPath = null!;
 		StagePaths.Clear();
 		Modules.Clear();
@@ -173,8 +175,8 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		GetOverviewInfo();
 	}
 
-	[MemberNotNull(nameof(GameIniPath), nameof(PluginsTxtPath))]
-	public bool ReadSettings()
+	[MemberNotNull(nameof(GameIniFolderPath), nameof(PluginsTxtPath))]
+	private bool ReadSettings()
 	{
 		string iniPath = IsPortable
 			? Path.Combine(AppFolder.FullName, "ModOrganizer.ini")
@@ -189,7 +191,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		if (_appIniData == null)
 		{
 			MainWindow.CriticalError(typeof(NullReferenceException), $"Unable to read file:\n{iniPath}");
-			GameIniPath = string.Empty;
+			GameIniFolderPath = string.Empty;
 			PluginsTxtPath = string.Empty;
 			return false;
 		}
@@ -217,7 +219,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		if (!Directory.Exists(_baseDirectory))
 		{
 			MainWindow.CriticalError(typeof(DirectoryNotFoundException), _baseDirectory);
-			GameIniPath = string.Empty;
+			GameIniFolderPath = string.Empty;
 			PluginsTxtPath = string.Empty;
 			return false;
 		}
@@ -228,7 +230,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 
 
 		// TODO: use settings.ini (and _profile_local_inis ??)
-		GameIniPath = Path.Combine(_profilesDirectory, Profile);
+		GameIniFolderPath = Path.Combine(_profilesDirectory, Profile);
 		PluginsTxtPath = Path.Combine(_profilesDirectory, Profile, "plugins.txt");
 
 		string modListTxtPath = Path.Combine(_profilesDirectory, Profile, "modlist.txt");
@@ -389,15 +391,6 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 				}
 			}
 		}
-	}
-
-	private static string GetFileVersion(string filePath)
-	{
-		FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-		string versionString = version.FileVersion == null
-			? string.Empty
-			: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}";
-		return versionString;
 	}
 
 	private static string FormatByteArray(string path)
