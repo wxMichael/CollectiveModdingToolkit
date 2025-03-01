@@ -3,11 +3,196 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+			 xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Avalonia.Svg"
 			 mc:Ignorable="d"
 			 d:DesignWidth="760"
 			 d:DesignHeight="450"
 			 x:Class="CollectiveModdingToolkit.Views.TabAbout"
 			 x:DataType="vm:MainWindowViewModel">
 
-	<TextBlock>TabAbout stuff here.</TextBlock>
+	<UserControl.Resources>
+		<Flyout x:Key="CopyFlyout"
+				Placement="Right"
+				ShowMode="TransientWithDismissOnPointerMoveAway">
+			<TextBlock Text="Copied!"
+					   TextAlignment="Center" />
+		</Flyout>
+	</UserControl.Resources>
+
+	<Grid RowDefinitions="Auto,*"
+		  ColumnDefinitions="2*,3*">
+
+		<!-- Left Side -->
+		<DockPanel Grid.Row="0"
+				   Grid.Column="0"
+				   Grid.RowSpan="2"
+				   Margin="20">
+			<TextBlock DockPanel.Dock="Top"
+					   TextAlignment="Center"
+					   FontSize="24">
+				Collective Modding<LineBreak />
+				Toolkit
+			</TextBlock>
+			<Grid DockPanel.Dock="Top"
+				  Margin="0"
+				  RowDefinitions="*"
+				  ColumnDefinitions="*">
+				<Svg Grid.Row="0"
+					 Grid.Column="0"
+					 MaxHeight="512"
+					 MaxWidth="512"
+					 Classes="Rotating"
+					 Stretch="Uniform"
+					 Path="/Assets/Images/CM-Icon-BG.svg" />
+
+				<Svg Grid.Row="0"
+					 Grid.Column="0"
+					 MaxHeight="512"
+					 MaxWidth="512"
+					 Stretch="Uniform"
+					 Path="/Assets/Images/CM-Icon-FG.svg" />
+			</Grid>
+		</DockPanel>
+
+		<!-- Right Side -->
+		<StackPanel Grid.Row="0"
+					Grid.Column="1"
+					Orientation="Vertical"
+					Margin="20">
+			<TextBlock TextAlignment="Center"
+					   FontSize="15"
+					   Margin="0,0,0,30"
+					   >
+				<Run Text="{Binding AppVersionString, StringFormat='v{0}'}" />
+				<LineBreak />
+				<LineBreak />
+				<Run Text="Created by wxMichael for the" />
+				<LineBreak />
+				<Run Text="Collective Modding Community" />
+				<LineBreak />
+				<Run Text="#cm-toolkit on Discord" />
+			</TextBlock>
+			<Grid RowDefinitions="*,*,*"
+				  ColumnDefinitions="*,Auto,Auto,Auto">
+				<Svg Grid.Row="0"
+					 Grid.Column="0"
+					 MaxHeight="60"
+					 MaxWidth="200"
+					 Stretch="Uniform"
+					 HorizontalAlignment="Right"
+					 Path="/Assets/Images/logo-nexusmods.svg" />
+				<Svg Grid.Row="0"
+					 Grid.Column="1"
+					 Margin="20,0,0,0"
+					 MaxHeight="65"
+					 MaxWidth="65"
+					 HorizontalAlignment="Center"
+					 Stretch="Uniform"
+					 Path="/Assets/Images/icon-nexusmods.svg" />
+
+				<Rectangle Grid.Row="0"
+						   Grid.Column="2"
+						   Fill="DimGray"
+						   Width="2"
+						   Height="55"
+						   Margin="10,0,10,0" />
+
+				<StackPanel Grid.Row="0"
+							Grid.Column="3"
+							Orientation="Vertical"
+							VerticalAlignment="Center"
+							Spacing="5">
+					<Button Content="Open Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_OpenNexus" />
+					<Button Content="Copy Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_CopyNexus"
+							FlyoutBase.AttachedFlyout="{StaticResource CopyFlyout}" />
+				</StackPanel>
+
+				<Svg Grid.Row="1"
+					 Grid.Column="0"
+					 Stretch="Uniform"
+					 MaxHeight="80"
+					 MaxWidth="220"
+					 HorizontalAlignment="Right"
+					 Path="/Assets/Images/logo-discord.svg" />
+				<Svg Grid.Row="1"
+					 Grid.Column="1"
+					 Stretch="Uniform"
+					 MaxHeight="65"
+					 MaxWidth="65"
+					 HorizontalAlignment="Center"
+					 Margin="20,30,0,30"
+					 Path="/Assets/Images/icon-discord.svg" />
+
+				<Rectangle Grid.Row="1"
+						   Grid.Column="2"
+						   Fill="DimGray"
+						   Width="2"
+						   Height="55"
+						   Margin="10,0,10,0" />
+
+
+				<StackPanel Grid.Row="1"
+							Grid.Column="3"
+							Orientation="Vertical"
+							VerticalAlignment="Center"
+							Spacing="5">
+					<Button Content="Open Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_OpenDiscord" />
+					<Button Content="Copy Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_CopyDiscord"
+							FlyoutBase.AttachedFlyout="{StaticResource CopyFlyout}" />
+				</StackPanel>
+
+				<Svg Grid.Row="2"
+					 Grid.Column="0"
+					 Stretch="Uniform"
+					 MaxHeight="50"
+					 MaxWidth="190"
+					 HorizontalAlignment="Right"
+					 Path="/Assets/Images/logo-github.svg" />
+				<Svg Grid.Row="2"
+					 Grid.Column="1"
+					 Stretch="Uniform"
+					 MaxHeight="65"
+					 MaxWidth="65"
+					 HorizontalAlignment="Center"
+					 Margin="20,0,0,0"
+					 Path="/Assets/Images/icon-github.svg" />
+
+				<Rectangle Grid.Row="3"
+						   Grid.Column="2"
+						   Fill="DimGray"
+						   Width="2"
+						   Height="55"
+						   Margin="10,0,10,0" />
+
+
+				<StackPanel Grid.Row="2"
+							Grid.Column="3"
+							Orientation="Vertical"
+							VerticalAlignment="Center"
+							Spacing="5">
+					<Button Content="Open Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_OpenGithub" />
+					<Button Content="Copy Link"
+							FontFamily="{StaticResource Readable}"
+							Foreground="{StaticResource DefaultFG}"
+							Click="Button_Click_CopyGithub"
+							FlyoutBase.AttachedFlyout="{StaticResource CopyFlyout}" />
+				</StackPanel>
+			</Grid>
+		</StackPanel>
+	</Grid>
 </UserControl>
