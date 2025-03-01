@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using NtQueryProcessCOMWrapper;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -13,20 +14,22 @@ namespace CollectiveModdingToolkit.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-	private static bool DEBUG_MODE = false;
-
-	private static readonly Version _version = new("0.6"); // TODO: preprocessor directive?
-
-	public string WindowTitle { get; } = $"Collective Modding Toolkit {_version}";
-	[ObservableProperty] public partial Computer Computer { get; private set; } = null!;
-	[ObservableProperty] public partial IModManager? ModManager { get; private set; }
-	[ObservableProperty] public partial Game Game { get; set; } = null!;
+	[ObservableProperty] internal partial Computer Computer { get; private set; } = null!;
+	[ObservableProperty] internal partial IModManager? ModManager { get; private set; }
+	[ObservableProperty] internal partial Game Game { get; set; } = null!;
 
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(RefreshCommand))]
 	private partial bool CanRefresh { get; set; } = false;
 
-	public MainWindowViewModel()
+	internal static string AppVersionString { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
+	internal string WindowTitle { get; } = $"Collective Modding Toolkit v{AppVersionString}";
+
+#pragma warning disable IDE0044
+	private static bool DEBUG_MODE = false;
+#pragma warning restore IDE0044
+
+	internal MainWindowViewModel()
 	{
 #if DEBUG
 		DEBUG_MODE = true;
@@ -41,42 +44,20 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 		catch (Exception e)
 		{
-			MainWindow.CriticalError(e.GetType(), e.Message);
+			MainWindow.CriticalError(e.GetType(), e.ToString());
 		}
-
-		//string dataPath = @"C:\Program Files (x86)\Steam\steamapps\common\Fallout 4\Data";
-		//string pluginPath = Path.Combine(dataPath, "community fixes merged.esp");
-		//Console.WriteLine($"Main: community fixes merged.esp Exists: {File.Exists(pluginPath)}");
-
-		//ProcessStartInfo info = new()
-		//{
-		//	CreateNoWindow = false,
-		//	UseShellExecute = false,
-		//	FileName = @"C:\Users\Michael\source\repos\CollectiveModdingToolkit\MO2VFSBypass\bin\publish\MO2VFSBypass.exe",
-		//};
-		//Process? process = Process.Start(info);
 	}
 
 	[RelayCommand(CanExecute = nameof(CanRefresh))]
-	public void Refresh()
+	internal void Refresh()
 	{
 		CanRefresh = false;
 		Task.Run(() =>
 		{
-			//Computer computer = new();
 			IModManager modManager;
 			if (ModManager == null)
 			{
 				modManager = DetectModManager();
-				//try
-				//{
-				//	modManager = DetectModManager();
-				//}
-				//catch (Exception e)
-				//{
-				//	modManager = null;
-				//	Console.WriteLine(e.Message);
-				//}
 			}
 			else
 			{
@@ -87,7 +68,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			Avalonia.Threading.Dispatcher.UIThread.Post(() =>
 			{
-				//Computer = computer;
 				ModManager = modManager;
 				Game = game;
 				CanRefresh = true;
@@ -104,46 +84,50 @@ public partial class MainWindowViewModel : ViewModelBase
 		// TODO: Abstract code
 		// TODO: Use static global process handle
 		IntPtr processHandle = Process.GetCurrentProcess().Handle;
-		NtQueryInformationProcessWrapper comWrapper = new();
+		//NtQueryInformationProcessWrapper comWrapper = new();
 		uint bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
-		IntPtr? pbiPtr = null;
-		try
+		//IntPtr? pbiPtr = null;
+		//try
+		//{
+		//pbiPtr = Marshal.AllocHGlobal((int)bufferSize);
+		int status;
+		PROCESS_BASIC_INFORMATION pbi = new();
+		Process? parent = null;
+		for (int i = 0; i < 4; i++)
 		{
-			pbiPtr = Marshal.AllocHGlobal((int)bufferSize);
-			int status;
-			PROCESS_BASIC_INFORMATION pbi;
-			Process? parent = null;
-			for (int i = 0; i < 10; i++)
+			uint returnLength = 0;
+			status = NtQueryInformationProcessWrapper.NtQueryInformationProcess(processHandle, PROCESSINFOCLASS.ProcessBasicInformation, ref pbi, bufferSize, ref returnLength);
+			if (status != 0)
 			{
-				status = comWrapper.NtQueryInformationProcess(processHandle, PROCESSINFOCLASS.ProcessBasicInformation, pbiPtr.Value, bufferSize, out _);
-				if (status != 0)
-					return new Unmanaged();
-
-				pbi = Marshal.PtrToStructure<PROCESS_BASIC_INFORMATION>(pbiPtr.Value);
-				parent = Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
-				if (parent == null)
-					return new Unmanaged();
-
-				if (parent.ProcessName == "ModOrganizer")
-					return new ModOrganizer(parent.MainModule);
-				if (parent.ProcessName == "Vortex")
-					return new Vortex(parent.MainModule);
-
-				processHandle = parent.Handle;
+				return new Unmanaged();
 			}
-			//if (Name == null) return new Unmanaged();
-			// TODO: Handle nulls
+
+			//pbi = Marshal.PtrToStructure<PROCESS_BASIC_INFORMATION>(pbiPtr.Value);
+			parent = Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
+			if (parent == null)
+				return new Unmanaged();
+
+			Console.WriteLine(parent.ProcessName);
+			if (parent.ProcessName == "ModOrganizer")
+				return new ModOrganizer(parent.MainModule);
+			if (parent.ProcessName == "Vortex")
+				return new Vortex(parent.MainModule);
+
+			processHandle = parent.Handle;
 		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			return new Unmanaged();
-		}
-		finally
-		{
-			if (pbiPtr.HasValue)
-				Marshal.FreeHGlobal(pbiPtr.Value);
-		}
+		//if (Name == null) return new Unmanaged();
+		// TODO: Handle nulls
+		//}
+		//catch (Exception e)
+		//{
+		//	Console.WriteLine(e);
+		//	return new Unmanaged();
+		//}
+		//finally
+		//{
+		//if (pbiPtr.HasValue)
+		//	Marshal.FreeHGlobal(pbiPtr.Value);
+		//}
 		return new Unmanaged();
 	}
 }
