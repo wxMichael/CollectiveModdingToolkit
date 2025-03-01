@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+		xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+		mc:Ignorable="d"
+		d:DesignWidth="800"
+		d:DesignHeight="450"
+		x:Class="CollectiveModdingToolkit.ArchivePatcher"
+		Title="ArchivePatcher"
+		x:DataType="vm:MainWindowViewModel">
+	<StackPanel Orientation="Vertical">
+		<UniformGrid Rows="1"
+					 Columns="3">
+			<ctrl:GroupBox Grid.Row="1"
+						   Grid.Column="0"
+						   Header="Desired Version">
+				<StackPanel Orientation="Horizontal">
+					<RadioButton GroupName="DesiredVersion"
+								 Content="v1 (OG)" />
+					<RadioButton GroupName="DesiredVersion"
+								 Content="v7 (NG)" />
+					<RadioButton GroupName="DesiredVersion"
+								 Content="v8 (NG)" />
+				</StackPanel>
+			</ctrl:GroupBox>
+			<TextBlock Grid.Row="1"
+					   Grid.Column="1"
+					   Text="{Binding ModManager.AppName, Mode=OneWay}" />
+			<StackPanel Orientation="Horizontal"
+						Grid.Row="1"
+						Grid.Column="2">
+				<Button Content="About" />
+				<Button Content="Patch All"
+						Theme="{DynamicResource SolidButton}"
+						Classes="Success"/>
+			</StackPanel>
+		</UniformGrid>
+	</StackPanel>
+</Window>
