@@ -12,7 +12,7 @@ internal static class Utilities
 	internal static string? GetFileVersion(string filePath, bool skipPrivate = false)
 	{
 		FileVersionInfo version = FileVersionInfo.GetVersionInfo(filePath);
-		string privatePart = skipPrivate ? "" : $".{version.FilePrivatePart}";
+		string privatePart = skipPrivate ? string.Empty : $".{version.FilePrivatePart}";
 		return version.FileVersion == null
 			? null
 			: $"{version.FileMajorPart}.{version.FileMinorPart}.{version.FileBuildPart}{privatePart}";
