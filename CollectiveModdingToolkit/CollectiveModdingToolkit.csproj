@@ -15,26 +15,29 @@
 		<PublishSelfContained>True</PublishSelfContained>
 		<PublishSingleFile>True</PublishSingleFile>
 
-		<ApplicationIcon>Assets\Images\icon-64.ico</ApplicationIcon>
+		<ApplicationIcon>Assets\Images\icon-cm-64.ico</ApplicationIcon>
+
+		<FileVersion>0.6</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<OutputType>WinExe</OutputType>
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<OutputType>WinExe</OutputType>
+		<OutputType>Exe</OutputType>
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
-		<Content Include="Assets\Images\icon-64.ico" />
+		<!--<Content Include="Assets\Images\icon-64.ico" />
+		<Content Include="Assets\Images\icon-cm-64.ico" />-->
 	</ItemGroup>
 
 	<ItemGroup>
 		<TrimmerRootAssembly Include="Avalonia" />
-		<TrimmerRootAssembly Include="Avalonia.DesignerSupport" />
 		<TrimmerRootAssembly Include="Avalonia.Markup.Xaml.Loader" />
+		<TrimmerRootAssembly Include="Avalonia.DesignerSupport" />
 		<TrimmerRootAssembly Include="Semi.Avalonia" />
 		<TrimmerRootAssembly Include="CommunityToolkit.Mvvm" />
 	</ItemGroup>
@@ -54,6 +57,8 @@
 			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
 			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
 		</PackageReference>
+		<PackageReference Include="Avalonia.Svg.Skia"
+						  Version="11.2.0.2" />
 		<PackageReference Include="CommunityToolkit.Mvvm"
 						  Version="8.4.0" />
 		<PackageReference Include="DialogHost.Avalonia"
@@ -65,6 +70,11 @@
 		<PackageReference Include="Semi.Avalonia.DataGrid"
 						  Version="11.2.1.4" />
 		<PackageReference Include="System.IO.Hashing"
-						  Version="9.0.1" />
+						  Version="9.0.2" />
 	</ItemGroup>
+
+	<Target Name="PreBuild"
+			BeforeTargets="PreBuildEvent">
+		<Exec Command="taskkill /f /fi &quot;imagename eq $(TargetName).exe&quot;" />
+	</Target>
 </Project>
