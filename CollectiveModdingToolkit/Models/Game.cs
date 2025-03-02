@@ -24,24 +24,6 @@ public partial class Game : ObservableObject
 	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
 	[ObservableProperty] public partial string Source { get; set; } = string.Empty;
 
-	//[ObservableProperty] public partial string Fallout4Version { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string Fallout4LauncherVersion { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string Steam_api64Version { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string F4se_loaderVersion { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string F4se_steam_loaderVersion { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string CreationKitVersion { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string Archive2Version { get; set; } = string.Empty;
-	//[ObservableProperty] public partial string Archive2InteropVersion { get; set; } = string.Empty;
-
-	//[ObservableProperty] public partial bool? Fallout4Good { get; private set; } = null;
-	//[ObservableProperty] public partial bool? Fallout4LauncherGood { get; private set; } = null;
-	//[ObservableProperty] public partial bool? Steam_api64Good { get; private set; } = null;
-	//[ObservableProperty] public partial bool? F4se_loaderGood { get; private set; } = null;
-	//[ObservableProperty] public partial bool? F4se_steam_loaderGood { get; private set; } = null;
-	//[ObservableProperty] public partial bool? CreationKitGood { get; private set; } = null;
-	//[ObservableProperty] public partial bool? Archive2Good { get; private set; } = null;
-	//[ObservableProperty] public partial bool? Archive2InteropGood { get; private set; } = null;
-
 	public ObservableCollection<DLL> Dlls { get; set; } = [];
 	public ObservableCollection<Binary> Binaries { get; set; } = [];
 
@@ -68,7 +50,7 @@ public partial class Game : ObservableObject
 	public SortedSet<string> ModulesUnknown { get; } = [];
 	public SortedSet<string> DllsUnreadable { get; } = [];
 
-	// TODO: remove .DownGrade and just have IsDG
+	// TODO: remove .DownGrade and just have IsDG?
 	public bool IsOG => GameVersion == Models.GameVersion.DownGrade || GameVersion == Models.GameVersion.OldGen;
 	public bool IsNG => GameVersion == Models.GameVersion.NextGen;
 
@@ -130,32 +112,6 @@ public partial class Game : ObservableObject
 		"DLCNukaWorld.esm",
 		"DLCUltraHighResolution.esm",
 	];
-	//private const string NO_FILE = "NO_FILE";
-	//private static readonly string Fallout4exeOG = "1.10.163.0";
-	//private static readonly string Fallout4exeNG = "1.10.984.0";
-	//{ "Fallout4.exe", "1.10.980.0" },
-	//private static readonly string steam_api64_OG_GOG = "BD3AA35F";
-
-	//private static readonly Dictionary<string, string> binariesOG = new()
-	//{
-	//	{ "Fallout4Launcher.exe", "02445570" },
-	//	{ "steam_api64.dll", "2.89.45.4" },
-	//	{ "f4se_loader.exe", "0.0.6.23" },
-	//	{ "f4se_steam_loader.dll", "0.0.6.23" },
-	//	{ "CreationKit.exe", "1.10.162.0" },
-	//	{ Path.Combine("Tools", "Archive2", "Archive2.exe"), "1.1.0.4" },
-	//	{ Path.Combine("Tools", "Archive2", "Archive2Interop.dll"), "850D36A9" },
-	//};
-	//private static readonly Dictionary<string, string> binariesNG = new()
-	//{
-	//	{ "Fallout4Launcher.exe", "F6A06FF5" },
-	//	{ "steam_api64.dll", "7.40.51.27" },
-	//	{ "f4se_loader.exe", "0.0.7.2" },
-	//	{ "f4se_steam_loader.dll", NO_FILE },
-	//	{ "CreationKit.exe", "1.10.982.3" },
-	//	{ Path.Combine("Tools", "Archive2", "Archive2.exe"), "1.1.0.5" },
-	//	{ Path.Combine("Tools", "Archive2", "Archive2Interop.dll"), "EFBE3622" },
-	//};
 
 	public Game(IModManager manager)
 	{
