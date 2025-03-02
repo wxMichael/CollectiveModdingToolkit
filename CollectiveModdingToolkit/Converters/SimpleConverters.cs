@@ -9,14 +9,6 @@ using System.Linq;
 
 namespace CollectiveModdingToolkit.Converters;
 
-//internal class BoolToEmojiConverter : IValueConverter
-//{
-//	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => (value is bool supportsCurrent) ? (supportsCurrent ? "✔" : "❌") : string.Empty;
-
-//	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-//		BindingOperations.DoNothing;
-//}
-
 internal class RemoveFileExtConverter : IValueConverter
 {
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
