@@ -97,7 +97,6 @@ public partial class MainWindowViewModel : ViewModelBase
 				return new Unmanaged();
 			}
 
-			//pbi = Marshal.PtrToStructure<PROCESS_BASIC_INFORMATION>(pbiPtr.Value);
 			parent = Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
 			if (parent == null)
 				return new Unmanaged();
