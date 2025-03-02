@@ -10,6 +10,10 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabAbout"
 			 x:DataType="vm:MainWindowViewModel">
 
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
 	<UserControl.Resources>
 		<Flyout x:Key="CopyFlyout"
 				Placement="Right"
