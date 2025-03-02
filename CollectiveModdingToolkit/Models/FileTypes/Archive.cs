@@ -59,7 +59,7 @@ public class Archive : IFile
 			return;
 		}
 
-		if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.BTDX))
+		if (bytesRead != header.Length || !header.AsSpan(0, 4).SequenceEqual(Magic.BTDX))
 		{
 			IsReadable = false;
 			return;
@@ -68,9 +68,9 @@ public class Archive : IFile
 		//if (ArchiveVersion is not 1 and not 7 and not 8)
 		//	IsUnknown = true;
 
-		if (header[8..12].SequenceEqual(Magic.GNRL))
+		if (header.AsSpan(8, 4).SequenceEqual(Magic.GNRL))
 			ArchiveFormat = "GNRL";
-		else if (header[8..12].SequenceEqual(Magic.DX10))
+		else if (header.AsSpan(8, 4).SequenceEqual(Magic.DX10))
 			ArchiveFormat = "DX10";
 		//else
 		//	IsUnknown = true;
