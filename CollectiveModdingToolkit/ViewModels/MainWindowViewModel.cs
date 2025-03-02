@@ -25,11 +25,13 @@ public partial class MainWindowViewModel : ViewModelBase
 	internal static string AppVersionString { get; } = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version ?? "0.0";
 	internal string WindowTitle { get; } = $"Collective Modding Toolkit v{AppVersionString}";
 
-#pragma warning disable IDE0044
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable IDE0044 // Add readonly modifier
 	private static bool DEBUG_MODE = false;
-#pragma warning restore IDE0044
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 
-	internal MainWindowViewModel()
+	public MainWindowViewModel()
 	{
 #if DEBUG
 		DEBUG_MODE = true;
@@ -81,15 +83,8 @@ public partial class MainWindowViewModel : ViewModelBase
 		if (DEBUG_MODE)
 			return new ModOrganizer();
 
-		// TODO: Abstract code
-		// TODO: Use static global process handle
-		IntPtr processHandle = Process.GetCurrentProcess().Handle;
-		//NtQueryInformationProcessWrapper comWrapper = new();
+		IntPtr processHandle = Computer.CurrentProcess;
 		uint bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
-		//IntPtr? pbiPtr = null;
-		//try
-		//{
-		//pbiPtr = Marshal.AllocHGlobal((int)bufferSize);
 		int status;
 		PROCESS_BASIC_INFORMATION pbi = new();
 		Process? parent = null;
