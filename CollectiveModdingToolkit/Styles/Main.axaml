@@ -84,43 +84,7 @@
 				Value="5" />
 	</Style>
 
-	<!--<Style Selector="Grid.Table">
-		<Setter Property="Margin"
-				Value="5,0" />
-		<Style Selector="^ > TextBlock[(Grid.Column)=0]">
-			<Setter Property="TextAlignment"
-					Value="Right" />
-			<Setter Property="Margin"
-					Value="0, 0, 5, 0" />
-		</Style>
-		<Style Selector="^ > TextBlock[(Grid.Column)=1]">
-			-->
-	<!--<Setter Property="TextAlignment" Value="Right" />-->
-	<!--
-			<Setter Property="Foreground"
-					Value="#FFE4C4" />
-			-->
-	<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
-	<!--
-		</Style>
-		<Style Selector="^ > TextBlock[(Grid.Column)=2]">
-			<Setter Property="Foreground"
-					Value="#FFE4C4" />
-			-->
-	<!--<Setter Property="Margin" Value="0, 0, 0, 0" />-->
-	<!--
-		</Style>
-		<Style Selector="^ > Grid[(Grid.Column)=1] > TextBlock">
-			<Setter Property="Foreground"
-					Value="#FFE4C4" />
-		</Style>
-	</Style>-->
-
 	<Style Selector="Grid.Table > TextBlock">
-		<!--<Setter Property="Margin" Value="5" />-->
-
-
-
 		<Style Selector="^[(Grid.Column)=0]">
 			<Setter Property="TextAlignment"
 					Value="Right" />
@@ -128,16 +92,12 @@
 					Value="0, 0, 5, 0" />
 		</Style>
 		<Style Selector="^[(Grid.Column)=1]">
-			<!--<Setter Property="TextAlignment"
-					Value="Left" />-->
 			<Setter Property="Foreground"
 					Value="{StaticResource Neutral2}" />
 			<Setter Property="Margin"
 					Value="0" />
 		</Style>
 		<Style Selector="^[(Grid.Column)=2]">
-			<!--<Setter Property="TextAlignment"
-					Value="Left" />-->
 			<Setter Property="Foreground"
 					Value="{StaticResource Neutral2}" />
 			<Setter Property="Margin"
@@ -179,7 +139,6 @@
 				Value="{StaticResource DefaultFG}" />
 		<Setter Property="FontFamily"
 				Value="{StaticResource CascadiaMono}" />
-
 
 		<Style Selector="^#RefreshButton">
 			<Setter Property="Foreground"
@@ -250,11 +209,6 @@
 				Value="#16FFFFFF" />
 	</Style>
 
-	<!--<Style Selector="StackPanel">
-		<Setter Property="Spacing"
-				Value="5" />
-	</Style>-->
-
 	<Style Selector="DataGrid#BinariesList">
 		<Style.Resources>
 			<x:Double x:Key="DataGridCellMinHeight">28</x:Double>
@@ -290,11 +244,6 @@
 					Value="0" />
 		</Style>
 	</Style>
-
-
-
-
-
 
 	<!-- Fonts -->
 	<Style Selector=":is(TextElement)">
@@ -389,8 +338,6 @@
 	<Style Selector=":is(Control)">
 		<Setter Property="ToolTip.Placement"
 				Value="Pointer" />
-		<!--Value="LeftEdgeAlignedTop" />-->
-		<!--Value="TopEdgeAlignedLeft" />-->
 		<Setter Property="ToolTip.ShowDelay"
 				Value="200" />
 		<Setter Property="ToolTip.BetweenShowDelay"
@@ -485,8 +432,6 @@
 		</Style>
 
 		<Style Selector="^ Image.Info">
-			<!--<Setter Property="Stretch"
-					Value="None" />-->
 			<Setter Property="MaxWidth"
 					Value="16" />
 			<Setter Property="MaxHeight"
@@ -515,8 +460,6 @@
 		<Setter Property="Spacing"
 				Value="5" />
 	</Style>
-
-
 
 	<Style Selector="Svg.Rotating">
 		<Style.Animations>
