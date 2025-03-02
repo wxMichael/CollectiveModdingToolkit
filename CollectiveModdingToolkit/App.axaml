@@ -165,7 +165,24 @@
 		<Color x:Key="SemiOrange7Color">#A84A00</Color>
 		<Color x:Key="SemiOrange8Color">#7E3100</Color>
 		<Color x:Key="SemiOrange9Color">#541D00</Color>
-		<Color x:Key="SemiGrey0Color">#F9F9F9</Color>
+
+		<Color x:Key="SemiGrey0Color">#1C1F23</Color>
+		<Color x:Key="SemiGrey1Color">#2E3238</Color>
+		<Color x:Key="SemiGrey2Color">#41464C</Color>
+		<Color x:Key="SemiGrey3Color">#555B61</Color>
+		<Color x:Key="SemiGrey4Color">#6B7075</Color>
+		<Color x:Key="SemiGrey5Color">#888D92</Color>
+		<Color x:Key="SemiGrey6Color">#A7ABB0</Color>
+		<Color x:Key="SemiGrey7Color">#C6CACD</Color>
+		<Color x:Key="SemiGrey8Color">#E6E8EA</Color>
+		<Color x:Key="SemiGrey9Color">#F9F9F9</Color>
+		<Color x:Key="SemiBackground0Color">#16161A</Color>
+		<Color x:Key="SemiBackground1Color">#232429</Color>
+		<Color x:Key="SemiBackground2Color">#35363C</Color>
+		<Color x:Key="SemiBackground3Color">#43444A</Color>
+		<Color x:Key="SemiBackground4Color">#4F5159</Color>
+
+		<!--<Color x:Key="SemiGrey0Color">#F9F9F9</Color>
 		<Color x:Key="SemiGrey1Color">#E6E8EA</Color>
 		<Color x:Key="SemiGrey2Color">#C6CACD</Color>
 		<Color x:Key="SemiGrey3Color">#A7ABB0</Color>
@@ -174,7 +191,7 @@
 		<Color x:Key="SemiGrey6Color">#555B61</Color>
 		<Color x:Key="SemiGrey7Color">#41464C</Color>
 		<Color x:Key="SemiGrey8Color">#2E3238</Color>
-		<Color x:Key="SemiGrey9Color">#1C1F23</Color>
+		<Color x:Key="SemiGrey9Color">#1C1F23</Color>-->
 		<!--<Color x:Key="SemiBackground0Color">White</Color>
 		<Color x:Key="SemiBackground1Color">White</Color>
 		<Color x:Key="SemiBackground2Color">White</Color>
@@ -184,6 +201,9 @@
 		<!--  Solid  -->
 		<!--<StaticResource x:Key="ButtonSolidForeground"
 						ResourceKey="SemiColorWhite" />-->
+		<Color x:Key="SemiColorPrimary">#54A9FF</Color>
+
+
 		<StaticResource x:Key="ButtonSolidPrimaryBackground"
 						ResourceKey="SemiColorPrimary" />
 		<StaticResource x:Key="ButtonSolidPrimaryPointeroverBackground"
@@ -266,6 +286,56 @@
 						 Color="Transparent" />
 		<!--  end Solid  -->
 
+		<!--  Text and Icons  -->
+		<SolidColorBrush x:Key="SemiColorText0"
+						 Color="{StaticResource SemiGrey9Color}" />
+		<SolidColorBrush x:Key="SemiColorText1"
+						 Opacity="0.8"
+						 Color="{StaticResource SemiGrey9Color}" />
+		<SolidColorBrush x:Key="SemiColorText2"
+						 Opacity="0.6"
+						 Color="{StaticResource SemiGrey9Color}" />
+		<SolidColorBrush x:Key="SemiColorText3"
+						 Opacity="0.35"
+						 Color="{StaticResource SemiGrey9Color}" />
+
+		<!--  Fill  -->
+		<SolidColorBrush x:Key="SemiColorFill0"
+						 Opacity="0.12"
+						 Color="{StaticResource SemiWhiteColor}" />
+		<SolidColorBrush x:Key="SemiColorFill1"
+						 Opacity="0.16"
+						 Color="{StaticResource SemiWhiteColor}" />
+		<SolidColorBrush x:Key="SemiColorFill2"
+						 Opacity="0.20"
+						 Color="{StaticResource SemiWhiteColor}" />
+
+		<!--  Background  -->
+		<SolidColorBrush x:Key="SemiColorBackground0"
+						 Color="{StaticResource SemiBackground0Color}" />
+		<SolidColorBrush x:Key="SemiColorBackground1"
+						 Color="{StaticResource SemiBackground1Color}" />
+		<SolidColorBrush x:Key="SemiColorBackground2"
+						 Color="{StaticResource SemiBackground2Color}" />
+		<SolidColorBrush x:Key="SemiColorBackground3"
+						 Color="{StaticResource SemiBackground3Color}" />
+		<SolidColorBrush x:Key="SemiColorBackground4"
+						 Color="{StaticResource SemiBackground4Color}" />
+
+		<!-- ButtonRadioButton -->
+		<StaticResource x:Key="RadioButtonButtonUncheckedForeground"
+						ResourceKey="SemiColorText1" />
+		<StaticResource x:Key="RadioButtonButtonUncheckedPointeroverBackground"
+						ResourceKey="SemiColorFill1" />
+		<StaticResource x:Key="RadioButtonButtonUncheckedDisabledForeground"
+						ResourceKey="SemiColorDisabledText" />
+		<StaticResource x:Key="RadioButtonButtonCheckedBackground"
+						ResourceKey="SemiColorBackground4" />
+		<StaticResource x:Key="RadioButtonButtonCheckedForeground"
+						ResourceKey="SemiColorPrimary" />
+		<StaticResource x:Key="RadioButtonButtonCheckedDisabledForeground"
+						ResourceKey="SemiColorDisabledText" />
+
 	</Application.Resources>
 
 	<Application.Styles>
@@ -273,5 +343,7 @@
 		<semi:SemiTheme Locale="en-US" />
 		<StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
 		<StyleInclude Source="Styles/Main.axaml" />
+
+
 	</Application.Styles>
 </Application>
