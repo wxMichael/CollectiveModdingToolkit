@@ -109,19 +109,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			processHandle = parent.Handle;
 		}
-		//if (Name == null) return new Unmanaged();
-		// TODO: Handle nulls
-		//}
-		//catch (Exception e)
-		//{
-		//	Console.WriteLine(e);
-		//	return new Unmanaged();
-		//}
-		//finally
-		//{
-		//if (pbiPtr.HasValue)
-		//	Marshal.FreeHGlobal(pbiPtr.Value);
-		//}
 		return new Unmanaged();
 	}
 }
