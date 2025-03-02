@@ -1,7 +1,6 @@
 ﻿using CollectiveModdingToolkit.Imports;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -54,8 +53,6 @@ public partial class DLL : IFile
 
 	private readonly HashSet<string> _symbols = [];
 
-	public static readonly nint hCurrentProcess = Process.GetCurrentProcess().Handle;
-
 	internal DLL(
 		string name,
 		string pathFull,
@@ -85,13 +82,13 @@ public partial class DLL : IFile
 
 		try
 		{
-			if (!DbgHelp.SymInitializeW(hCurrentProcess, null!, false))
+			if (!DbgHelp.SymInitializeW(Computer.CurrentProcess, null!, false))
 			{
 				Console.WriteLine("Failed to initialize sym.");
 				return;
 			}
 
-			ulong baseOfDll = DbgHelp.SymLoadModuleExW(hCurrentProcess, nint.Zero, PathFull, null!, 0, 0, nint.Zero, 0);
+			ulong baseOfDll = DbgHelp.SymLoadModuleExW(Computer.CurrentProcess, nint.Zero, PathFull, null!, 0, 0, nint.Zero, 0);
 			if (baseOfDll == 0)
 			{
 				int error = Marshal.GetLastWin32Error();
@@ -100,7 +97,7 @@ public partial class DLL : IFile
 				return;
 			}
 
-			bool status = DbgHelp.SymEnumSymbols(hCurrentProcess, baseOfDll, "F4SEPlugin*", EnumSymbolsCallback, nint.Zero);
+			bool status = DbgHelp.SymEnumSymbols(Computer.CurrentProcess, baseOfDll, "F4SEPlugin*", EnumSymbolsCallback, nint.Zero);
 			if (!status)
 			{
 				Console.WriteLine("Failed to enum symbols.");
@@ -116,7 +113,7 @@ public partial class DLL : IFile
 		}
 		finally
 		{
-			DbgHelp.SymCleanup(hCurrentProcess);
+			DbgHelp.SymCleanup(Computer.CurrentProcess);
 		}
 	}
 }
