@@ -9,6 +9,10 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabScanner"
 			 x:DataType="vm:MainWindowViewModel">
 
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
 	<TextBlock DockPanel.Dock="Top"
 			   HorizontalAlignment="Center"
 			   VerticalAlignment="Center">
