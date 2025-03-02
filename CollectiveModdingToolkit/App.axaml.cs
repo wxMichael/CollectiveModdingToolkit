@@ -29,7 +29,7 @@ public partial class App : Application
 	private static void DisableAvaloniaDataAnnotationValidation()
 	{
 		DataAnnotationsValidationPlugin[] dataValidationPluginsToRemove =
-			BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
+			[.. BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>()];
 
 		foreach (DataAnnotationsValidationPlugin? plugin in dataValidationPluginsToRemove)
 		{
