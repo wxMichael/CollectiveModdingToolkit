@@ -13,6 +13,10 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabOverview"
 			 x:DataType="vm:MainWindowViewModel">
 
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
 	<UserControl.Resources>
 		<conv:RemoveFileExtConverter x:Key="RemoveFileExtConverter" />
 	</UserControl.Resources>
@@ -101,168 +105,187 @@
 					   Grid.Column="0"
 					   Header="Binaries (EXE/DLL/BIN)">
 
-			<DataGrid Name="BinariesList"
-					  ItemsSource="{Binding Game.Binaries}"
-					  AutoGenerateColumns="False"
-					  IsReadOnly="True"
-					  CanUserResizeColumns="False"
-					  CanUserSortColumns="False"
-					  HeadersVisibility="None">
+			<DockPanel Margin="0,0,0,5">
 
-				<DataGrid.Columns>
-					<DataGridTemplateColumn Width="*">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<DataGridCell PointerPressed="BinariesList_PointerPressed"
-											  PointerEntered="BinariesList_PointerEntered"
-											  PointerExited="BinariesList_PointerExited">
-									<TextBlock Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Right"
-											   Classes="Small" />
-								</DataGridCell>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
+				<Button DockPanel.Dock="Bottom"
+						Content="Downgrade Manager"
+						IsEnabled="False"
+						Click="Button_Click_OpenDowngradeManager" />
 
-					<DataGridTemplateColumn Width="Auto">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<DataGridCell PointerPressed="BinariesList_PointerPressed"
-											  PointerEntered="BinariesList_PointerEntered"
-											  PointerExited="BinariesList_PointerExited">
-									<TextBlock Text="{Binding DisplayText}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Left"
-											   Classes="Small"
-											   Classes.Good="{Binding IsGood}"
-											   Classes.Bad="{Binding !IsGood}" />
-									<!--IsVisible="{Binding IsGood, Converter={x:Static ObjectConverters.IsNotNull}}" />-->
-								</DataGridCell>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
-				</DataGrid.Columns>
-			</DataGrid>
+				<DataGrid DockPanel.Dock="Top"
+						  Name="BinariesList"
+						  ItemsSource="{Binding Game.Binaries}"
+						  AutoGenerateColumns="False"
+						  IsReadOnly="True"
+						  CanUserResizeColumns="False"
+						  CanUserSortColumns="False"
+						  HeadersVisibility="None"
+						  HorizontalScrollBarVisibility="Disabled"
+						  VerticalScrollBarVisibility="Disabled">
+
+					<DataGrid.Columns>
+						<DataGridTemplateColumn Width="*">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<DataGridCell PointerPressed="BinariesList_PointerPressed"
+												  PointerEntered="BinariesList_PointerEntered"
+												  PointerExited="BinariesList_PointerExited">
+										<TextBlock Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Right"
+												   Classes="Small" />
+									</DataGridCell>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+
+						<DataGridTemplateColumn Width="Auto">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<DataGridCell MinWidth="95"
+												  PointerPressed="BinariesList_PointerPressed"
+												  PointerEntered="BinariesList_PointerEntered"
+												  PointerExited="BinariesList_PointerExited">
+										<TextBlock Text="{Binding DisplayText}"
+												   VerticalAlignment="Center"
+												   HorizontalAlignment="Left"
+												   Margin="5,0,0,0"
+												   Classes="Small"
+												   Classes.Good="{Binding IsGood}"
+												   Classes.Bad="{Binding !IsGood}" />
+										<!--IsVisible="{Binding IsGood, Converter={x:Static ObjectConverters.IsNotNull}}" />-->
+									</DataGridCell>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+					</DataGrid.Columns>
+				</DataGrid>
+			</DockPanel>
 		</ctrl:GroupBox>
 
 		<!-- Archives -->
 		<ctrl:GroupBox Grid.Row="1"
 					   Grid.Column="1"
 					   Header="Archives (BA2)">
-			<StackPanel>
-				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+			<DockPanel Margin="0,0,0,5">
+				<Button DockPanel.Dock="Bottom"
+						Content="Archive Patcher"
+						Click="Button_Click_OpenArchivePatcher" />
 
-					<ToolTip.Tip>
-						<TextBlock>
-							<Bold>General/GNRL/Main:</Bold> Used for all non-texture files. Hard limit of <Bold>256</Bold>, after which the game will crash at the main menu.<LineBreak />
-							<LineBreak />
-							<Bold>Texture/DX10:</Bold> Used only for textures. No hard limit, but functional limit is <Bold>255</Bold>, after which the game fails to use correct textures.<LineBreak />
-							<LineBreak />
-							<Bold>Unreadable:</Bold> Files that could not be read due to permissions, unexpected format, or corruption. These are excluded from the counts.
-						</TextBlock>
-					</ToolTip.Tip>
+				<StackPanel DockPanel.Dock="Top">
+					<Grid Classes="Table"
+						  ColumnDefinitions="Auto,Auto,*"
+						  RowDefinitions="Auto,Auto,Auto,Auto">
 
-					<TextBlock Grid.Row="0"
-							   Grid.Column="0"
-							   Text="General:" />
-					<TextBlock Grid.Row="0"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ArchivesGeneralWarning}"
-							   Classes.Bad="{Binding Game.ArchivesGeneralMaxed}" />
-					<TextBlock Grid.Row="0"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxArchivesGeneral, StringFormat=' / {0}'}" />
+						<ToolTip.Tip>
+							<TextBlock>
+								<Bold>General/GNRL/Main:</Bold> Used for all non-texture files. Hard limit of <Bold>256</Bold>, after which the game will crash at the main menu.<LineBreak />
+								<LineBreak />
+								<Bold>Texture/DX10:</Bold> Used only for textures. No hard limit, but functional limit is <Bold>255</Bold>, after which the game fails to use correct textures.<LineBreak />
+								<LineBreak />
+								<Bold>Unreadable:</Bold> Files that could not be read due to permissions, unexpected format, or corruption. These are excluded from the counts.
+							</TextBlock>
+						</ToolTip.Tip>
 
-					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="Texture:" />
-					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ArchivesTextureWarning}"
-							   Classes.Bad="{Binding Game.ArchivesTextureMaxed}" />
-					<TextBlock Grid.Row="1"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxArchivesTexture, StringFormat=' / {0}'}" />
+						<TextBlock Grid.Row="0"
+								   Grid.Column="0"
+								   Text="General:" />
+						<TextBlock Grid.Row="0"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ArchivesGeneralWarning}"
+								   Classes.Bad="{Binding Game.ArchivesGeneralMaxed}" />
+						<TextBlock Grid.Row="0"
+								   Grid.Column="2"
+								   Text="{Binding Game.MaxArchivesGeneral, StringFormat=' / {0}'}" />
 
-					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="Total:" />
-					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.TotalArchivesWarning}"
-							   Classes.Bad="{Binding Game.TotalArchivesMaxed}" />
-					<TextBlock Grid.Row="2"
-							   Grid.Column="2"
-							   Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
+						<TextBlock Grid.Row="1"
+								   Grid.Column="0"
+								   Text="Texture:" />
+						<TextBlock Grid.Row="1"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.ArchivesTextureWarning}"
+								   Classes.Bad="{Binding Game.ArchivesTextureMaxed}" />
+						<TextBlock Grid.Row="1"
+								   Grid.Column="2"
+								   Text="{Binding Game.MaxArchivesTexture, StringFormat=' / {0}'}" />
 
-					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="Unreadable:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
-					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
-				</Grid>
-				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+						<TextBlock Grid.Row="2"
+								   Grid.Column="0"
+								   Text="Total:" />
+						<TextBlock Grid.Row="2"
+								   Grid.Column="1"
+								   Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
+								   Classes="Good"
+								   Classes.Warning="{Binding Game.TotalArchivesWarning}"
+								   Classes.Bad="{Binding Game.TotalArchivesMaxed}" />
+						<TextBlock Grid.Row="2"
+								   Grid.Column="2"
+								   Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
 
-					<ToolTip.Tip>
-						<TextBlock>
-							<Bold>v1:</Bold> Works with all FO4 versions.<LineBreak />
-							<LineBreak />
-							<Bold>v7/v8:</Bold> Require either <Bold>BASS</Bold> or <Bold>NG</Bold>.<LineBreak />
-							Some apps only support <Bold>v1</Bold>.<LineBreak />
-							<LineBreak />
-							<Bold>v????:</Bold> These modules have an unsupported archive version.<LineBreak />
-							Fallout 4 supports only <Bold>v1</Bold>, <Bold>v7</Bold>, and <Bold>v8</Bold>.<LineBreak />
-							<LineBreak />
-							Files with other versions were likey made for other games and should be repacked for Fallout 4.
-						</TextBlock>
-					</ToolTip.Tip>
+						<TextBlock Grid.Row="3"
+								   Grid.Column="0"
+								   Text="Unreadable:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+						<TextBlock Grid.Row="3"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+					</Grid>
+					<Grid Classes="Table"
+						  ColumnDefinitions="Auto,Auto,*"
+						  RowDefinitions="Auto,Auto,Auto,Auto">
 
-					<Separator Grid.Row="0"
-							   Grid.Column="0"
-							   Grid.ColumnSpan="3" />
+						<ToolTip.Tip>
+							<TextBlock>
+								<Bold>v1:</Bold> Works with all FO4 versions.<LineBreak />
+								<LineBreak />
+								<Bold>v7/v8:</Bold> Require either <Bold>BASS</Bold> or <Bold>NG</Bold>.<LineBreak />
+								Some apps only support <Bold>v1</Bold>.<LineBreak />
+								<LineBreak />
+								<Bold>v????:</Bold> These modules have an unsupported archive version.<LineBreak />
+								Fallout 4 supports only <Bold>v1</Bold>, <Bold>v7</Bold>, and <Bold>v8</Bold>.<LineBreak />
+								<LineBreak />
+								Files with other versions were likey made for other games and should be repacked for Fallout 4.
+							</TextBlock>
+						</ToolTip.Tip>
 
-					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="(OG) v1   :" />
-					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
+						<Separator Grid.Row="0"
+								   Grid.Column="0"
+								   Grid.ColumnSpan="3" />
 
-					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="(NG) v7/8 :" />
-					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+						<TextBlock Grid.Row="1"
+								   Grid.Column="0"
+								   Text="(OG) v1   :" />
+						<TextBlock Grid.Row="1"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
 
-					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="v????:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
-					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
-				</Grid>
-			</StackPanel>
+						<TextBlock Grid.Row="2"
+								   Grid.Column="0"
+								   Text="(NG) v7/8 :" />
+						<TextBlock Grid.Row="2"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+
+						<TextBlock Grid.Row="3"
+								   Grid.Column="0"
+								   Text="v????:"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+						<TextBlock Grid.Row="3"
+								   Grid.Column="1"
+								   Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
+								   Classes="Neutral"
+								   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+					</Grid>
+				</StackPanel>
+			</DockPanel>
 		</ctrl:GroupBox>
 
 		<!-- Modules -->
