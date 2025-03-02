@@ -44,6 +44,6 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	public Dictionary<string, DLL> DllsWinning => throw new NotImplementedException();
 
-	public bool ReadSettings() => throw new NotImplementedException();
+	//public bool ReadSettings() => throw new NotImplementedException();
 	public void Refresh() => throw new NotImplementedException();
 }
