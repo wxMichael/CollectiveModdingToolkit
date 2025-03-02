@@ -12,6 +12,10 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabF4SE"
 			 x:DataType="vm:MainWindowViewModel">
 
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
 	<UserControl.Resources>
 		<conv:F4SEEmojiConverter x:Key="F4SEEmojiConverter" />
 	</UserControl.Resources>
@@ -46,7 +50,8 @@
 				  BorderThickness="1"
 				  CanUserResizeColumns="False"
 				  CanUserSortColumns="True"
-				  BorderBrush="Gray">
+				  BorderBrush="Gray"
+				  HorizontalScrollBarVisibility="Disabled">
 
 			<DataGrid.Columns>
 
