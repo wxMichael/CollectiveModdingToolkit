@@ -7,7 +7,9 @@ namespace MO2Launcher
 {
 	internal class Program
 	{
+#pragma warning disable IDE0060 // Remove unused parameter
 		private static void Main(string[] args)
+#pragma warning restore IDE0060 // Remove unused parameter
 		{
 			//string appFolder = @"C:\Users\Michael\source\repos\CollectiveModdingToolkit\CollectiveModdingToolkit\bin\Release\net9.0-windows\win-x64\publish\";
 			string appFolder = Environment.CurrentDirectory;
