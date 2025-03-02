@@ -60,7 +60,7 @@ public class Module : IFile
 			return;
 		}
 
-		if (bytesRead != header.Length || !header[0..4].SequenceEqual(Magic.TES4) || !header[24..28].SequenceEqual(Magic.HEDR))
+		if (bytesRead != header.Length || !header.AsSpan(0, 4).SequenceEqual(Magic.TES4) || !header.AsSpan(24, 4).SequenceEqual(Magic.HEDR))
 		{
 			IsReadable = false;
 			return;
