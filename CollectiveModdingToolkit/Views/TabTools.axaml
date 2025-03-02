@@ -10,6 +10,10 @@
 			 x:Class="CollectiveModdingToolkit.Views.TabTools"
 			 x:DataType="vm:MainWindowViewModel">
 
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
 	<UniformGrid Rows="1"
 				 Columns="3">
 
@@ -22,9 +26,11 @@
 			<StackPanel Classes="ToolBox">
 
 				<Button Content="Downgrade Manager"
-						IsEnabled="False" />
+						IsEnabled="False"
+						Click="Button_Click_OpenDowngradeManager" />
+
 				<Button Content="Archive Patcher"
-						IsEnabled="False" />
+						Click="Button_Click_OpenArchivePatcher" />
 
 			</StackPanel>
 		</ctrl:GroupBox>
