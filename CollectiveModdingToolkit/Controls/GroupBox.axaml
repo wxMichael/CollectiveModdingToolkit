@@ -1,4 +1,30 @@
-﻿<HeaderedContentControl x:Class="CollectiveModdingToolkit.Controls.GroupBox"
+﻿<!--
+https://github.com/BinToss/GroupBox.Avalonia
+
+MIT License
+
+Copyright (c) 2023 Noah Sherwin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<HeaderedContentControl x:Class="CollectiveModdingToolkit.Controls.GroupBox"
 						xmlns="https://github.com/avaloniaui"
 						xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 						xmlns:conv="using:CollectiveModdingToolkit.Converters"
@@ -12,6 +38,7 @@
 					<Color x:Key="ThemeBorderMidColor">#FF808080</Color>
 					<ControlTheme x:Key="{x:Type ctrl:GroupBox}"
 								  TargetType="ctrl:GroupBox">
+
 						<Setter Property="BorderBrush"
 								Value="{StaticResource ThemeBorderMidColor}" />
 						<Setter Property="CornerRadius"
@@ -39,6 +66,7 @@
 											   Padding="5,0"
 											   Text="{TemplateBinding Header}"
 											   FontWeight="{TemplateBinding FontWeight}" />
+
 									<Border Name="GBBorder"
 											Grid.Row="0"
 											Grid.RowSpan="2"
@@ -48,27 +76,30 @@
 											BorderThickness="1"
 											CornerRadius="3"
 											RenderOptions.EdgeMode="Unspecified">
+
 										<Border.Clip>
-											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertBoundsToOuterBorder}">
+											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertBoundsToOuterBorder}">
 												<Binding Path="#GBGrid.Bounds" />
 												<Binding Path="#GBHeaderText.Bounds" />
-												<Binding Converter="{x:Static conv:StaticConverters.ThicknessRectConverter}"
+												<Binding Converter="{x:Static conv:GroupBoxConverters.ThicknessRectConverter}"
 														 Path="#GBBorder.Margin" />
 											</MultiBinding>
 										</Border.Clip>
+
 										<Border.Padding>
-											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertDoublesToThickness}">
+											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertDoublesToThickness}">
 												<Binding Source="{StaticResource GbBorderPadding}" />
-												<Binding Converter="{x:Static conv:StaticConverters.BoundsToHeaderHeightDividedByTwo}"
+												<Binding Converter="{x:Static conv:GroupBoxConverters.BoundsToHeaderHeightDividedByTwo}"
 														 Path="#GBHeaderText.Bounds" />
 												<Binding Source="{StaticResource GbBorderPadding}" />
 												<Binding Source="{StaticResource GbBorderPadding}" />
 											</MultiBinding>
 										</Border.Padding>
+
 										<Border.Margin>
-											<MultiBinding Converter="{x:Static conv:StaticConverters.ConvertDoublesToThickness}">
+											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertDoublesToThickness}">
 												<Binding Source="{StaticResource GbBorderMargin}" />
-												<Binding Converter="{x:Static conv:StaticConverters.BoundsToHeaderHeightDividedByTwo}"
+												<Binding Converter="{x:Static conv:GroupBoxConverters.BoundsToHeaderHeightDividedByTwo}"
 														 Path="#GBHeaderText.Bounds" />
 												<Binding Source="{StaticResource GbBorderMargin}" />
 												<Binding Source="{StaticResource GbBorderMargin}" />
