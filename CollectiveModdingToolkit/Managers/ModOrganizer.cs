@@ -107,6 +107,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	//private string[] _executable_blacklist = [];
 	//private readonly bool _moddingLinked = false;
 
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable CS0162 // Unreachable code detected
 	public ModOrganizer()
 	{
@@ -120,6 +121,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		Refresh();
 	}
 #pragma warning restore CS0162 // Unreachable code detected
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 
 	public ModOrganizer(ProcessModule? processModule)
 	{
@@ -339,7 +341,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 			}
 		}
 		StagePaths.Add(_overwriteDirectory);
-		// TODO: Scanner: Option to scan overridden files
+		// TODO: Scanner: Option to scan overridden files?
 		foreach ((int index, string modFolder) in StagePaths.Index())
 		{
 			string modFolderPath = Path.Combine(_modDirectory, modFolder);
@@ -404,6 +406,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	}
 }
 
+// Defaults:
 //public IniParserConfiguration()
 //{
 //	CommentString = ";";
