@@ -32,4 +32,19 @@ public partial class TabTools : UserControl
 	private void Button_Click_OpenBMAT(object? sender, RoutedEventArgs e) => Utilities.OpenURL(_bmatURL);
 	private void Button_Click_OpenIceStormTT(object? sender, RoutedEventArgs e) => Utilities.OpenURL(_iceStormURL);
 	private void Button_Click_OpenCapFrameX(object? sender, RoutedEventArgs e) => Utilities.OpenURL(_capFrameXURL);
+
+	private void Button_Click_OpenDowngradeManager(object? sender, RoutedEventArgs e)
+	{
+		//ArchivePatcher patcher = new();
+		//patcher.Show();
+	}
+
+	private void Button_Click_OpenArchivePatcher(object? sender, RoutedEventArgs e)
+	{
+		ArchivePatcher archivePatcher = new()
+		{
+			DataContext = DataContext
+		};
+		archivePatcher.Show();
+	}
 }
