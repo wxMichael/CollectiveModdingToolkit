@@ -95,6 +95,6 @@ public partial class Binary : ObservableObject, IFile
 			GameVersion = Models.GameVersion.NotFound;
 		}
 
-		DisplayText = GameVersion.PadRight(10);
+		DisplayText = GameVersion;
 	}
 }
