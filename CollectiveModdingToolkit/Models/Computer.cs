@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -35,6 +36,7 @@ public static class OperatingSystem
 public partial class Computer : ObservableObject
 {
 	public static Computer? Instance { get; private set; }
+	public static readonly nint CurrentProcess = Process.GetCurrentProcess().Handle;
 
 	public static readonly string AppDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 	public static readonly string AppDataRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
