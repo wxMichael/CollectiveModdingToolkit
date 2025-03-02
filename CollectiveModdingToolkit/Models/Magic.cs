@@ -23,6 +23,4 @@ internal static class GameVersion
 	internal static string NextGen = "Next-Gen";
 	internal static string Unknown = "Unknown";
 	internal static string NotFound = "Not Found";
-	//internal static string NotFoundGood = "Not Found";
-	//internal static string NotFoundBad = "Not Found";
 }
