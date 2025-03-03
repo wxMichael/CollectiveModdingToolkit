@@ -31,3 +31,7 @@ obj/
 # Publish Web Output
 #*.Publish.xml
 *.pubxml
+
+# Runtime-Created Files
+*.xdelta
+cm-toolkit.log

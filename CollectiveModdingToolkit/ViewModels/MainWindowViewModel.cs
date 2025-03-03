@@ -1,4 +1,24 @@
-﻿using CollectiveModdingToolkit.Managers;
+﻿/*
+ * 
+ * Collective Modding Toolkit
+ * Copyright (C) 2024, 2025  wxMichael
+ * 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * 
+ */
+
+using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -93,15 +113,16 @@ public partial class MainWindowViewModel : ViewModelBase
 			uint returnLength = 0;
 			status = NtQueryInformationProcessWrapper.NtQueryInformationProcess(processHandle, PROCESSINFOCLASS.ProcessBasicInformation, ref pbi, bufferSize, ref returnLength);
 			if (status != 0)
+				break;
+
+			try
 			{
-				return new Unmanaged();
+				parent = Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
 			}
+			catch (ArgumentException) { break; }
 
-			parent = Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
-			if (parent == null)
-				return new Unmanaged();
-
-			Console.WriteLine(parent.ProcessName);
+			if (parent == null || parent.ProcessName == "explorer")
+				break;
 			if (parent.ProcessName == "ModOrganizer")
 				return new ModOrganizer(parent.MainModule);
 			if (parent.ProcessName == "Vortex")

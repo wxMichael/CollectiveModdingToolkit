@@ -1,0 +1,212 @@
+# "F4se": {"dll", "ini", "mem", "pdb", "txt", "toml", "json", "cfg", "bin", "translation"},
+
+# SidePane init
+# self.wm_protocol("WM_DELETE_WINDOW", self.close)
+
+# self.wm_transient(scanner_tab.cmc.window)
+# self.wm_withdraw()
+# self.wm_title("Problem Details")
+# self.wm_attributes("-fullscreen", "false")
+# set_titlebar_style(self)
+# self.wm_deiconify()
+
+# self.grid_columnconfigure(0, weight=1)
+
+# ResultDetailsPane init
+# self.wm_withdraw()
+# self.wm_title("Problem Details")
+# self.wm_attributes("-fullscreen", "false")
+# self.wm_transient(scanner_tab.cmc.window)
+# set_titlebar_style(self)
+# self.wm_deiconify()
+
+CreationKit.exe
+0F5C065B OG 1.10.162.0
+481CCE95 NG 1.10.982.3
+
+Archive2.exe
+4CDFC7B5 OG 1.1.0.4
+71A5240B NG 1.1.0.5
+
+Archive2Interop.dll
+850D36A9 OG
+EFBE3622 NG
+
+
+PATCHER_FILTER_95 = "Showing all HEDR v0.95\n(Excludes Base Game/DLC)"
+ABOUT_PLUGINS = """Module (ESM/ESL/ESP) Versions
+
+Each Bethesda game has different versions for their module formats.
+• Skyrim: v1.70 & v1.71
+• Fallout 4: v0.95 & v1.00
+• Fallout 4 VR: v0.95
+• Starfield: v0.96
+
+For Skyrim and Fallout 4, the only difference between their two versions is the higher version allowing the use of a larger range for Form IDs.
+If a module makes use of a Form ID below 800, it must be set to v1.00 / v1.71 to be properly loaded.
+If the lower version is used, the game maps those to hardcoded records in the exe and can break your game or saves.
+
+Fallout 4 VR only supports v0.95 and cannot use the extended Form ID range.
+Additional work beyond a version number change is needed to backport modules for VR/v0.95.
+"""
+
+
+
+		# size = self.frame_info_modules.grid_size()
+		# ttk.Button(
+		# 	self.frame_info_modules,
+		# 	text='Plugin Patcher...',
+		# 	padding=0,
+		# 	command=lambda: PluginPatcher(self),
+		# ).grid(column=0, row=size[1], columnspan=size[0], sticky=S, pady=5)
+		# self.frame_info_modules.grid_columnconfigure(2, weight=1)
+		# self.frame_info_modules.grid_rowconfigure(size[1], weight=2)
+
+def set_dwm_accent(hwnd: int, attribute: int, state: int, color: str | None = None) -> None:
+	accent_policy = AccentPolicy()
+
+	attributes = WindowCompositionAttributes()
+	attributes.Attribute = attribute
+	attributes.SizeOfData = sizeof(accent_policy)
+	attributes.Data = pointer(accent_policy)
+
+	accent_policy.AccentState = state
+	if color:
+		accent_policy.GradientColor = color
+
+	windll.user32.SetWindowCompositionAttribute(hwnd, pointer(attributes))
+
+class AccentPolicy(Structure):
+	_fields_ = (
+		("AccentState", DWORD),
+		("AccentFlags", DWORD),
+		("GradientColor", DWORD),
+		("AnimationId", DWORD),
+	)
+
+
+class WindowCompositionAttributes(Structure):
+	_fields_ = (
+		("Attribute", DWORD),
+		("Data", POINTER(AccentPolicy)),
+		("SizeOfData", ULONG),
+	)
+
+
+# v1.00: 00 00 80 3F
+# v0.95: 33 33 73 3F
+# class PluginVersion(IntEnum):
+# 	FO4_Old = 0x333F
+# 	NG7 = 7
+# 	NG = 8
+
+# class Key(IntFlag):
+# 	Shift = 0x0001
+# 	Control = 12  # 0x0004
+# 	Alt = 0x0008
+
+# packages = [{include = "Collective-Modding-Toolkit", from = "..", format="pyinstaller"}]
+# exclude = ["Collective-Modding-Toolkit"]
+# "D", "DOC", "ERA"
+
+
+
+# def set_theme_titlebar(window: Wm) -> None:
+# 	version = sys.getwindowsversion()
+
+# 	if version.major == 10 and version.build >= 22000:
+# 		pywinstyles.change_header_color(window, '#1c1c1c' if theme == 'dark' else '#fafafa')  # type: ignore
+# 	elif version.major == 10:
+# 		pywinstyles.apply_style(window, 'dark' if theme == 'dark' else 'normal')  # type: ignore
+# 		window.wm_attributes('-alpha', 0.99)  # type: ignore
+# 		window.wm_attributes('-alpha', 1)  # type: ignore
+
+
+# def set_theme_titlebar(window) -> None:
+#     window.update()
+#     DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+#     set_window_attribute = ctypes.windll.dwmapi.DwmSetWindowAttribute
+#     hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
+#     rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
+#     #value = 2
+#     value = ctypes.c_int(1)
+#     set_window_attribute(
+#         hwnd, rendering_policy, ctypes.byref(value), ctypes.sizeof(value)
+#     )
+
+                    if ".dds" in filename.lower():
+                        dds_file_path = os.path.join(root, filename)
+                        with open(dds_file_path, 'rb') as dds_file:
+                            dds_data = dds_file.read()
+                        if dds_data[:4] == b'DDS ':
+                            width = struct.unpack('<I', dds_data[12:16])[0]
+                            height = struct.unpack('<I', dds_data[16:20])[0]
+                            if width % 2 != 0 or height % 2 != 0:
+                                modscan_list.append(f"[!] CAUTION (DDS-DIMS) : {dds_file_path} > {width}x{height} > DDS DIMENSIONS ARE NOT DIVISIBLE BY 2 \n")
+
+
+
+
+# 		def show_settings() -> None:
+# 			manager = self.cmc.game.manager
+# 			if manager is None:
+# 				return
+# 			# assert manager.name is not None
+# 			top = Toplevel(self, width=600, height=600)
+# 			ttk.Label(
+# 				top,
+# 				font=self.cmc.FONT_SMALL,
+# 				text=Rf"""{manager.name}
+# {manager.game_path}
+# {manager.exe_path}
+# ----
+# {"\n".join([f"{k}: {v}" for k, v in manager.mo2_settings.items()])}
+# """,
+# 			).pack(anchor=N, side=TOP, expand=True, fill=BOTH)
+
+# 		size = self.frame_info_binaries.grid_size()
+
+# 		ttk.Button(
+# 			self.frame_info_binaries,
+# 			text="Mod Manager Settings",
+# 			padding=5,
+# 			command=show_settings,
+# 		).grid(
+# 			column=0,
+# 			row=size[1],
+# 			columnspan=size[0],
+# 			sticky=S,
+# 			pady=int(5 * self.cmc.dpi_scale),
+# 		)
+
+
+
+# class DataScanResults:
+# 	def __init__(self) -> None:
+# 		self.all_paths: set[Path] = set()
+# 		self.problems: list[ProblemInfo] = []
+# 		# self.files_by_ext: dict[str, list[Path]] = {}
+# 		# self.invalid_extensions: dict[str, list[Path]] = {}
+# 		# self.animdata_folders: list[Path] = []
+# 		# self.junk_files: list[Path] = []
+# 		# self.loose_previs = False
+# 		# tex_dims_list: set[str] = set()
+# 		# tex_frmt_list: set[str] = set()
+# 		# snd_frmt_list: set[str] = set()
+# 		# xse_file_list: set[str] = set()
+# 		# previs_list: set[Path] = set()
+
+# ignore_files = {
+# 	# Vortex Files
+# 	"__folder_managed_by_vortex",
+# 	"__delete_if_empty",
+# }
+# ignore_ext = {
+# 	# MO2 Files
+# 	"mohidden",
+# }
+# ignore_endswith = (
+# 	# "_distr.ini",
+# 	# "_swap.ini",
+# 	"mohidden",
+# )
