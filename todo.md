@@ -1,3 +1,6 @@
+# detect plugin merge/rename/compact mistakes. plugin-named-folders with mismatched name/not in masters
+# Header versions, hardcoded Form IDs in scripts and MCM, hardcoded plugin names in folders like voice lines/facegen/previs, etc
+
 # TODO: bp42s: PDB checks. Buffout
 # TODO: Startup speed (threading?)
 # TODO: Warn if complex sorter detected. maybe detect xedit version
