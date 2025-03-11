@@ -1,0 +1,225 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:m="using:CollectiveModdingToolkit.Models"
+			 xmlns:v="using:CollectiveModdingToolkit.Views"
+			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+			 xmlns:conv="using:CollectiveModdingToolkit.Converters"
+			 xmlns:sys="using:System"
+			 mc:Ignorable="d"
+			 d:DesignWidth="800"
+			 d:DesignHeight="500"
+			 x:Class="CollectiveModdingToolkit.Views.TabArchives"
+			 x:DataType="vm:MainWindowViewModel">
+
+	<Design.DataContext>
+		<vm:MainWindowViewModel />
+	</Design.DataContext>
+
+	<UserControl.Resources>
+		<conv:PatchFailConverter x:Key="PatchFailConverter" />
+	</UserControl.Resources>
+
+	<UserControl.Styles>
+		<Style Selector="DataGridCell TextBlock">
+			<Setter Property="FontFamily"
+					Value="{StaticResource Readable}" />
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="DataGridCell.Success">
+			<Setter Property="Background"
+					Value="#003D00" />
+		</Style>
+		<Style Selector="DataGridCell.Failed">
+			<Setter Property="Background"
+					Value="#3D0000" />
+		</Style>
+	</UserControl.Styles>
+
+	<Grid RowDefinitions="Auto,*"
+		  ColumnDefinitions="*">
+
+		<Grid Grid.Row="0"
+			  Grid.Column="0"
+			  RowDefinitions="Auto"
+			  ColumnDefinitions="Auto,*,Auto">
+
+			<!-- Desired Version -->
+			<ctrl:GroupBox Grid.Row="0"
+						   Grid.Column="0"
+						   Header="Desired Version">
+
+				<StackPanel Orientation="Horizontal">
+
+					<RadioButton x:Name="DesiredVersion_v1"
+								 GroupName="DesiredVersion"
+								 Content="v1 (OG)"
+								 Margin="5,0,0,0"
+								 IsChecked="True"
+								 Command="{Binding SetDesiredVersionCommand}">
+						<RadioButton.CommandParameter>
+							<sys:Byte>1</sys:Byte>
+						</RadioButton.CommandParameter>
+					</RadioButton>
+
+					<!--<RadioButton x:Name="DesiredVersion_v7"
+								 GroupName="DesiredVersion"
+								 Content="v7 (NG)"
+								 Margin="5,0,0,0"
+								 IsChecked="False"
+								 Command="{Binding SetDesiredVersionCommand}">
+						<RadioButton.CommandParameter>
+							<sys:Byte>7</sys:Byte>
+						</RadioButton.CommandParameter>-->
+
+					<RadioButton x:Name="DesiredVersion_v8"
+								 GroupName="DesiredVersion"
+								 Content="v8 (NG)"
+								 Margin="5,0,0,0"
+								 IsChecked="False"
+								 Command="{Binding SetDesiredVersionCommand}">
+						<RadioButton.CommandParameter>
+							<sys:Byte>8</sys:Byte>
+						</RadioButton.CommandParameter>
+					</RadioButton>
+				</StackPanel>
+			</ctrl:GroupBox>
+
+			<!-- Filter -->
+			<TextBox Grid.Row="0"
+					 Grid.Column="1"
+					 Margin="5,10,0,0"
+					 Classes="Bordered"
+					 Watermark="Filter"
+					 VerticalAlignment="Center"
+					 x:Name="FilterBox"
+					 Text="{Binding ArchiveFilter, Mode=TwoWay}" />
+
+			<!-- Buttons -->
+			<StackPanel Grid.Row="0"
+						Grid.Column="2"
+						Orientation="Horizontal"
+						HorizontalAlignment="Right"
+						Margin="5,10,5,0"
+						Spacing="10">
+
+				<Button Content="About"
+						MinWidth="90"
+						Margin="0"
+						Click="Button_Click_About" />
+
+				<Button Content="Patch All"
+						Theme="{DynamicResource SolidButton}"
+						Classes="Success"
+						Margin="0"
+						MinWidth="90"
+						Command="{Binding PatchArchivesCommand}" />
+
+			</StackPanel>
+		</Grid>
+
+		<DataGrid Grid.Row="1"
+				  Grid.Column="0"
+				  Margin="0,5,0,0"
+				  Name="ArchiveList"
+				  x:Name="ArchiveList"
+				  ItemsSource="{Binding DisplayedArchives}"
+				  DockPanel.Dock="Right"
+				  AutoGenerateColumns="False"
+				  IsReadOnly="True"
+				  GridLinesVisibility="All"
+				  BorderThickness="1"
+				  CanUserResizeColumns="True"
+				  CanUserSortColumns="True"
+				  BorderBrush="Gray"
+				  SelectionMode="Single"
+				  SelectionChanged="DataGrid_SelectionChanged"
+				  Sorting="DataGrid_Sorting"
+				  HorizontalScrollBarVisibility="Disabled">
+
+			<DataGrid.Columns>
+
+				<DataGridTemplateColumn Header="Ver."
+										Width="Auto"
+										CanUserSort="True"
+										SortMemberPath="ArchiveVersion">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<DataGridCell Classes.Success="{Binding PatchSuccessful, TargetNullValue={x:False}}"
+										  Classes.Failed="{Binding PatchFailed}"
+										  ToolTip.ServiceEnabled="{Binding PatchFailReason}"
+										  ToolTip.Tip="{Binding PatchFailReason, Converter={StaticResource PatchFailConverter}}">
+								<TextBlock VerticalAlignment="Center"
+										   HorizontalAlignment="Center"
+										   Classes.Blue="{Binding IsOG}"
+										   Classes.Purple="{Binding IsNG}"
+										   Text="{Binding ArchiveVersion, StringFormat='v{0}'}">
+								</TextBlock>
+							</DataGridCell>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="Format"
+										Width="Auto"
+										CanUserSort="True"
+										SortMemberPath="ArchiveFormat">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock VerticalAlignment="Center"
+									   HorizontalAlignment="Center"
+									   Classes.Blue="{Binding IsGNRL}"
+									   Classes.Purple="{Binding IsDX10}"
+									   Text="{Binding ArchiveFormat}">
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTextColumn Header="Archive"
+									Width="*"
+									Binding="{Binding Name}" />
+
+
+				<DataGridTemplateColumn Header="Mod"
+										Width="Auto"
+										CanUserSort="True"
+										SortMemberPath="Mod">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Classes.Neutral="{Binding Mod, Converter={x:Static ObjectConverters.IsNull}}"
+									   Text="{Binding Mod, TargetNullValue='Unmanaged'}">
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+			</DataGrid.Columns>
+		</DataGrid>
+
+	</Grid>
+</UserControl>
