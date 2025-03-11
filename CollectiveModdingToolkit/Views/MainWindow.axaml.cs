@@ -22,6 +22,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.ViewModels;
 using System;
 using System.IO;
 using System.Threading;
@@ -31,13 +32,25 @@ namespace CollectiveModdingToolkit.Views;
 
 public partial class MainWindow : Window
 {
+	public static MainWindow? Instance { get; private set; }
+
 	private static bool _criticalErrorOccurred = false;
 	private static bool _dialogHostLoaded = false;
 
 	public MainWindow()
 	{
+		Instance = this;
 		InitializeComponent();
 		KeyDown += MainWindow_KeyDown;
+
+		ContentControl? tabScanner = this.FindControl<ContentControl>("TabScanner");
+		if (tabScanner != null)
+		{
+			tabScanner.Content = new TabScanner()
+			{
+				DataContext = new TabScannerViewModel()
+			};
+		}
 	}
 
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
