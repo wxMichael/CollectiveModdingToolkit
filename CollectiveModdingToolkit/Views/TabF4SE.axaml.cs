@@ -25,4 +25,14 @@ namespace CollectiveModdingToolkit.Views;
 public partial class TabF4SE : UserControl
 {
 	public TabF4SE() => InitializeComponent();
+
+	private void DataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+	{
+		e.Handled = true;
+		if (sender is DataGrid dataGrid)
+		{
+			dataGrid.SelectedIndex = -1;
+			dataGrid.SelectedItem = null;
+		}
+	}
 }
