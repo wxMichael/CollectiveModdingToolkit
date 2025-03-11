@@ -27,22 +27,22 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
 		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
 		mc:Ignorable="d"
-		d:DesignWidth="760"
-		d:DesignHeight="450"
+		d:DesignWidth="800"
+		d:DesignHeight="500"
 		x:Class="CollectiveModdingToolkit.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		x:CompileBindings="True"
 		Icon="/Assets/Images/icon-cm-64.png"
 		Title="{Binding WindowTitle}"
-		Width="760"
-		Height="450"
-		MinWidth="760"
-		MinHeight="450"
+		Width="800"
+		Height="500"
+		MinWidth="800"
+		MinHeight="500"
 		WindowStartupLocation="CenterScreen">
 
-	<Design.DataContext>
+	<!--<Design.DataContext>
 		<vm:MainWindowViewModel />
-	</Design.DataContext>
+	</Design.DataContext>-->
 
 	<dialogHost:DialogHost Identifier="CriticalErrorDialog"
 						   CloseOnClickAway="False"
@@ -66,8 +66,18 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			<TabItem Header="F4SE">
 				<v:TabF4SE />
 			</TabItem>
+			<TabItem Header="Archives">
+				<v:TabArchives />
+			</TabItem>
+			<TabItem Header="Modules">
+				<v:TabModules />
+			</TabItem>
 			<TabItem Header="Scanner">
-				<v:TabScanner />
+				<!--<v:TabScanner />-->
+				<ContentControl Name="TabScanner" />
+			</TabItem>
+			<TabItem Header="Downgrader">
+				<v:TabDowngrader />
 			</TabItem>
 			<TabItem Header="Tools">
 				<v:TabTools />
