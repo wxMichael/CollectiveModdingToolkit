@@ -79,4 +79,14 @@ public partial class TabOverview : UserControl
 		};
 		archivePatcher.Show();
 	}
+
+	private void DataGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+	{
+		e.Handled = true;
+		if (sender is DataGrid dataGrid)
+		{
+			dataGrid.SelectedIndex = -1;
+			dataGrid.SelectedItem = null;
+		}
+	}
 }
