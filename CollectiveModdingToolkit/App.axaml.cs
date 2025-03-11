@@ -37,9 +37,11 @@ public partial class App : Application
 		if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{
 			DisableAvaloniaDataAnnotationValidation();
+
+			MainWindowViewModel viewModel = new();
 			desktop.MainWindow = new MainWindow
 			{
-				DataContext = new MainWindowViewModel(),
+				DataContext = viewModel,
 			};
 		}
 

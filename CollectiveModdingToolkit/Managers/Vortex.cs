@@ -18,6 +18,7 @@
  * 
  */
 
+using Avalonia.Collections;
 using CollectiveModdingToolkit.Models.FileTypes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
@@ -58,7 +59,7 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	public List<Archive> Archives => throw new NotImplementedException();
 
-	public Dictionary<string, Archive> ArchivesWinning => throw new NotImplementedException();
+	public AvaloniaDictionary<string, Archive> ArchivesWinning => throw new NotImplementedException();
 
 	public List<DLL> Dlls => throw new NotImplementedException();
 
@@ -66,4 +67,5 @@ internal partial class Vortex : ObservableObject, IModManager
 
 	//public bool ReadSettings() => throw new NotImplementedException();
 	public void Refresh() => throw new NotImplementedException();
+	public void GetOverviewInfo() => throw new NotImplementedException();
 }

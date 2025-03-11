@@ -21,7 +21,7 @@
 using System;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
-internal class INI : IFile
+public class INI : IFile
 {
 	public string Name => throw new NotImplementedException();
 

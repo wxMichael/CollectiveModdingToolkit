@@ -39,6 +39,7 @@ namespace CollectiveModdingToolkit.Models;
 public partial class Game : ObservableObject
 {
 	public static Game? Instance { get; private set; }
+	public static IModManager? Manager { get; private set; }
 
 	[ObservableProperty] public partial string GamePath { get; set; } = string.Empty;
 	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
@@ -136,6 +137,7 @@ public partial class Game : ObservableObject
 	public Game(IModManager manager)
 	{
 		Instance = this;
+		Manager = manager;
 
 		BA2Suffixes = [.. _default_ba2_suffixes]; // TODO: Remove
 		string? gamePath = FindGamePath(manager);
@@ -567,7 +569,7 @@ public partial class Game : ObservableObject
 			if (archive.IsEnabled != true)
 				continue;
 
-			archive.ReadHeader();
+			//archive.ReadHeader();
 			if (archive.IsReadable != true)
 			{
 				ModulesUnreadable.Add(archiveName);

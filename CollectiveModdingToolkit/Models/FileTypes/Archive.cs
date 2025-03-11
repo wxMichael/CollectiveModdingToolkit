@@ -18,6 +18,7 @@
  * 
  */
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -25,7 +26,15 @@ using System.Linq;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
 
-public class Archive : IFile
+public enum FailReason : byte
+{
+	Unknown,
+	FileNotFound,
+	ReadFailed,
+	WriteFailed,
+}
+
+public partial class Archive : ObservableObject, IFile
 {
 	public string Name { get; private set; }
 	public string Ext { get; } = ".ba2";
@@ -35,7 +44,8 @@ public class Archive : IFile
 	public bool WasRead => IsReadable != null;
 	[MemberNotNullWhen(true, nameof(ArchiveVersion), nameof(ArchiveFormat))]
 	public bool? IsReadable { get; private set; }
-	public byte? ArchiveVersion { get; private set; }
+	[ObservableProperty]
+	public partial byte? ArchiveVersion { get; private set; }
 	public string? ArchiveFormat { get; private set; }
 
 	public int Priority { get; private set; }
@@ -44,6 +54,21 @@ public class Archive : IFile
 	public string? Mod { get; private set; }
 
 	public bool? IsEnabled { get; set; }
+
+	[ObservableProperty]
+	public partial bool IsOG { get; private set; }
+	[ObservableProperty]
+	public partial bool IsNG { get; private set; }
+	public bool IsGNRL => ArchiveFormat == "GNRL";
+	public bool IsDX10 => ArchiveFormat == "DX10";
+
+	[ObservableProperty]
+	public partial bool? PatchSuccessful { get; private set; } = null;
+	[ObservableProperty]
+	public partial bool? PatchFailed { get; private set; } = null;
+	[ObservableProperty]
+	public partial FailReason? PatchFailReason { get; private set; } = null;
+
 
 	// TODO: check if counted against limits (+ba2) when !IsReadable
 	internal Archive(
@@ -58,14 +83,12 @@ public class Archive : IFile
 		PathRelative = pathRelative ?? name;
 		Priority = priority == 0 ? 0 : priority + 1;
 		Mod = modName;
+		ReadHeader();
 	}
 
+	[MemberNotNull(nameof(IsReadable))]
 	internal void ReadHeader()
 	{
-
-		if (WasRead)
-			throw new NotSupportedException("Module read twice");
-
 		byte[] header = new byte[12];
 		int bytesRead;
 		try
@@ -85,6 +108,8 @@ public class Archive : IFile
 			return;
 		}
 		ArchiveVersion = header[4];
+		IsOG = ArchiveVersion == 1;
+		IsNG = ArchiveVersion is 8 or 7;
 		//if (ArchiveVersion is not 1 and not 7 and not 8)
 		//	IsUnknown = true;
 
@@ -96,5 +121,51 @@ public class Archive : IFile
 		//	IsUnknown = true;
 
 		IsReadable = true;
+	}
+
+	internal void SetVersion(byte version)
+	{
+		PatchSuccessful = false;
+		PatchFailed = true;
+		PatchFailReason = null;
+
+		if (!File.Exists(PathFull))
+		{
+			PatchFailReason = FailReason.FileNotFound;
+			return;
+		}
+
+		ReadHeader();
+
+		if (!IsReadable.Value)
+		{
+			PatchFailReason = FailReason.ReadFailed;
+			return;
+		}
+
+
+		if (version == ArchiveVersion)
+		{
+			PatchSuccessful = true;
+			PatchFailed = false;
+			return;
+		}
+
+		try
+		{
+			using FileStream file = File.OpenWrite(PathFull);
+			file.Position = 4;
+			file.Write(new ReadOnlySpan<byte>(ref version));
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			PatchFailReason = FailReason.WriteFailed;
+			return;
+		}
+		ArchiveVersion = version;
+		IsOG = ArchiveVersion == 1;
+		IsNG = ArchiveVersion is 8 or 7;
+		PatchSuccessful = true;
+		PatchFailed = false;
 	}
 }

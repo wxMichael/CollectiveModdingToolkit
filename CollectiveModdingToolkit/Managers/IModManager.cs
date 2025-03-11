@@ -18,6 +18,7 @@
  * 
  */
 
+using Avalonia.Collections;
 using CollectiveModdingToolkit.Models.FileTypes;
 using System;
 using System.Collections.Generic;
@@ -41,11 +42,12 @@ public interface IModManager
 	List<Module> Modules { get; }
 	Dictionary<string, Module> ModulesWinning { get; }
 	List<Archive> Archives { get; }
-	Dictionary<string, Archive> ArchivesWinning { get; }
+	AvaloniaDictionary<string, Archive> ArchivesWinning { get; }
 	List<DLL> Dlls { get; }
 	Dictionary<string, DLL> DllsWinning { get; }
 
 	//bool ReadSettings();
 
 	void Refresh();
+	void GetOverviewInfo();
 }

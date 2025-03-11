@@ -29,25 +29,42 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	</Design.PreviewWith>
 
 	<Styles.Resources>
-		<Color x:Key="DefaultBG">#1C1C1C</Color>
-		<Color x:Key="LightBG">#2C2C2C</Color>
-		<Color x:Key="DefaultFG">#CACACA</Color>
+		<StaticResource x:Key="DefaultBG"
+						ResourceKey="Grey0"/>
+		<StaticResource x:Key="LightBG"
+						ResourceKey="Grey1"/>
+		<StaticResource x:Key="DefaultFG"
+						ResourceKey="Grey11"/>
+
 		<Color x:Key="Neutral">Gray</Color>
 		<Color x:Key="Neutral2">#FFE4C4</Color>
 		<Color x:Key="Good">LimeGreen</Color>
 		<Color x:Key="Bad">Tomato</Color>
 		<Color x:Key="Caution">Yellow</Color>
 		<Color x:Key="Warning">Orange</Color>
+		<!--0094FF-->
+		<!--<Color x:Key="Blue">#3D9EFF</Color>
+		<Color x:Key="Purple">#9A75FF</Color>-->
+		<Color x:Key="Blue">CadetBlue</Color>
+		<Color x:Key="Purple">MediumPurple</Color>
 		<FontFamily x:Key="Readable">Bahnschrift</FontFamily>
 		<x:Double x:Key="Small">14</x:Double>
 		<x:Double x:Key="Smaller">12</x:Double>
+		<x:Double x:Key="Smallest">11</x:Double>
 	</Styles.Resources>
 
 	<!-- Defaults -->
 	<Style Selector="Window">
 		<Setter Property="Background"
-				Value="{StaticResource DefaultBG}" />
+				Value="{StaticResource Grey0}" />
 	</Style>
+
+	<Style Selector="ctrl|GroupBox">
+		<Setter Property="Margin"
+				Value="2" />
+	</Style>
+
+
 
 	<Style Selector="TextBlock:not(#GBHeaderText)">
 		<Setter Property="FontFamily"
@@ -61,6 +78,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="Background"
 				Value="Transparent" />
 	</Style>
+
+
 
 	<!-- Mouseover Hitbox Workaround -->
 	<Style Selector="ctrl|GroupBox">
@@ -76,27 +95,54 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				Value="Transparent" />
 	</Style>
 
-	<!-- Overview Tables -->
-	<Style Selector="Grid#OverviewTopPanel">
-		<Setter Property="Margin"
-				Value="5,0,5,5" />
 
-		<!-- Color all text except first column -->
-		<Style Selector="^ TextBlock">
-			<Setter Property="Foreground"
-					Value="{StaticResource Neutral2}" />
-		</Style>
-		<Style Selector="^ > TextBlock[(Grid.Column)=0]">
-			<Setter Property="Foreground"
-					Value="{StaticResource DefaultFG}" />
-		</Style>
+
+
+	<!-- Tabs -->
+	<Style Selector="TabControl /template/ WrapPanel">
+		<Setter Property="Background"
+				Value="{StaticResource Blackish}" />
 	</Style>
 
-	<Style Selector="#F4SEList DataGridRow TextBlock">
-		<Setter Property="FontFamily"
-				Value="{StaticResource Readable}" />
-		<Setter Property="FontSize"
-				Value="{StaticResource Small}" />
+	<Style Selector="TabItem:nth-child(1)">
+		<Setter Property="Margin"
+				Value="2,0,0,0" />
+	</Style>
+
+	<Style Selector="TabItem:not(:selected) /template/ Border#PART_LayoutRoot">
+		<Setter Property="CornerRadius"
+				Value="5,0" />
+		<Setter Property="Margin"
+				Value="2,3,0,0" />
+		<Setter Property="Background"
+				Value="{StaticResource Grey1}" />
+		<Setter Property="BorderThickness"
+				Value="1,1,1,0" />
+		<Setter Property="BorderBrush"
+				Value="{StaticResource Grey2}" />
+	</Style>
+
+	<Style Selector="TabItem:selected /template/ Border#PART_LayoutRoot">
+		<Setter Property="CornerRadius"
+				Value="5,0" />
+		<Setter Property="Margin"
+				Value="2,3,0,0" />
+		<Setter Property="Background"
+				Value="{StaticResource Grey2}" />
+		<Setter Property="BorderThickness"
+				Value="1,1,1,0" />
+		<Setter Property="BorderBrush"
+				Value="{StaticResource Grey3}" />
+	</Style>
+
+	<Style Selector="TabItem:not(:selected) /template/ Border#PART_SelectedPipe">
+		<Setter Property="Background"
+				Value="{StaticResource SemiLime9}" />
+	</Style>
+
+	<Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+		<Setter Property="Background"
+				Value="{StaticResource SemiLime6}" />
 	</Style>
 
 	<Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
@@ -104,32 +150,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				Value="5" />
 	</Style>
 
-	<Style Selector="Grid.Table > TextBlock">
-		<Style Selector="^[(Grid.Column)=0]">
-			<Setter Property="TextAlignment"
-					Value="Right" />
-			<Setter Property="Margin"
-					Value="0, 0, 5, 0" />
-		</Style>
-		<Style Selector="^[(Grid.Column)=1]">
-			<Setter Property="Foreground"
-					Value="{StaticResource Neutral2}" />
-			<Setter Property="Margin"
-					Value="0" />
-		</Style>
-		<Style Selector="^[(Grid.Column)=2]">
-			<Setter Property="Foreground"
-					Value="{StaticResource Neutral2}" />
-			<Setter Property="Margin"
-					Value="0" />
-		</Style>
-	</Style>
 
-	<Style Selector="ctrl|GroupBox:nth-child(3)">
-		<Setter Property="Margin"
-				Value="5, 0" />
-	</Style>
-
+	<!-- Group Boxes -->
 	<Style Selector="Label#GBHeaderText">
 		<Setter Property="FontFamily"
 				Value="{StaticResource CascadiaMono}" />
@@ -149,21 +171,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				Value="{StaticResource icomoon}" />
 	</Style>
 
-	<Style Selector="TabItem /template/ ContentPresenter">
-		<Setter Property="FontSize"
-				Value="40" />
-	</Style>
-
 	<Style Selector="Button">
 		<Setter Property="Foreground"
 				Value="{StaticResource DefaultFG}" />
 		<Setter Property="FontFamily"
 				Value="{StaticResource CascadiaMono}" />
-
-		<Style Selector="^#RefreshButton">
-			<Setter Property="Foreground"
-					Value="{StaticResource Good}" />
-		</Style>
 	</Style>
 
 	<Style Selector="Separator">
@@ -201,7 +213,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="Padding"
 				Value="5" />
 		<Setter Property="Background"
-				Value="{StaticResource DefaultBG}" />
+				Value="{StaticResource Grey1}" />
 	</Style>
 
 	<Style Selector="Run.Bad">
@@ -229,7 +241,21 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				Value="#16FFFFFF" />
 	</Style>
 
-	<Style Selector="DataGrid#BinariesList">
+	<Styles.Resources>
+		<x:Double x:Key="DataGridCellMinHeight">24</x:Double>
+	</Styles.Resources>
+
+	<Style Selector="DataGridCell">
+		<Setter Property="Padding"
+				Value="0" />
+	</Style>
+
+	<!--<Style Selector="DataGridRow">
+		<Setter Property="Padding"
+				Value="5" />
+	</Style>-->
+
+	<Style Selector="DataGrid#GameBinariesList, DataGrid#CKBinariesList, DataGrid#F4SEDLLsList">
 		<Style.Resources>
 			<x:Double x:Key="DataGridCellMinHeight">28</x:Double>
 		</Style.Resources>
@@ -267,17 +293,28 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 	<!-- Fonts -->
 	<Style Selector=":is(TextElement)">
-		<Style Selector="^.Small">
-			<Setter Property="FontSize"
-					Value="{StaticResource Small}" />
-		</Style>
-
 		<Style Selector="^.Readable">
 			<Setter Property="FontFamily"
 					Value="{StaticResource Readable}" />
 			<Setter Property="FontSize"
 					Value="{StaticResource Small}" />
 		</Style>
+
+		<Style Selector="^.Small">
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Smaller">
+			<Setter Property="FontSize"
+					Value="{StaticResource Smaller}" />
+		</Style>
+
+		<Style Selector="^.Smallest">
+			<Setter Property="FontSize"
+					Value="{StaticResource Smallest}" />
+		</Style>
+
 
 		<Style Selector="^.Neutral">
 			<Setter Property="Foreground"
@@ -307,20 +344,40 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Style Selector="^.Bad">
 			<Setter Property="Foreground"
 					Value="{StaticResource Bad}" />
+		</Style>
+
+		<Style Selector="^.Blue">
+			<Setter Property="Foreground"
+					Value="{StaticResource Blue}" />
+		</Style>
+
+		<Style Selector="^.Purple">
+			<Setter Property="Foreground"
+					Value="{StaticResource Purple}" />
 		</Style>
 	</Style>
 
 	<Style Selector="TextBlock:not(#GBHeaderText)">
-		<Style Selector="^.Small">
-			<Setter Property="FontSize"
-					Value="{StaticResource Small}" />
-		</Style>
-
 		<Style Selector="^.Readable">
 			<Setter Property="FontFamily"
 					Value="{StaticResource Readable}" />
 			<Setter Property="FontSize"
 					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Small">
+			<Setter Property="FontSize"
+					Value="{StaticResource Small}" />
+		</Style>
+
+		<Style Selector="^.Smaller">
+			<Setter Property="FontSize"
+					Value="{StaticResource Smaller}" />
+		</Style>
+
+		<Style Selector="^.Smallest">
+			<Setter Property="FontSize"
+					Value="{StaticResource Smallest}" />
 		</Style>
 
 		<Style Selector="^.Neutral">
@@ -351,6 +408,16 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Style Selector="^.Bad">
 			<Setter Property="Foreground"
 					Value="{StaticResource Bad}" />
+		</Style>
+
+		<Style Selector="^.Blue">
+			<Setter Property="Foreground"
+					Value="{StaticResource Blue}" />
+		</Style>
+
+		<Style Selector="^.Purple">
+			<Setter Property="Foreground"
+					Value="{StaticResource Purple}" />
 		</Style>
 	</Style>
 
@@ -368,22 +435,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				Value="10" />
 	</Style>
 
-	<Style Selector="ctrl|GroupBox > StackPanel > Grid">
-		<Setter Property="ToolTip.Placement"
-				Value="LeftEdgeAlignedTop" />
-		<Setter Property="ToolTip.HorizontalOffset"
-				Value="-10" />
-		<Setter Property="ToolTip.VerticalOffset"
-				Value="0" />
-	</Style>
-
 	<Style Selector="ToolTip, FlyoutPresenter">
 		<Setter Property="MinHeight"
 				Value="0" />
 		<Setter Property="Transitions"
 				Value="" />
 		<Setter Property="Background"
-				Value="{StaticResource LightBG}" />
+				Value="{StaticResource Grey4}" />
 		<Setter Property="BorderBrush"
 				Value="{StaticResource Neutral}" />
 		<Setter Property="BorderThickness"
@@ -418,54 +476,6 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		</Style>
 	</Style>
 
-	<Style Selector="ctrl|GroupBox.CenteredHeader /template/ TextBlock#GBHeaderText">
-		<Setter Property="Grid.ColumnSpan"
-				Value="2" />
-		<Setter Property="HorizontalAlignment"
-				Value="Center" />
-	</Style>
-
-	<Style Selector="StackPanel.ToolBox">
-		<Setter Property="Spacing"
-				Value="5" />
-	</Style>
-
-	<Style Selector="Grid.ToolBox"></Style>
-
-	<Style Selector="StackPanel.ToolBox, Grid.ToolBox">
-		<Setter Property="Margin"
-				Value="5" />
-		<Style Selector="^ Button">
-			<Setter Property="HorizontalAlignment"
-					Value="Stretch" />
-			<Setter Property="Margin"
-					Value="0,5,0,0" />
-			<Setter Property="FontSize"
-					Value="{StaticResource Smaller}" />
-
-			<Style Selector="^ > AccessText">
-				<Setter Property="TextWrapping"
-						Value="Wrap" />
-				<Setter Property="TextAlignment"
-						Value="Center" />
-			</Style>
-		</Style>
-
-		<Style Selector="^ Image.Info">
-			<Setter Property="MaxWidth"
-					Value="16" />
-			<Setter Property="MaxHeight"
-					Value="16" />
-			<Setter Property="HorizontalAlignment"
-					Value="Center" />
-			<Setter Property="VerticalAlignment"
-					Value="Center" />
-			<Setter Property="Margin"
-					Value="5,5,0,0" />
-			<Setter Property="ToolTip.Placement"
-					Value="Right" />
-		</Style>
-	</Style>
 	<Style Selector="Button">
 		<Setter Property="Padding"
 				Value="5" />
@@ -474,28 +484,22 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="FontWeight"
 				Value="Normal" />
 	</Style>
-	<Style Selector="ctrl|GroupBox > StackPanel">
+
+
+	<Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
+		<Setter Property="Padding"
+				Value="0" />
+	</Style>
+	<Style Selector="Expander:down /template/ LayoutTransformControl#ExpanderHeaderLayoutContainer">
 		<Setter Property="Margin"
-				Value="5" />
-		<Setter Property="Spacing"
-				Value="5" />
+				Value="0" />
 	</Style>
 
-	<Style Selector="Svg.Rotating">
-		<Style.Animations>
-			<Animation Duration="0:0:6"
-					   IterationCount="Infinite">
-				<KeyFrame Cue="0%">
-					<Setter Property="Opacity"
-							Value="1"/>
-					<Setter Property="RotateTransform.Angle"
-							Value="0.0"/>
-				</KeyFrame>
-				<KeyFrame Cue="100%">
-					<Setter Property="RotateTransform.Angle"
-							Value="360.0"/>
-				</KeyFrame>
-			</Animation>
-		</Style.Animations>
+
+	<Style Selector="DataGridRow:pointerover /template/ Border#BackgroundBorder">
+		<Setter Property="Background"
+				Value="Transparent" />
 	</Style>
+
+
 </Styles>

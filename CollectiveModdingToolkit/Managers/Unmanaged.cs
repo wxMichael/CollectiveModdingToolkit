@@ -18,6 +18,7 @@
  * 
  */
 
+using Avalonia.Collections;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Models.FileTypes;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -57,7 +58,7 @@ internal class Unmanaged : ObservableObject, IModManager
 
 	public List<Archive> Archives { get; } = [];
 
-	public Dictionary<string, Archive> ArchivesWinning { get; } = [];
+	public AvaloniaDictionary<string, Archive> ArchivesWinning { get; } = [];
 
 	public List<DLL> Dlls { get; } = [];
 
@@ -75,4 +76,6 @@ internal class Unmanaged : ObservableObject, IModManager
 		Dlls.Clear();
 		DllsWinning.Clear();
 	}
+
+	public void GetOverviewInfo() => throw new NotImplementedException();
 }

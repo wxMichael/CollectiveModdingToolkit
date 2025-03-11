@@ -21,6 +21,7 @@
 using Avalonia;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
+using CollectiveModdingToolkit.Models.FileTypes;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -48,4 +49,26 @@ public sealed class F4SEEmojiConverter : IMultiValueConverter
 			values[1] is not bool ogngCaution
 			? BindingOperations.DoNothing
 			: ogngCaution ? "⚠️" : supportsCurrent ? "✔" : "❌";
+}
+
+public sealed class PatchFailConverter : IValueConverter
+{
+	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value == null)
+			return BindingOperations.DoNothing;
+
+		FailReason failReason = (FailReason)value;
+
+		return failReason == FailReason.FileNotFound
+			? "Patching Failed: File not found."
+			: failReason == FailReason.ReadFailed
+			? "Patching Failed: Unable to read file."
+			: failReason == FailReason.WriteFailed
+			? "Patching Failed: Unable write to file."
+			: "Patching Failed: Cause unknown.";
+	}
+
+	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+		BindingOperations.DoNothing;
 }

@@ -18,6 +18,7 @@
  * 
  */
 
+using Avalonia.Collections;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Models.FileTypes;
 using CollectiveModdingToolkit.Views;
@@ -54,7 +55,9 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 	public List<Module> Modules { get; private set; } = [];
 	public Dictionary<string, Module> ModulesWinning { get; private set; } = [];
 	public List<Archive> Archives { get; private set; } = [];
-	public Dictionary<string, Archive> ArchivesWinning { get; private set; } = [];
+
+	//public Dictionary<string, Archive> ArchivesWinning { get; private set; } = [];
+	public AvaloniaDictionary<string, Archive> ArchivesWinning { get; private set; } = [];
 	//public List<string> ModulesEnabled { get; private set; } = [];
 	//public List<string> ArchivesEnabled { get; private set; } = [];
 	public List<DLL> Dlls { get; private set; } = [];
@@ -362,21 +365,22 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 		}
 		StagePaths.Add(_overwriteDirectory);
 		// TODO: Scanner: Option to scan overridden files?
-		foreach ((int index, string modFolder) in StagePaths.Index())
+		foreach ((int index, string modFolderPath) in StagePaths.Index())
 		{
-			string modFolderPath = Path.Combine(_modDirectory, modFolder);
-			foreach (string filePath in Directory.EnumerateFiles(modFolderPath))
+			string modFolderName = Path.GetFileName(modFolderPath)!;
+			foreach (string filePathFull in Directory.EnumerateFiles(modFolderPath))
 			{
 				// TODO: Get mod name from meta.ini
-				string fileName = Path.GetFileName(filePath);
+				string fileName = Path.GetFileName(filePathFull);
 				string fileExt = Path.GetExtension(fileName);
 				if (fileExt == string.Empty)
 					continue;
 				string fileExtLower = fileExt.ToLower();
+				string filePathRelative = Path.GetRelativePath(modFolderPath, filePathFull);
 
 				if (fileExtLower == ".ba2")
 				{
-					Archive archive = new(fileName, filePath, modFolder, index, modFolder);
+					Archive archive = new(fileName, filePathFull, filePathRelative, index, modFolderName); // TODO: Relative path?
 					Archives.Add(archive);
 					ArchivesWinning[fileName] = archive;
 					// TODO: Check if already present and add to ArchivesLosing
@@ -384,7 +388,7 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 				}
 				if (_moduleExtensions.Any(fileExtLower.Equals))
 				{
-					Module module = new(fileName, filePath, modFolder, fileExtLower, index, modFolder);
+					Module module = new(fileName, filePathFull, filePathRelative, fileExtLower, index, modFolderName);
 					Modules.Add(module);
 					ModulesWinning[fileName] = module;
 					continue;
@@ -393,18 +397,19 @@ internal partial class ModOrganizer : ObservableObject, IModManager
 			string f4sePluginsPath = Path.Combine(modFolderPath, "F4SE", "Plugins");
 			if (Directory.Exists(f4sePluginsPath))
 			{
-				foreach (string filePath in Directory.EnumerateFiles(modFolderPath))
+				foreach (string filePathFull in Directory.EnumerateFiles(modFolderPath))
 				{
 					// TODO: Get mod name from meta.ini
-					string fileName = Path.GetFileName(filePath);
+					string fileName = Path.GetFileName(filePathFull);
 					string fileExt = Path.GetExtension(fileName);
 					if (fileExt == string.Empty)
 						continue;
 					string fileExtLower = fileExt.ToLower();
+					string filePathRelative = Path.GetRelativePath(modFolderPath, filePathFull);
 
 					if (fileExtLower == ".dll")
 					{
-						DLL dll = new(fileName, filePath, modFolder, index, modFolder);
+						DLL dll = new(fileName, filePathFull, filePathRelative, index, modFolderName);
 						Dlls.Add(dll);
 						DllsWinning[fileName] = dll;
 						// TODO: Check if already present and add to DllsLosing

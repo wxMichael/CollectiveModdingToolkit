@@ -27,8 +27,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
 		xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
 		mc:Ignorable="d"
-		d:DesignWidth="760"
-		d:DesignHeight="450"
+		d:DesignWidth="800"
+		d:DesignHeight="500"
 		x:Class="CollectiveModdingToolkit.Views.ArchivePatcher"
 		x:DataType="vm:MainWindowViewModel"
 		x:CompileBindings="True"
@@ -56,7 +56,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 					<RadioButton GroupName="DesiredVersion"
 								 Content="v1 (OG)"
-								 Margin="5,0,0,0" />
+								 Margin="5,0,0,0"
+								 IsChecked="True"/>
 
 					<!--<RadioButton GroupName="DesiredVersion"
 								 Content="v7 (NG)"
@@ -73,7 +74,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					   TextAlignment="Center"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"
-					   Text="{Binding WindowTitle, Mode=OneWay}" />
+					   Padding="10,0"
+					   Classes="Readable Neutral2"
+					   Text="Showing all NG archives." />
 
 			<StackPanel Grid.Row="0"
 						Grid.Column="2"
@@ -101,14 +104,16 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					 Margin="5,0,5,0" />
 		</DockPanel>
 
-		<ListBox x:Name="archivePatcherList"
+		<!--<ListBox x:Name="archivePatcherList"
 				 ItemsSource="{Binding ModManager.ArchivesWinning}"
 				 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
-			<!--<ListBox.ItemsPanel>
+			-->
+		<!--<ListBox.ItemsPanel>
 				<ItemsPanelTemplate>
 				</ItemsPanelTemplate>
 			</ListBox.ItemsPanel>-->
+		<!--
 
 			<ListBox.ItemTemplate>
 				<DataTemplate>
@@ -119,7 +124,63 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</DataTemplate>
 			</ListBox.ItemTemplate>
 
-		</ListBox>
+		</ListBox>-->
+
+		<DataGrid Name="ArchiveList"
+				  DockPanel.Dock="Right"
+				  ItemsSource="{Binding ModManager.ArchivesWinning}"
+				  AutoGenerateColumns="False"
+				  IsReadOnly="True"
+				  GridLinesVisibility="All"
+				  BorderThickness="1"
+				  CanUserResizeColumns="False"
+				  CanUserSortColumns="True"
+				  BorderBrush="Gray"
+				  HorizontalScrollBarVisibility="Disabled">
+
+			<DataGrid.Columns>
+
+				<DataGridTemplateColumn Header="Ver."
+										Width="Auto"
+										CanUserSort="True"
+										SortMemberPath="Value.ArchiveVersion">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock VerticalAlignment="Center"
+									   HorizontalAlignment="Center"
+									   Classes.Blue="{Binding Value.IsOG}"
+									   Classes.Purple="{Binding Value.IsNG}"
+									   Text="{Binding Value.ArchiveVersion, StringFormat='v{0}'}">
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="Format"
+										Width="Auto"
+										CanUserSort="True"
+										SortMemberPath="Value.ArchiveFormat">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock VerticalAlignment="Center"
+									   HorizontalAlignment="Center"
+									   Classes.Blue="{Binding Value.IsGNRL}"
+									   Classes.Purple="{Binding Value.IsDX10}"
+									   Text="{Binding Value.ArchiveFormat}">
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTextColumn Header="Archive"
+									Width="*"
+									Binding="{Binding Value.Name}" />
+
+				<DataGridTextColumn Header="Mod"
+									Width="Auto"
+									Binding="{Binding Value.Mod, TargetNullValue='Unmanaged'}" />
+			</DataGrid.Columns>
+		</DataGrid>
 
 	</StackPanel>
 </Window>
