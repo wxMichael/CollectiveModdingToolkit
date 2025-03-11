@@ -22,20 +22,198 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:m="using:CollectiveModdingToolkit.Models"
+			 xmlns:v="using:CollectiveModdingToolkit.Views"
 			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+			 xmlns:prim="using:Avalonia.Controls.Primitives"
+			 xmlns:pres="using:Avalonia.Controls.Presenters"
+			 xmlns:c="using:Avalonia.Controls"
 			 mc:Ignorable="d"
-			 d:DesignWidth="760"
-			 d:DesignHeight="450"
+			 d:DesignWidth="800"
+			 d:DesignHeight="500"
 			 x:Class="CollectiveModdingToolkit.Views.TabScanner"
-			 x:DataType="vm:MainWindowViewModel">
+			 x:DataType="vm:TabScannerViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:TabScannerViewModel />
 	</Design.DataContext>
 
-	<TextBlock DockPanel.Dock="Top"
-			   HorizontalAlignment="Center"
-			   VerticalAlignment="Center">
-		Scanner is a work-in-progress and not currently available.
-	</TextBlock>
+	<DockPanel LastChildFill="True">
+		<Border DockPanel.Dock="Left"
+				Margin="0"
+				Padding="0"
+				BorderBrush="Gray"
+				BorderThickness="1">
+
+			<StackPanel Orientation="Vertical">
+
+				<TextBlock Text="Mods"
+						   HorizontalAlignment="Center"
+						   LineHeight="20" />
+
+				<Separator Margin="0,2" />
+
+				<ListBox Name="ModSelection"
+						 ItemsSource="{Binding IssuesByMod.Keys}"
+						 Classes="Readable"
+						 SelectionChanged="ListBox_SelectionChanged_Mod">
+					<ListBox.Styles>
+						<Style Selector="ListBoxItem">
+							<Setter Property="Padding"
+									Value="0" />
+						</Style>
+					</ListBox.Styles>
+					<ListBox.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Vertical"
+										Margin="5,2"
+										Spacing="0"
+										MinWidth="200"
+										MaxWidth="250">
+							</StackPanel>
+						</ItemsPanelTemplate>
+					</ListBox.ItemsPanel>
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding}"
+									   Classes="Readable"
+									   Margin="0"
+									   Padding="0"/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</StackPanel>
+		</Border>
+
+		<Border DockPanel.Dock="Left"
+				Margin="0"
+				Padding="0"
+				BorderBrush="Gray"
+				BorderThickness="1">
+
+			<Grid RowDefinitions="Auto,Auto,*,Auto"
+				  ColumnDefinitions="*">
+
+				<TextBlock Grid.Row="0"
+						   Text="☢ Potential Issues ☢"
+						   VerticalAlignment="Center"
+						   HorizontalAlignment="Center"
+						   LineHeight="20" />
+
+				<Separator Grid.Row="1"
+						   Margin="0,2" />
+
+				<ListBox Grid.Row="2"
+						 x:Name="IssuesList"
+						 ItemsSource="{Binding Issues}"
+						 Classes="Readable"
+						 SelectionChanged="ListBox_SelectionChanged_Issue">
+					<ListBox.Styles>
+						<Style Selector="ListBoxItem">
+							<Setter Property="Padding"
+									Value="0" />
+						</Style>
+					</ListBox.Styles>
+					<ListBox.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Vertical"
+										Margin="5,2"
+										Spacing="0">
+							</StackPanel>
+						</ItemsPanelTemplate>
+					</ListBox.ItemsPanel>
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding FileName}"
+									   x:DataType="m:ProblemInfo"
+									   Classes="Readable"
+									   Margin="0"
+									   Padding="0"/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+
+				<Border Grid.Row="3"
+						Margin="0"
+						Padding="0"
+						BorderBrush="Gray"
+						BorderThickness="1">
+					<Panel Height="150">
+						<TextBlock Margin="5">&lt;Issue Details Here&gt;</TextBlock>
+					</Panel>
+
+				</Border>
+
+			</Grid>
+		</Border>
+
+	</DockPanel>
+
+	<!--<StackPanel Orientation="Vertical">
+		<DataGrid Margin="0,5,0,0"
+				  Name="ProblemsList"
+				  x:Name="ProblemsList"
+				  ItemsSource="{Binding ProblemsByMod}"
+				  AutoGenerateColumns="False"
+				  IsReadOnly="True"
+				  GridLinesVisibility="All"
+				  BorderThickness="1"
+				  CanUserResizeColumns="False"
+				  CanUserSortColumns="False"
+				  BorderBrush="Gray"
+				  SelectionMode="Single"
+				  SelectionChanged="DataGrid_SelectionChanged"
+				  Sorting="DataGrid_Sorting"
+				  HorizontalScrollBarVisibility="Disabled">
+
+			<DataGrid.Resources>
+				<x:Double x:Key="DataGridCellMinHeight">0</x:Double>
+			</DataGrid.Resources>
+
+			<DataGrid.Columns>
+
+				<DataGridTemplateColumn Header="Problems"
+										Width="*">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<DataGridCell>
+								<DataGridCell.Styles>
+									<Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
+										<Setter Property="Padding"
+												Value="15,5" />
+									</Style>
+									<Style Selector="Expander:down /template/ ContentPresenter#PART_ContentPresenter">
+										<Setter Property="Padding"
+												Value="20,0,0,0" />
+									</Style>
+								</DataGridCell.Styles>
+
+								<Expander Header="{Binding Key}">
+									<ItemsRepeater ItemsSource="{Binding Value}">
+										<ItemsRepeater.Styles>
+
+										</ItemsRepeater.Styles>
+										<ItemsRepeater.ItemTemplate>
+											<DataTemplate>
+												<TextBlock VerticalAlignment="Center"
+														   HorizontalAlignment="Left"
+														   Classes="Readable">
+													<Run Text="File: "
+														 Foreground="{StaticResource Neutral2}" />
+													<Run Text="{Binding FileName}" />
+												</TextBlock>
+
+											</DataTemplate>
+										</ItemsRepeater.ItemTemplate>
+									</ItemsRepeater>
+								</Expander>
+							</DataGridCell>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+			</DataGrid.Columns>
+		</DataGrid>
+
+	</StackPanel>-->
 </UserControl>
