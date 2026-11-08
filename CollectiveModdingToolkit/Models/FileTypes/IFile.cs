@@ -1,21 +1,21 @@
 ﻿/*
- * 
+ *
  * Collective Modding Toolkit
- * Copyright (C) 2024, 2025  wxMichael
- * 
+ * Copyright (C) 2024, 2025, 2026  wxMichael
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 using System.Diagnostics.CodeAnalysis;
@@ -28,15 +28,18 @@ internal interface IFile
 	string Ext { get; }
 
 	/// <summary>
-	/// A dot-prefixed, lowercase file name extension.
+	///     A dot-prefixed, lowercase file name extension.
 	/// </summary>
 	string PathFull { get; }
+
 	string PathRelative { get; }
 	bool WasRead { get; }
 	bool? IsReadable { get; }
 
 	int Priority { get; }
-	[MemberNotNullWhen(true, nameof(Mod))]
-	bool IsManaged { get; }
+	[MemberNotNullWhen(true, nameof(Mod))] bool IsManaged { get; }
 	string? Mod { get; }
+
+	/// <summary>Where this file really comes from (a mod, Overwrite, or the game folder). Null until resolved.</summary>
+	FileOrigin? Origin { get; }
 }

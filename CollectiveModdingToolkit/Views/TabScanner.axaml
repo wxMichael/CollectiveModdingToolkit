@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,201 +19,319 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:m="using:CollectiveModdingToolkit.Models"
-			 xmlns:v="using:CollectiveModdingToolkit.Views"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 xmlns:prim="using:Avalonia.Controls.Primitives"
-			 xmlns:pres="using:Avalonia.Controls.Presenters"
-			 xmlns:c="using:Avalonia.Controls"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabScanner"
-			 x:DataType="vm:TabScannerViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:m="using:CollectiveModdingToolkit.Models"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabScanner"
+             x:DataType="vm:TabScannerViewModel">
 
 	<Design.DataContext>
 		<vm:TabScannerViewModel />
 	</Design.DataContext>
 
-	<DockPanel LastChildFill="True">
-		<Border DockPanel.Dock="Left"
-				Margin="0"
-				Padding="0"
-				BorderBrush="Gray"
-				BorderThickness="1">
+	<Grid RowDefinitions="30,*,Auto,150">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="200"
+			                  MinWidth="150" />
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="*"
+			                  MinWidth="150" />
+		</Grid.ColumnDefinitions>
 
-			<StackPanel Orientation="Vertical">
+		<GridSplitter Grid.Row="0"
+		              Grid.Column="1"
+		              Grid.RowSpan="4"
+		              ResizeDirection="Columns"
+		              Background="{DynamicResource StrokeMidBrush}" />
 
-				<TextBlock Text="Mods"
-						   HorizontalAlignment="Center"
-						   LineHeight="20" />
-
-				<Separator Margin="0,2" />
-
-				<ListBox Name="ModSelection"
-						 ItemsSource="{Binding IssuesByMod.Keys}"
-						 Classes="Readable"
-						 SelectionChanged="ListBox_SelectionChanged_Mod">
-					<ListBox.Styles>
-						<Style Selector="ListBoxItem">
-							<Setter Property="Padding"
-									Value="0" />
-						</Style>
-					</ListBox.Styles>
-					<ListBox.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel Orientation="Vertical"
-										Margin="5,2"
-										Spacing="0"
-										MinWidth="200"
-										MaxWidth="250">
-							</StackPanel>
-						</ItemsPanelTemplate>
-					</ListBox.ItemsPanel>
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Text="{Binding}"
-									   Classes="Readable"
-									   Margin="0"
-									   Padding="0"/>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
+		<!-- Left: mods, or kinds of problem -->
+		<Border Grid.Row="0"
+		        Grid.Column="0"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        BorderThickness="1">
+			<StackPanel Orientation="Horizontal"
+			            HorizontalAlignment="Center"
+			            VerticalAlignment="Center"
+			            Spacing="4">
+				<StackPanel.Styles>
+					<Style Selector="RadioButton">
+						<Setter Property="MinHeight" Value="0" />
+						<Setter Property="Height" Value="24" />
+						<Setter Property="Padding" Value="8,3,8,0" />
+						<Setter Property="VerticalContentAlignment" Value="Center" />
+					</Style>
+					<Style Selector="RadioButton /template/ ContentPresenter#PART_ContentPresenter">
+						<Setter Property="VerticalAlignment" Value="Center" />
+						<Setter Property="VerticalContentAlignment" Value="Center" />
+					</Style>
+					<Style Selector="RadioButton:checked">
+						<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+					</Style>
+					<Style Selector="RadioButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+						<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+					</Style>
+				</StackPanel.Styles>
+				<RadioButton Content="By Problem"
+				             Theme="{DynamicResource ButtonRadioButton}"
+				             GroupName="ScanGrouping"
+				             IsChecked="{Binding GroupByProblem, Mode=TwoWay}"
+				             ToolTip.Tip="Group results by kind of problem" />
+				<RadioButton Content="By Mod"
+				             Theme="{DynamicResource ButtonRadioButton}"
+				             GroupName="ScanGrouping"
+				             IsChecked="{Binding GroupByMod, Mode=TwoWay}"
+				             ToolTip.Tip="Group results by mod" />
 			</StackPanel>
 		</Border>
+		<Border Grid.Row="1"
+		        Grid.RowSpan="3"
+		        Grid.Column="0"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        BorderThickness="1,0,1,1">
+			<ListBox ItemsSource="{Binding Groups}"
+			         SelectedItem="{Binding SelectedGroup}"
+			         Classes="Readable"
+			         Padding="0,3,0,0">
+				<ListBox.Styles>
+					<Style Selector="ListBoxItem">
+						<Setter Property="Padding"
+						        Value="0" />
+					</Style>
+				</ListBox.Styles>
+				<ListBox.ItemTemplate>
+					<DataTemplate x:DataType="vm:ScanGroup">
+						<TextBlock Text="{Binding Label}"
+						           Classes="Readable"
+						           Foreground="{DynamicResource Neutral2Brush}"
+						           Padding="5,0,0,0" />
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</Border>
 
-		<Border DockPanel.Dock="Left"
-				Margin="0"
-				Padding="0"
-				BorderBrush="Gray"
-				BorderThickness="1">
+		<!-- Right header: title, grouping, settings, scan -->
+		<Border Grid.Row="0"
+		        Grid.Column="2"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        BorderThickness="1">
+			<DockPanel LastChildFill="True">
+				<StackPanel DockPanel.Dock="Right"
+				            Orientation="Horizontal"
+				            Spacing="4"
+				            Margin="4,0">
+					<Button Content="Settings"
+					        Classes="Small">
+						<Button.Flyout>
+							<Flyout Placement="BottomEdgeAlignedRight">
+								<StackPanel Spacing="4"
+								            Width="190">
+									<CheckBox Content="Overview Issues"
+									          IsChecked="{Binding Settings.ScanOverviewIssues}"
+									          ToolTip.Tip="Report details of issues from Overview" />
+									<CheckBox Content="Wrong File Formats"
+									          IsChecked="{Binding Settings.ScanWrongFormat}"
+									          ToolTip.Tip="Check file types against a whitelist per Data folder.&#10;e.g. MP3 instead of XWM/WAV in Data/Sound/." />
+									<CheckBox Content="Loose Previs"
+									          IsChecked="{Binding Settings.ScanLoosePrevis}"
+									          ToolTip.Tip="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders." />
+									<CheckBox Content="Junk Files"
+									          IsChecked="{Binding Settings.ScanJunkFiles}"
+									          ToolTip.Tip="Report junk files such as desktop.ini, Thumbs.db,&#10;and leftover fomod folders." />
+									<CheckBox Content="Problem Overrides"
+									          IsChecked="{Binding Settings.ScanProblemOverrides}"
+									          ToolTip.Tip="Check for overrides that typically cause issues&#10;such as outdated F4SE script files or loose AnimTextData folders." />
+									<CheckBox Content="Race Subgraphs"
+									          IsChecked="{Binding Settings.ScanRaceSubgraphs}"
+									          ToolTip.Tip="Counts race animation subgraph records (RACE \ SADD).&#10;Adding too many may cause stutter when loading Cells.&#10;Base Game Count: 37&#10;Warning Threshold: 100" />
+								</StackPanel>
+							</Flyout>
+						</Button.Flyout>
+					</Button>
+					<Button Content="Scan"
+					        Classes="Small Primary"
+					        Width="80"
+					        Command="{Binding StartScanCommand}" />
+				</StackPanel>
+				<TextBlock Text="☢ Potential Issues ☢"
+				           Margin="5,0"
+				           VerticalAlignment="Center"
+				           HorizontalAlignment="Center" />
+			</DockPanel>
+		</Border>
 
-			<Grid RowDefinitions="Auto,Auto,*,Auto"
-				  ColumnDefinitions="*">
-
-				<TextBlock Grid.Row="0"
-						   Text="☢ Potential Issues ☢"
-						   VerticalAlignment="Center"
-						   HorizontalAlignment="Center"
-						   LineHeight="20" />
-
-				<Separator Grid.Row="1"
-						   Margin="0,2" />
-
-				<ListBox Grid.Row="2"
-						 x:Name="IssuesList"
-						 ItemsSource="{Binding Issues}"
-						 Classes="Readable"
-						 SelectionChanged="ListBox_SelectionChanged_Issue">
+		<!-- Issues for the selected group -->
+		<Border Grid.Row="1"
+		        Grid.Column="2"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        BorderThickness="1,0">
+			<Grid>
+				<ListBox ItemsSource="{Binding Issues}"
+				         SelectedItem="{Binding SelectedRow}"
+				         Classes="Readable">
 					<ListBox.Styles>
 						<Style Selector="ListBoxItem">
 							<Setter Property="Padding"
-									Value="0" />
+							        Value="0" />
 						</Style>
 					</ListBox.Styles>
-					<ListBox.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel Orientation="Vertical"
-										Margin="5,2"
-										Spacing="0">
-							</StackPanel>
-						</ItemsPanelTemplate>
-					</ListBox.ItemsPanel>
 					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Text="{Binding FileName}"
-									   x:DataType="m:ProblemInfo"
-									   Classes="Readable"
-									   Margin="0"
-									   Padding="0"/>
+						<DataTemplate x:DataType="vm:ScanRow">
+							<Grid ColumnDefinitions="1.6*,1*"
+							      Margin="5,0">
+								<TextBlock Grid.Column="0"
+								           Classes="Readable"
+								           ctrl:Status.Level="{Binding Level}"
+								           Text="{Binding Title}" />
+								<TextBlock Grid.Column="1"
+								           Classes="Readable"
+								           ctrl:Status.Level="{Binding Level}"
+								           Text="{Binding Secondary}" />
+							</Grid>
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 				</ListBox>
-
-				<Border Grid.Row="3"
-						Margin="0"
-						Padding="0"
-						BorderBrush="Gray"
-						BorderThickness="1">
-					<Panel Height="150">
-						<TextBlock Margin="5">&lt;Issue Details Here&gt;</TextBlock>
-					</Panel>
-
-				</Border>
-
+				<TextBlock Classes="Readable Neutral"
+				           HorizontalAlignment="Center"
+				           VerticalAlignment="Center"
+				           Text="{Binding ResultsInfo}"
+				           IsVisible="{Binding !Groups.Count}" />
 			</Grid>
 		</Border>
 
-	</DockPanel>
+		<!-- Progress while scanning -->
+		<StackPanel Grid.Row="2"
+		            Grid.Column="2"
+		            Margin="5,2"
+		            IsVisible="{Binding !IsNotProcessing}">
+			<TextBlock Classes="Readable"
+			           Text="{Binding StatusText}" />
+			<ProgressBar Minimum="0"
+			             Maximum="100"
+			             Value="{Binding Progress}" />
+		</StackPanel>
 
-	<!--<StackPanel Orientation="Vertical">
-		<DataGrid Margin="0,5,0,0"
-				  Name="ProblemsList"
-				  x:Name="ProblemsList"
-				  ItemsSource="{Binding ProblemsByMod}"
-				  AutoGenerateColumns="False"
-				  IsReadOnly="True"
-				  GridLinesVisibility="All"
-				  BorderThickness="1"
-				  CanUserResizeColumns="False"
-				  CanUserSortColumns="False"
-				  BorderBrush="Gray"
-				  SelectionMode="Single"
-				  SelectionChanged="DataGrid_SelectionChanged"
-				  Sorting="DataGrid_Sorting"
-				  HorizontalScrollBarVisibility="Disabled">
+		<!-- Details of the selected issue -->
+		<Border Grid.Row="3"
+		        Grid.Column="2"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        BorderThickness="1"
+		        ClipToBounds="True">
+			<Grid ColumnDefinitions="*,Auto">
+				<TextBlock Grid.ColumnSpan="2"
+				           Classes="Readable Small Neutral"
+				           HorizontalAlignment="Center"
+				           VerticalAlignment="Center"
+				           Text="▲ Select a mod and issue above ▲"
+				           IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNull}}" />
 
-			<DataGrid.Resources>
-				<x:Double x:Key="DataGridCellMinHeight">0</x:Double>
-			</DataGrid.Resources>
+				<ScrollViewer Grid.Column="0"
+				              Margin="10,5,5,0"
+				              VerticalScrollBarVisibility="Auto"
+				              IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<Panel DataContext="{Binding CurrentIssue}">
+						<Grid ColumnDefinitions="Auto,*"
+						      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+						      x:DataType="m:ProblemInfo">
+							<Grid.Styles>
+								<Style Selector="TextBlock">
+									<Setter Property="Margin"
+									        Value="0,1" />
+									<Setter Property="TextWrapping"
+									        Value="Wrap" />
+								</Style>
+								<Style Selector="TextBlock.Label">
+									<Setter Property="Margin"
+									        Value="0,1,8,1" />
+									<Setter Property="TextAlignment"
+									        Value="Right" />
+								</Style>
+							</Grid.Styles>
 
-			<DataGrid.Columns>
+							<TextBlock Grid.Row="0"
+							           Grid.Column="0"
+							           Classes="Small Label"
+							           Text="File:" />
+							<TextBlock Grid.Row="0"
+							           Grid.Column="1"
+							           Classes="Small"
+							           Text="{Binding DisplayName}" />
 
-				<DataGridTemplateColumn Header="Problems"
-										Width="*">
-					<DataGridTemplateColumn.CellTemplate>
-						<DataTemplate>
-							<DataGridCell>
-								<DataGridCell.Styles>
-									<Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
-										<Setter Property="Padding"
-												Value="15,5" />
-									</Style>
-									<Style Selector="Expander:down /template/ ContentPresenter#PART_ContentPresenter">
-										<Setter Property="Padding"
-												Value="20,0,0,0" />
-									</Style>
-								</DataGridCell.Styles>
+							<TextBlock Grid.Row="1"
+							           Grid.Column="0"
+							           Classes="Small Label"
+							           Text="Mod:" />
+							<TextBlock Grid.Row="1"
+							           Grid.Column="1"
+							           Classes="Small"
+							           Text="{Binding Mod, TargetNullValue='N/A'}" />
 
-								<Expander Header="{Binding Key}">
-									<ItemsRepeater ItemsSource="{Binding Value}">
-										<ItemsRepeater.Styles>
+							<TextBlock Grid.Row="2"
+							           Grid.Column="0"
+							           Classes="Small Label"
+							           Text="Location:" />
+							<TextBlock Grid.Row="2"
+							           Grid.Column="1"
+							           Classes="Small"
+							           Text="{Binding RelativePath}"
+							           Cursor="Hand"
+							           ToolTip.Tip="Click to open location"
+							           IsVisible="{Binding HasPath}"
+							           PointerPressed="Pointer_Pressed_OpenLocation" />
 
-										</ItemsRepeater.Styles>
-										<ItemsRepeater.ItemTemplate>
-											<DataTemplate>
-												<TextBlock VerticalAlignment="Center"
-														   HorizontalAlignment="Left"
-														   Classes="Readable">
-													<Run Text="File: "
-														 Foreground="{StaticResource Neutral2}" />
-													<Run Text="{Binding FileName}" />
-												</TextBlock>
+							<TextBlock Grid.Row="3"
+							           Grid.Column="0"
+							           Classes="Small Label"
+							           Text="Summary:" />
+							<TextBlock Grid.Row="3"
+							           Grid.Column="1"
+							           Classes="Small"
+							           Text="{Binding Summary}" />
 
-											</DataTemplate>
-										</ItemsRepeater.ItemTemplate>
-									</ItemsRepeater>
-								</Expander>
-							</DataGridCell>
-						</DataTemplate>
-					</DataGridTemplateColumn.CellTemplate>
-				</DataGridTemplateColumn>
+							<TextBlock Grid.Row="4"
+							           Grid.Column="0"
+							           Classes="Small Label"
+							           Text="Solution:" />
+							<StackPanel Grid.Row="4"
+							            Grid.Column="1">
+								<TextBlock Classes="Small"
+								           Text="{Binding Solution, TargetNullValue='No solution suggestion.'}" />
+								<TextBlock Classes="Small"
+								           Text="{Binding Url}"
+								           Cursor="Hand"
+								           TextDecorations="Underline"
+								           ToolTip.Tip="Left-Click: Open URL&#10;Right-Click: Copy URL"
+								           IsVisible="{Binding Url, Converter={x:Static ObjectConverters.IsNotNull}}"
+								           PointerPressed="Pointer_Pressed_Url" />
+							</StackPanel>
+						</Grid>
+					</Panel>
+				</ScrollViewer>
 
-			</DataGrid.Columns>
-		</DataGrid>
-
-	</StackPanel>-->
+				<Border Grid.Column="1"
+				        Padding="5"
+				        BorderBrush="{DynamicResource StrokeMidBrush}"
+				        BorderThickness="1,0,0,0"
+				        IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<StackPanel Spacing="5"
+					            Width="100">
+						<Button Content="Copy Details"
+						        Classes="Small"
+						        HorizontalAlignment="Stretch"
+						        Command="{Binding CopyDetailsCommand}" />
+						<Button Content="File List"
+						        Classes="Small"
+						        HorizontalAlignment="Stretch"
+						        IsVisible="{Binding CurrentIssue.FileList, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
+						        Command="{Binding ShowFileListCommand}" />
+					</StackPanel>
+				</Border>
+			</Grid>
+		</Border>
+	</Grid>
 </UserControl>

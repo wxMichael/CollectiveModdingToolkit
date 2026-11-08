@@ -1,31 +1,32 @@
 /*
- * 
+ *
  * Collective Modding Toolkit
- * Copyright (C) 2024, 2025  wxMichael
- * 
+ * Copyright (C) 2024, 2025, 2026  wxMichael
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  */
 
-using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using CollectiveModdingToolkit.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Win32;
 
 namespace CollectiveModdingToolkit.Models;
 
@@ -55,60 +56,87 @@ public static class OperatingSystem
 
 public partial class Computer : ObservableObject
 {
-	public static Computer? Instance { get; private set; }
 	public static readonly nint CurrentProcess = Process.GetCurrentProcess().Handle;
 
-	public static readonly string AppDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+	public static readonly string AppDataLocal =
+		Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
 	public static readonly string AppDataRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 	public static readonly string Documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	public static readonly string DocumentsFallout4 = Path.Combine(Documents, "My Games", "Fallout4");
 
-	[ObservableProperty] public partial bool CriticalErrorOpen { get; set; } = false;
-	[ObservableProperty] public partial string ErrorMessage { get; set; } = string.Empty;
-
-	[ObservableProperty] public partial string Os { get; private set; }
-	[ObservableProperty] public partial byte Bits { get; private set; }
-	[ObservableProperty] public partial string Cpu { get; private set; }
-	[ObservableProperty] public partial byte Ram { get; private set; }
-	[ObservableProperty] public partial string Gpu { get; private set; }
-	[ObservableProperty] public partial byte Vram { get; private set; }
-
 	public Computer()
 	{
-		Instance = this;
-
-		Os = GetOS();
+		OS = GetOS();
 		Bits = (byte)(Environment.Is64BitOperatingSystem ? 64 : 32);
-		Cpu = GetCPU();
-		GetPhysicallyInstalledSystemMemory(out long ram);
-		Ram = (byte)(ram / 1024 / 1024);
-		(Gpu, long vram) = GetGPU();
-		Vram = (byte)Math.Round((double)vram / 1024 / 1024 / 1024);
+		CPU = GetCPU();
+		RAM = GetRamGB();
+
+		var adapters = GpuDetector.Detect();
+		if (adapters.Count > 0)
+		{
+			// The adapter with the most video memory is the one to report: a laptop's integrated GPU is never the one games use.
+			GPU = adapters[0].Name;
+			VRAM = (int)Math.Round(adapters[0].DedicatedMemory / (double)(1L << 30));
+			GpuDetails = string.Join(Environment.NewLine, adapters.Select(a => a.DedicatedMemory > 0
+				? $"{a.Name}: {Math.Round(a.DedicatedMemory / (double)(1L << 30))} GB"
+				: a.Name));
+		}
+		else
+		{
+			GPU = "Unknown GPU";
+			GpuDetails = "No graphics adapter could be detected.";
+		}
+
+		Log.Info($"PC: {OS} {Bits}-bit, {CPU}, {RAM} GB RAM, GPU: {GpuDetails.ReplaceLineEndings("; ")}");
 	}
+
+	[ObservableProperty] public partial string OS { get; private set; }
+	[ObservableProperty] public partial byte Bits { get; private set; }
+	[ObservableProperty] public partial string CPU { get; private set; }
+	[ObservableProperty] public partial int RAM { get; private set; }
+	[ObservableProperty] public partial string GPU { get; private set; }
+	[ObservableProperty] public partial int VRAM { get; private set; }
+
+	/// <summary>Every graphics adapter found, one per line with its video memory, for a tooltip.</summary>
+	public string GpuDetails { get; }
+
+	/// <summary>The GPU's name and video memory, or just the name if the memory is unknown.</summary>
+	public string GpuText => VRAM > 0 ? $"{GPU} {VRAM} GB" : GPU;
 
 	private static string GetOS()
 	{
-		Version ver = Environment.OSVersion.Version;
-		if (ver.Major == 10)
+		var ver = Environment.OSVersion.Version;
+		switch (ver.Major)
 		{
-			if (ver.Build >= 22000)
-				return OperatingSystem.Windows11;
-			if (ver.Build >= 17763)
-				return OperatingSystem.Windows10;
+			case 10:
+				switch (ver.Build)
+				{
+					case >= 22000:
+						return OperatingSystem.Windows11;
+					case >= 17763:
+						return OperatingSystem.Windows10;
+				}
+
+				break;
+			case 6:
+				switch (ver.Minor)
+				{
+					case 3:
+						return OperatingSystem.Windows81;
+					case 2:
+						return OperatingSystem.Windows8;
+					case 1:
+						return OperatingSystem.Windows7;
+					case 0:
+						return OperatingSystem.WindowsVista;
+				}
+
+				break;
+			case 5:
+				return OperatingSystem.WindowsXP;
 		}
-		else if (ver.Major == 6)
-		{
-			if (ver.Minor == 3)
-				return OperatingSystem.Windows81;
-			if (ver.Minor == 2)
-				return OperatingSystem.Windows8;
-			if (ver.Minor == 1)
-				return OperatingSystem.Windows7;
-			if (ver.Minor == 0)
-				return OperatingSystem.WindowsVista;
-		}
-		else if (ver.Major == 5)
-			return OperatingSystem.WindowsXP;
+
 		return OperatingSystem.Unknown;
 	}
 
@@ -116,43 +144,47 @@ public partial class Computer : ObservableObject
 	{
 		try
 		{
-			using RegistryKey? key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
-			string? cpu = key?.GetValue("ProcessorNameString")?.ToString();
+			using var key =
+				Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+			var cpu = key?.GetValue("ProcessorNameString")?.ToString();
 			if (cpu != null)
-				return CPURegex().Replace(cpu, "");
+			{
+				// e.g. "Genuine Intel(R) CPU 0000 @ 2.50GHz" -> "Intel 0000"
+				if (cpu.Contains("Intel", StringComparison.Ordinal) &&
+				    !cpu.StartsWith("Intel", StringComparison.Ordinal))
+					cpu = $"Intel {cpu.Replace("Intel", string.Empty, StringComparison.Ordinal)}";
+
+				cpu = WhitespaceRegex().Replace(CPURegex().Replace(cpu, string.Empty), " ");
+				// The clock speed after "@" is noise: the model says what it is.
+				var at = cpu.LastIndexOf('@');
+				return (at >= 0 ? cpu[..at] : cpu).Trim();
+			}
 		}
-		catch { }
+		catch
+		{
+			// TODO: Error handling
+		}
+
 		return "Unknown CPU";
 	}
 
-	private static Tuple<string, long> GetGPU()
+	private static int GetRamGB()
 	{
-		List<Tuple<string, long>> adapters = [];
-		RegistryKey? key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
-		if (key == null)
-			return new Tuple<string, long>("????", 0);
+		// The amount of RAM installed, which is what people think of as their RAM (the OS reports a little less as usable).
+		if (GetPhysicallyInstalledSystemMemory(out var kilobytes) && kilobytes > 0)
+			return (int)Math.Round(kilobytes / 1024.0 / 1024.0);
 
-		foreach (string subKey in key.GetSubKeyNames())
-		{
-			if (!subKey.StartsWith('0'))
-				continue;
-			RegistryKey? productKey = key.OpenSubKey(subKey);
-			if (productKey == null)
-				continue;
-
-			string? adapterString = productKey.GetValue("HardwareInformation.AdapterString") as string;
-			long? memorySize = productKey.GetValue("HardwareInformation.qwMemorySize") as long?;
-
-			adapters.Add(new(adapterString ?? "????", memorySize ?? 0));
-		}
-		if (adapters.Count == 0)
-			return new Tuple<string, long>("????", 0);
-		return adapters[0]; // TODO: Identify proper adapter
+		// Not available on every machine (e.g. some virtual machines). Fall back to the memory Windows reports.
+		return (int)Math.Round(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (double)(1L << 30));
 	}
 
 	[DllImport("kernel32.dll")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool GetPhysicallyInstalledSystemMemory(out long TotalMemoryInKilobytes);
+	private static extern bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
+
 	[GeneratedRegex(@"(?:\d+(?:th|rd|nd) Gen| ?Processor| ?CPU|\d*[- ]Core|\(TM\)|\(R\))")]
 	private static partial Regex CPURegex();
+
+	[GeneratedRegex(@"\s+")]
+	private static partial Regex WhitespaceRegex();
 }

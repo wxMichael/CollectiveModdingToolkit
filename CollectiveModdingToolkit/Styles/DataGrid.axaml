@@ -1,0 +1,70 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<Style Selector="DataGrid">
+		<Setter Property="Background" Value="{DynamicResource BgBrush}" />
+	</Style>
+
+	<Style Selector="DataGridCell">
+		<Setter Property="Padding" Value="0" />
+	</Style>
+
+	<Style Selector="DataGridRow:pointerover /template/ Border#BackgroundBorder">
+		<Setter Property="Background" Value="Transparent" />
+	</Style>
+
+	<!-- Short rows for the F4SE and Archives tables -->
+	<Style Selector="DataGrid#F4SEList, DataGrid#ArchiveList">
+		<Style.Resources>
+			<x:Double x:Key="DataGridCellMinHeight">24</x:Double>
+		</Style.Resources>
+		<Style Selector="^ DataGridCell">
+			<Setter Property="MinHeight" Value="0" />
+		</Style>
+		<!-- Semi buttons have a tall MinHeight that would hold the row open -->
+		<Style Selector="^ Button">
+			<Setter Property="MinHeight" Value="0" />
+			<Setter Property="Height" Value="20" />
+			<Setter Property="Padding" Value="6,0" />
+			<Setter Property="Margin" Value="2,1" />
+		</Style>
+	</Style>
+
+	<!-- Compact, selection-less file lists -->
+	<Style Selector="DataGrid#GameBinariesList, DataGrid#CKBinariesList, DataGrid#F4SEDLLsList">
+		<Style.Resources>
+			<x:Double x:Key="DataGridCellMinHeight">28</x:Double>
+		</Style.Resources>
+		<Style Selector="^ DataGridCell">
+			<Setter Property="MinHeight" Value="0" />
+		</Style>
+		<Style Selector="^ /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+		<Style Selector="^ DataGridRow:selected /template/ Border#BackgroundBorder">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="CornerRadius" Value="0" />
+			<Setter Property="Margin" Value="0" />
+		</Style>
+	</Style>
+</Styles>

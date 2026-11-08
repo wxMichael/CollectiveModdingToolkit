@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,74 +19,71 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <Window xmlns="https://github.com/avaloniaui"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:m="using:CollectiveModdingToolkit.Models"
-		xmlns:v="using:CollectiveModdingToolkit.Views"
-		xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-		xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
-		mc:Ignorable="d"
-		d:DesignWidth="800"
-		d:DesignHeight="500"
-		x:Class="CollectiveModdingToolkit.Views.MainWindow"
-		x:DataType="vm:MainWindowViewModel"
-		x:CompileBindings="True"
-		Icon="/Assets/Images/icon-cm-64.png"
-		Title="{Binding WindowTitle}"
-		Width="800"
-		Height="500"
-		MinWidth="800"
-		MinHeight="500"
-		WindowStartupLocation="CenterScreen">
-
-	<!--<Design.DataContext>
-		<vm:MainWindowViewModel />
-	</Design.DataContext>-->
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:v="using:CollectiveModdingToolkit.Views"
+        xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+        xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+        mc:Ignorable="d"
+        d:DesignWidth="800"
+        d:DesignHeight="500"
+        x:Class="CollectiveModdingToolkit.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
+        Icon="/Assets/Images/icon-cm-64.png"
+        Title="{Binding WindowTitle}"
+        Width="800"
+        Height="500"
+        MinWidth="800"
+        MinHeight="500"
+        WindowStartupLocation="CenterScreen">
 
 	<dialogHost:DialogHost Identifier="CriticalErrorDialog"
-						   CloseOnClickAway="False"
-						   Loaded="DialogHost_Loaded"
-						   IsOpen="{Binding Computer.CriticalErrorOpen}">
+	                       CloseOnClickAway="False"
+	                       Loaded="DialogHost_Loaded"
+	                       IsOpen="{Binding Errors.IsOpen}">
 		<dialogHost:DialogHost.DialogContent>
-			<Border Name="CriticalErrorContent">
-				<TextBlock TextWrapping="Wrap">
-					<Run Text="Critical Error"
-						 Classes="Bad" />
-					<LineBreak />
-					<Run Text="{Binding Computer.ErrorMessage}" />
-				</TextBlock>
+			<Border Name="CriticalErrorContent" Padding="15">
+				<StackPanel Spacing="10">
+					<TextBlock TextWrapping="Wrap">
+						<Run Text="Critical Error"
+						     Classes="Bad" />
+						<LineBreak />
+						<Run Text="{Binding Errors.Message}" />
+					</TextBlock>
+					<Button Content="Exit" HorizontalAlignment="Right" Click="Button_Click_Exit" />
+				</StackPanel>
 			</Border>
 		</dialogHost:DialogHost.DialogContent>
 
 		<TabControl>
 			<TabItem Header="Overview">
-				<v:TabOverview />
+				<v:TabOverview DataContext="{Binding Overview}" />
 			</TabItem>
 			<TabItem Header="F4SE">
-				<v:TabF4SE />
+				<v:TabF4SE DataContext="{Binding F4SE}" />
 			</TabItem>
 			<TabItem Header="Archives">
-				<v:TabArchives />
+				<v:TabArchives DataContext="{Binding Archives}" />
 			</TabItem>
 			<TabItem Header="Modules">
 				<v:TabModules />
 			</TabItem>
 			<TabItem Header="Scanner">
-				<!--<v:TabScanner />-->
-				<ContentControl Name="TabScanner" />
+				<v:TabScanner DataContext="{Binding Scanner}" />
 			</TabItem>
 			<TabItem Header="Downgrader">
 				<v:TabDowngrader />
 			</TabItem>
 			<TabItem Header="Tools">
-				<v:TabTools />
+				<v:TabTools DataContext="{Binding Tools}" />
 			</TabItem>
 			<TabItem Header="Settings">
-				<v:TabSettings />
+				<v:TabSettings DataContext="{Binding Settings}" />
 			</TabItem>
 			<TabItem Header="About">
-				<v:TabAbout />
+				<v:TabAbout DataContext="{Binding About}" />
 			</TabItem>
 		</TabControl>
 	</dialogHost:DialogHost>

@@ -1,37 +1,46 @@
 # User-specific files
-#*.suo
 *.user
-#*.sln.docstates
+*.suo
+*.userprefs
 .vs/
 
 # Build results
-#*.sln.ide/
-#[Dd]ebug/
-#[Rr]elease/
-#x64/
-bin/
-obj/
-
-# Visual C++ cache files
-#ipch/
-#*.aps
-#*.ncb
-#*.opensdf
-#*.sdf
-#*.cachefile
-
-# Visual Studio profiler
-#*.psess
-#*.vsp
-#*.vspx
-
-# Click-Once directory
-#publish/
-
-# Publish Web Output
-#*.Publish.xml
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+publish/
+artifacts/
 *.pubxml
 
-# Runtime-Created Files
+# Test / coverage output
+TestResults/
+coverage/
+*.trx
+*.coverage
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# JetBrains / Rider
+.idea/
+*.DotSettings
+*.DotSettings.user
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Runtime-created files
 *.xdelta
 cm-toolkit.log

@@ -1,12 +1,8 @@
 @echo off
-cd "C:\Users\Michael\source\repos\CollectiveModdingToolkit"
-rmdir /S /Q ".\publish"
-rmdir /S /Q ".\CollectiveModdingToolkit\bin"
-rmdir /S /Q ".\CollectiveModdingToolkit\obj"
-rmdir /S /Q ".\MO2Launcher\bin"
-rmdir /S /Q ".\MO2Launcher\obj"
-rmdir /S /Q ".\MO2VFSBypass\bin"
-rmdir /S /Q ".\MO2VFSBypass\obj"
+cd /d "%~dp0"
+rmdir /S /Q ".\publish" 2>nul
+rmdir /S /Q ".\CollectiveModdingToolkit\bin" 2>nul
+rmdir /S /Q ".\CollectiveModdingToolkit\obj" 2>nul
 cls
-dotnet publish -c Release --sc -o ./publish/
-del .\publish\*.pdb .\publish\*.config
+dotnet publish CollectiveModdingToolkit\CollectiveModdingToolkit.csproj -c Release --sc -o .\publish\
+del .\publish\*.pdb .\publish\*.config 2>nul

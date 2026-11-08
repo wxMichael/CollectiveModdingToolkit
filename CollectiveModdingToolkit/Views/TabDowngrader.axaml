@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,23 +19,23 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabDowngrader"
-			 x:DataType="vm:MainWindowViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabDowngrader"
+             x:DataType="vm:MainWindowViewModel">
 
 	<Design.DataContext>
 		<vm:MainWindowViewModel />
 	</Design.DataContext>
 
 	<TextBlock DockPanel.Dock="Top"
-			   HorizontalAlignment="Center"
-			   VerticalAlignment="Center">
+	           HorizontalAlignment="Center"
+	           VerticalAlignment="Center">
 		Downgrader is a work-in-progress and not currently available.
 	</TextBlock>
 </UserControl>

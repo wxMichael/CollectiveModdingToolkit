@@ -1,0 +1,106 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<!--
+	Semi.Avalonia resolves most of its own brushes internally, so overriding only the SemiColor* family does
+	not reach controls that use their own keys. Each group below points the relevant per-control keys at our
+	accent brushes (Theme/Brushes.axaml), so Semi controls follow the active game.
+	To find more keys to remap: grep the strings in Semi.Avalonia.dll for the control name.
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!-- Semi "Primary" family (used by controls that resolve it dynamically) -->
+	<StaticResource x:Key="SemiColorPrimary" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="SemiColorPrimaryPointerover" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="SemiColorPrimaryActive" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="SemiColorPrimaryLight" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="SemiColorPrimaryLightPointerover" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="SemiColorPrimaryLightActive" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="SemiColorLink" ResourceKey="AccentBrightBrush" />
+	<StaticResource x:Key="SemiColorLinkPointerover" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="SemiColorLinkActive" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="SemiColorFocusBorder" ResourceKey="AccentBrush" />
+
+	<!-- Solid primary buttons (text color comes from the Button.Primary style) -->
+	<StaticResource x:Key="ButtonSolidPrimaryBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryPointeroverBackground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryPressedBackground" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryPressedBorderBrush" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="ButtonSolidPrimaryPressedForeground" ResourceKey="OnAccentBrush" />
+
+	<!-- Non-solid primary buttons (default/outline variants use a blue foreground/border otherwise) -->
+	<StaticResource x:Key="ButtonDefaultPrimaryForeground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonDefaultColorfulPrimaryForeground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonOutlineColorfulPrimaryForeground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonOutlineColorfulPrimaryBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonSolidColorfulPrimaryBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ButtonSolidColorfulPrimaryPointeroverBackground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ButtonSolidColorfulPrimaryPressedBackground" ResourceKey="AccentActiveBrush" />
+
+	<!-- Tab underline ("pipe") -->
+	<StaticResource x:Key="TabItemLinePipeSelectedBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="TabItemLinePipePointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="TabItemLinePipePressedBorderBrush" ResourceKey="AccentActiveBrush" />
+
+	<!-- Focus rings -->
+	<StaticResource x:Key="TextBoxFocusBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="TextBoxBorderedPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ComboBoxSelectorFocusBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ComboBoxSelectorBorderedFocusBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="CalendarDatePickerFocusBorderBrush" ResourceKey="AccentBrush" />
+
+	<!-- Text selection -->
+	<StaticResource x:Key="TextBoxSelectionBackground" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="TextBlockSelectionBackground" ResourceKey="AccentActiveBrush" />
+
+	<!-- Links -->
+	<StaticResource x:Key="HyperlinkButtonForeground" ResourceKey="AccentBrightBrush" />
+	<StaticResource x:Key="HyperlinkButtonPointeroverForeground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="HyperlinkButtonPressedForeground" ResourceKey="AccentActiveBrush" />
+
+	<!-- Checked / selected states -->
+	<StaticResource x:Key="CheckBoxCheckedDefaultBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="CheckBoxCheckedDefaultBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="CheckBoxCheckedPointeroverBackground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="CheckBoxCheckedPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="CheckBoxCheckedPressedBackground" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="CheckBoxCheckedPressedBorderBrush" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="ToggleSwitchContainerCheckedDefaultBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ToggleSwitchContainerCheckedPointeroverBackground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ToggleSwitchContainerCheckedPressedBackground" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconDefaultBackground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconDefaultBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconPointeroverBackground" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconPressedBackground" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="RadioButtonCheckIconPressedBorderBrush" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="RadioButtonUncheckIconPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="RadioButtonUncheckIconPressedBorderBrush" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="SliderTrackForeground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ProgressBarPrimaryForeground" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ListBoxItemSelectedBackground" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="ListBoxItemSelectedPointeroverBackground" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="ComboBoxItemSelectedBackground" ResourceKey="AccentTintBrush" />
+	<StaticResource x:Key="ComboBoxItemSelectedPointeroverBackground" ResourceKey="AccentTintBrush" />
+
+</ResourceDictionary>

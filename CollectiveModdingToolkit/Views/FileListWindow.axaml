@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CollectiveModdingToolkit.Views.FileListWindow"
+        Title="Files"
+        Icon="/Assets/Images/icon-cm-64.png"
+        Width="500"
+        Height="500"
+        MinWidth="300"
+        MinHeight="200"
+        WindowStartupLocation="CenterOwner">
+
+	<Window.Styles>
+		<!-- The global TextBlock style sets FontSize directly, so inheritance from the ListBox is overridden. -->
+		<Style Selector="ListBox#FileList TextBlock">
+			<Setter Property="FontFamily" Value="Consolas" />
+			<Setter Property="FontSize" Value="{StaticResource Smaller}" />
+		</Style>
+	</Window.Styles>
+
+	<DockPanel Margin="10,10,10,5">
+		<TextBlock DockPanel.Dock="Bottom"
+		           Margin="0,5,0,0"
+		           Classes="Readable Smallest"
+		           HorizontalAlignment="Center">
+			<Italic>Escape will also close windows.</Italic>
+		</TextBlock>
+
+		<Button DockPanel.Dock="Bottom"
+		        HorizontalAlignment="Stretch"
+		        Content="Close"
+		        Click="Button_Click_Close" />
+
+		<TextBlock DockPanel.Dock="Top"
+		           x:Name="InfoText"
+		           Classes="Readable"
+		           Margin="0,0,0,8"
+		           TextWrapping="Wrap"
+		           IsVisible="False" />
+
+		<ListBox x:Name="FileList"
+		         Classes="Readable"
+		         FontFamily="Consolas" />
+	</DockPanel>
+</Window>

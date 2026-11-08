@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,22 +19,22 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:m="CollectiveModdingToolkit.Models"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 xmlns:tips="clr-namespace:CollectiveModdingToolkit.Models.Tooltips"
-			 xmlns:conv="using:CollectiveModdingToolkit.Converters"
-			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabOverview"
-			 x:DataType="vm:MainWindowViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:b="using:CollectiveModdingToolkit.Behaviors"
+             xmlns:conv="using:CollectiveModdingToolkit.Converters"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             xmlns:models="using:CollectiveModdingToolkit.Models"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabOverview"
+             x:DataType="vm:OverviewViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:OverviewViewModel />
 	</Design.DataContext>
 
 	<UserControl.Resources>
@@ -42,173 +42,274 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	</UserControl.Resources>
 
 	<UserControl.Styles>
+		<!-- Binary version cells show the game version, and the full version while hovered. -->
+		<Style Selector="TextBlock.Full">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+		<Style Selector="DataGridCell:pointerover TextBlock.Full">
+			<Setter Property="IsVisible" Value="True" />
+		</Style>
+		<Style Selector="DataGridCell:pointerover TextBlock.Short">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+
+		<Style Selector="ctrl|GroupBox > StackPanel">
+			<Setter Property="Margin"
+			        Value="5" />
+		</Style>
+
 		<Style Selector="ctrl|GroupBox > StackPanel > Grid">
 			<Setter Property="ToolTip.Placement"
-					Value="LeftEdgeAlignedTop" />
+			        Value="LeftEdgeAlignedTop" />
 			<Setter Property="ToolTip.HorizontalOffset"
-					Value="-10" />
+			        Value="-10" />
 			<Setter Property="ToolTip.VerticalOffset"
-					Value="0" />
+			        Value="0" />
 		</Style>
 
 		<!-- Overview Tables -->
 		<Style Selector="Grid#OverviewTopPanel">
 			<Setter Property="Margin"
-					Value="5,0,5,5" />
+			        Value="5,0,5,5" />
 
 			<!-- Color all text except first column -->
 			<Style Selector="^ TextBlock">
 				<Setter Property="Foreground"
-						Value="{StaticResource Neutral2}" />
+				        Value="{DynamicResource Neutral2Brush}" />
 			</Style>
 			<Style Selector="^ > TextBlock[(Grid.Column)=0]">
 				<Setter Property="Foreground"
-						Value="{StaticResource DefaultFG}" />
+				        Value="{DynamicResource TextBrush}" />
 			</Style>
 		</Style>
 
 		<Style Selector="Grid.Table > TextBlock">
 			<Style Selector="^[(Grid.Column)=0]">
 				<Setter Property="TextAlignment"
-						Value="Right" />
+				        Value="Right" />
 				<Setter Property="Margin"
-						Value="0, 0, 5, 0" />
+				        Value="0, 0, 5, 0" />
 			</Style>
 			<Style Selector="^[(Grid.Column)=1]">
-				<Setter Property="Foreground"
-						Value="{StaticResource Neutral2}" />
 				<Setter Property="Margin"
-						Value="0" />
+				        Value="0" />
+				<!-- Default color only, so status classes can override it -->
+				<Style Selector="^:not(.Good):not(.Caution):not(.Warning):not(.Bad):not(.Neutral)">
+					<Setter Property="Foreground"
+					        Value="{DynamicResource Neutral2Brush}" />
+				</Style>
 			</Style>
 			<Style Selector="^[(Grid.Column)=2]">
-				<Setter Property="Foreground"
-						Value="{StaticResource Neutral2}" />
 				<Setter Property="Margin"
-						Value="0" />
+				        Value="0" />
+				<!-- Default color only, so status classes can override it -->
+				<Style Selector="^:not(.Good):not(.Caution):not(.Warning):not(.Bad):not(.Neutral)">
+					<Setter Property="Foreground"
+					        Value="{DynamicResource Neutral2Brush}" />
+				</Style>
 			</Style>
 		</Style>
-
 
 
 	</UserControl.Styles>
 
 	<!-- Overview Top Panel -->
 	<Grid ColumnDefinitions="1.1*,*,*"
-		  RowDefinitions="Auto,*,*">
+	      RowDefinitions="Auto,*,*">
 
 		<Grid Name="OverviewTopPanel"
-			  Classes="Table"
-			  Grid.Row="0"
-			  Grid.Column="0"
-			  Grid.ColumnSpan="3"
-			  RowDefinitions="Auto,Auto,Auto,Auto"
-			  ColumnDefinitions="Auto,*,Auto">
+		      Classes="Table"
+		      Grid.Row="0"
+		      Grid.Column="0"
+		      Grid.ColumnSpan="3"
+		      RowDefinitions="Auto,Auto,Auto,Auto"
+		      ColumnDefinitions="Auto,*,Auto">
 
 			<!-- Mod Manager -->
 			<TextBlock Grid.Row="0"
-					   Grid.Column="0"
-					   Text="Mod Manager:" />
+			           Grid.Column="0"
+			           Text="Mod Manager:" />
 
 			<TextBlock Grid.Row="0"
-					   Grid.Column="1">
-				<Run Text="{Binding ModManager.AppName, Mode=OneWay}"
-					 Classes.Bad="{Binding ModManager.AppPath, Converter={x:Static StringConverters.IsNullOrEmpty}}}" />
-				<Run Text="{Binding ModManager.AppVersionString, StringFormat='v{0}', TargetNullValue=''}" />
-				<Run Text="{Binding ModManager.Profile, Mode=OneWay, StringFormat='[Profile: {0}]', TargetNullValue=''}" />
+			           Grid.Column="1">
+				<Run Text="{Binding ModManager.AppName, Mode=OneWay, FallbackValue=''}"
+				     Classes.Bad="{Binding ModManager.AppPath, Converter={x:Static StringConverters.IsNullOrEmpty}, FallbackValue=True}" />
+				<Run
+					Text="{Binding ModManager.AppVersionString, StringFormat='v{0}', TargetNullValue='', FallbackValue=''}" />
+				<Run
+					Text="{Binding ModManager.Profile, Mode=OneWay, StringFormat='[Profile: {0}]', TargetNullValue='', FallbackValue=''}" />
 				<!--TargetNullValue='[Profile: Unknown]'}" />-->
 			</TextBlock>
 
 			<!-- Game Path -->
 			<TextBlock Grid.Row="1"
-					   Grid.Column="0"
-					   Text="Game Path:" />
+			           Grid.Column="0"
+			           Text="Game Path:" />
 
 			<TextBlock Grid.Row="1"
-					   Grid.Column="1"
-					   Text="{Binding Game.GamePath}"
-					   ToolTip.Tip="Click to open folder"
-					   Cursor="Hand"
-					   PointerReleased="GamePath_PointerReleased"/>
+			           Grid.Column="1"
+			           Text="{Binding Game.GamePath}"
+			           ToolTip.Tip="Click to open folder"
+			           Cursor="Hand"
+			           PointerReleased="GamePath_PointerReleased" />
 
 			<!-- Version -->
 			<TextBlock Grid.Row="2"
-					   Grid.Column="0"
-					   Text="Version:" />
+			           Grid.Column="0"
+			           Text="Version:" />
 
 			<TextBlock Grid.Row="2"
-					   Grid.Column="1"
-					   Text="{Binding Game.GameVersion}"
-					   Classes="Good" />
+			           Grid.Column="1"
+			           Text="{Binding Game.GameVersion}"
+			           Classes="Good" />
 
 			<!-- PC Specs -->
 			<TextBlock Grid.Row="3"
-					   Grid.Column="0"
-					   Text="PC Specs:" />
+			           Grid.Column="0"
+			           Text="PC Specs:" />
 
 			<Grid Grid.Row="3"
-				  Grid.Column="1"
-				  RowDefinitions="Auto,Auto"
-				  ColumnDefinitions="*,*">
+			      Grid.Column="1"
+			      RowDefinitions="Auto,Auto"
+			      ColumnDefinitions="*,*">
 
 				<TextBlock Grid.Row="0"
-						   Grid.Column="0">
-					<Run Text="{Binding Computer.Os}" />
+				           Grid.Column="0">
+					<Run Text="{Binding Computer.OS}" />
 					<Run Text="{Binding Computer.Bits, StringFormat='{}{0}-bit'}" />
 				</TextBlock>
 
 				<TextBlock Grid.Row="1"
-						   Grid.Column="0"
-						   Text="{Binding Computer.Ram, StringFormat='{}{0} GB RAM', Mode=OneWay}" />
+				           Grid.Column="0"
+				           Text="{Binding Computer.RAM, StringFormat='{}{0} GB RAM', Mode=OneWay}" />
 
 				<TextBlock Grid.Row="0"
-						   Grid.Column="1"
-						   Text="{Binding Computer.Cpu}" />
+				           Grid.Column="1"
+				           Text="{Binding Computer.CPU}" />
 
 				<TextBlock Grid.Row="1"
-						   Grid.Column="1">
-					<Run Text="{Binding Computer.Gpu}" />
-					<Run Text="{Binding Computer.Vram, StringFormat='{}{0} GB', Mode=OneWay}" />
-				</TextBlock>
+				           Grid.Column="1"
+				           Text="{Binding Computer.GpuText}"
+				           ToolTip.Tip="{Binding Computer.GpuDetails}" />
 			</Grid>
 
 			<!-- Refresh -->
 			<Button Name="RefreshButton"
-					Grid.Row="0"
-					Grid.Column="2"
-					Grid.RowSpan="2"
-					Command="{Binding RefreshCommand}"
-					Content="Refresh" />
+			        Grid.Row="0"
+			        Grid.Column="2"
+			        Grid.RowSpan="2"
+			        Command="{Binding RefreshCommand}"
+			        Content="Refresh" />
 		</Grid>
 
 		<!-- Game Binaries -->
 		<ctrl:GroupBox Grid.Row="1"
-					   Grid.Column="0"
-					   Header="Game (EXE/DLL)">
+		               Grid.Column="0"
+		               Header="Game (EXE/DLL)">
+
+			<DockPanel>
+				<!-- Address Library (version file for the installed game) -->
+				<Grid DockPanel.Dock="Bottom"
+				      ColumnDefinitions="*,Auto"
+				      Margin="0,4,0,0"
+				      IsVisible="{Binding Game.AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<TextBlock Grid.Column="0"
+					           Text="Address Library:"
+					           HorizontalAlignment="Right"
+					           Classes="Small" />
+					<TextBlock Grid.Column="1"
+					           MinWidth="95"
+					           Margin="5,0,0,0"
+					           Classes="Small"
+					           Text="{Binding Game.AddressLibraryText}"
+					           ctrl:Status.Level="{Binding Game.AddressLibraryStatus}"
+					           ToolTip.Tip="{Binding Game.AddressLibraryTip}" />
+				</Grid>
+				<DataGrid DockPanel.Dock="Top"
+				          Name="GameBinariesList"
+				          ItemsSource="{Binding Game.BinariesGame}"
+				          AutoGenerateColumns="False"
+				          IsReadOnly="True"
+				          CanUserResizeColumns="False"
+				          CanUserSortColumns="False"
+				          HeadersVisibility="None"
+				          SelectionMode="Single"
+				          b:NoSelection.IsEnabled="True"
+				          HorizontalScrollBarVisibility="Disabled"
+				          VerticalScrollBarVisibility="Disabled">
+
+					<DataGrid.Columns>
+						<DataGridTemplateColumn Width="*">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<DataGridCell PointerPressed="BinariesList_PointerPressed">
+										<TextBlock
+											Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
+											VerticalAlignment="Center"
+											HorizontalAlignment="Right"
+											Classes="Small" />
+									</DataGridCell>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+
+						<DataGridTemplateColumn Width="Auto">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<DataGridCell MinWidth="95"
+									              PointerPressed="BinariesList_PointerPressed">
+
+										<Panel>
+											<TextBlock Text="{Binding GameVersion}"
+											           VerticalAlignment="Center"
+											           HorizontalAlignment="Left"
+											           Margin="5,0,0,0"
+											           Classes="Small Short"
+											           ctrl:Status.Level="{Binding Level}" />
+											<TextBlock Text="{Binding FullVersion}"
+											           VerticalAlignment="Center"
+											           HorizontalAlignment="Left"
+											           Margin="5,0,0,0"
+											           Classes="Small Full"
+											           ctrl:Status.Level="{Binding Level}" />
+										</Panel>
+									</DataGridCell>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+					</DataGrid.Columns>
+				</DataGrid>
+			</DockPanel>
+		</ctrl:GroupBox>
+
+		<!-- Creation Kit Binaries -->
+		<ctrl:GroupBox Grid.Row="2"
+		               Grid.Column="0"
+		               Header="Creation Kit (EXE/DLL)">
 
 			<DataGrid DockPanel.Dock="Top"
-					  Name="GameBinariesList"
-					  ItemsSource="{Binding Game.Binaries}"
-					  AutoGenerateColumns="False"
-					  IsReadOnly="True"
-					  CanUserResizeColumns="False"
-					  CanUserSortColumns="False"
-					  HeadersVisibility="None"
-					  SelectionMode="Single"
-					  SelectionChanged="DataGrid_SelectionChanged"
-					  HorizontalScrollBarVisibility="Disabled"
-					  VerticalScrollBarVisibility="Disabled">
+			          Name="CKBinariesList"
+			          ItemsSource="{Binding Game.BinariesCK}"
+			          AutoGenerateColumns="False"
+			          IsReadOnly="True"
+			          CanUserResizeColumns="False"
+			          CanUserSortColumns="False"
+			          HeadersVisibility="None"
+			          SelectionMode="Single"
+			          b:NoSelection.IsEnabled="True"
+			          HorizontalScrollBarVisibility="Disabled"
+			          VerticalScrollBarVisibility="Disabled">
 
 				<DataGrid.Columns>
 					<DataGridTemplateColumn Width="*">
 						<DataGridTemplateColumn.CellTemplate>
 							<DataTemplate>
-								<DataGridCell PointerPressed="BinariesList_PointerPressed"
-											  PointerEntered="BinariesList_PointerEntered"
-											  PointerExited="BinariesList_PointerExited">
-									<TextBlock Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Right"
-											   Classes="Small" />
+								<DataGridCell PointerPressed="BinariesList_PointerPressed">
+									<TextBlock
+										Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
+										VerticalAlignment="Center"
+										HorizontalAlignment="Right"
+										Classes="Small" />
 								</DataGridCell>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
@@ -218,66 +319,22 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 						<DataGridTemplateColumn.CellTemplate>
 							<DataTemplate>
 								<DataGridCell MinWidth="95"
-											  PointerPressed="BinariesList_PointerPressed"
-											  PointerEntered="BinariesList_PointerEntered"
-											  PointerExited="BinariesList_PointerExited">
+								              PointerPressed="BinariesList_PointerPressed">
 
-									<TextBlock Text="{Binding DisplayText}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Left"
-											   Margin="5,0,0,0"
-											   Classes="Small"
-											   Classes.Good="{Binding IsGood}"
-											   Classes.Bad="{Binding !IsGood}" />
-								</DataGridCell>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
-				</DataGrid.Columns>
-			</DataGrid>
-		</ctrl:GroupBox>
-
-		<!-- Creation Kit Binaries -->
-		<ctrl:GroupBox Grid.Row="2"
-					   Grid.Column="0"
-					   Header="Creation Kit (EXE/DLL)">
-
-			<DataGrid DockPanel.Dock="Top"
-					  Name="CKBinariesList"
-					  ItemsSource="{Binding CKBinaries}"
-					  AutoGenerateColumns="False"
-					  IsReadOnly="True"
-					  CanUserResizeColumns="False"
-					  CanUserSortColumns="False"
-					  HeadersVisibility="None"
-					  SelectionMode="Single"
-					  SelectionChanged="DataGrid_SelectionChanged"
-					  HorizontalScrollBarVisibility="Disabled"
-					  VerticalScrollBarVisibility="Disabled">
-
-				<DataGrid.Columns>
-					<DataGridTemplateColumn Width="*">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<DataGridCell>
-									<TextBlock Text="{Binding Key, StringFormat='{}{0}:'}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Right"
-											   Classes="Small" />
-								</DataGridCell>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
-
-					<DataGridTemplateColumn Width="Auto">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<DataGridCell MinWidth="95">
-									<TextBlock Text="{Binding Value}"
-											   VerticalAlignment="Center"
-											   HorizontalAlignment="Left"
-											   Margin="5,0,0,0"
-											   Classes="Small Good" />
+									<Panel>
+										<TextBlock Text="{Binding GameVersion}"
+										           VerticalAlignment="Center"
+										           HorizontalAlignment="Left"
+										           Margin="5,0,0,0"
+										           Classes="Small Short"
+										           ctrl:Status.Level="{Binding Level}" />
+										<TextBlock Text="{Binding FullVersion}"
+										           VerticalAlignment="Center"
+										           HorizontalAlignment="Left"
+										           Margin="5,0,0,0"
+										           Classes="Small Full"
+										           ctrl:Status.Level="{Binding Level}" />
+									</Panel>
 								</DataGridCell>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
@@ -289,92 +346,94 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Archives -->
 		<ctrl:GroupBox Grid.Row="1"
-					   Grid.Column="1"
-					   Header="Archives (BA2)">
+		               Grid.Column="1"
+		               Header="Archives (BA2)">
 
 			<!--<DockPanel Margin="0,0,0,5">
-				
+
 				<Button DockPanel.Dock="Bottom"
 						Content="Archive Patcher"
 						Click="Button_Click_OpenArchivePatcher" />-->
 
 			<StackPanel DockPanel.Dock="Top">
 				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+				      ColumnDefinitions="Auto,Auto,*"
+				      RowDefinitions="Auto,Auto,Auto,Auto">
 
 					<ToolTip.Tip>
 						<TextBlock>
-							<Bold>General/GNRL/Main:</Bold> Used for all non-texture files. Hard limit of <Bold>256</Bold>, after which the game will crash at the main menu.<LineBreak />
+							<Bold>General/GNRL/Main:</Bold> Used for all non-texture files. Hard limit of
+							<Bold>256</Bold> (
+							<Bold>1024</Bold> on 1.11.240), after which the game will crash at the main menu.
 							<LineBreak />
-							<Bold>Texture/DX10:</Bold> Used only for textures. No hard limit, but functional limit is <Bold>255</Bold>, after which the game fails to use correct textures.<LineBreak />
+							<LineBreak />
+							<Bold>Texture/DX10:</Bold> Used only for textures. No hard limit, but functional limit is
+							<Bold>255</Bold> (
+							<Bold>1023</Bold> on 1.11.240), after which the game fails to use correct textures.
+							<LineBreak />
 							<LineBreak />
 							<Bold>Unreadable:</Bold> Files that could not be read due to permissions, unexpected format, or corruption. These are excluded from the counts.
 						</TextBlock>
 					</ToolTip.Tip>
 
 					<TextBlock Grid.Row="0"
-							   Grid.Column="0"
-							   Text="General:" />
+					           Grid.Column="0"
+					           Text="General:" />
 					<TextBlock Grid.Row="0"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ArchivesGeneralWarning}"
-							   Classes.Bad="{Binding Game.ArchivesGeneralMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding Game.ArchivesGeneralStatus}" />
 					<TextBlock Grid.Row="0"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxArchivesGeneral, StringFormat=' / {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.MaxArchivesGeneral, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="Texture:" />
+					           Grid.Column="0"
+					           Text="Texture:" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ArchivesTextureWarning}"
-							   Classes.Bad="{Binding Game.ArchivesTextureMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding Game.ArchivesTextureStatus}" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxArchivesTexture, StringFormat=' / {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.MaxArchivesTexture, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="Total:" />
+					           Grid.Column="0"
+					           Text="Total:" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.TotalArchivesWarning}"
-							   Classes.Bad="{Binding Game.TotalArchivesMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding Game.TotalArchivesStatus}" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="2"
-							   Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="Unreadable:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+					           Grid.Column="0"
+					           Text="Unreadable:"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
 					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
 				</Grid>
 				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+				      ColumnDefinitions="Auto,Auto,*"
+				      RowDefinitions="Auto,Auto,Auto,Auto">
 
 					<ToolTip.Tip>
 						<TextBlock>
 							<Bold>v1:</Bold> Works with all FO4 versions.<LineBreak />
 							<LineBreak />
-							<Bold>v7/v8:</Bold> Require either <Bold>BASS</Bold> or <Bold>NG</Bold>.<LineBreak />
-							Some apps only support <Bold>v1</Bold>.<LineBreak />
+							<Bold>v7/v8:</Bold> <Bold>Next-Gen</Bold> or <Bold>Anniversary</Bold>.<LineBreak />
+							<Bold>Old-Gen</Bold> requires <Bold>Backported Archive2 Support System (BASS)</Bold>.
 							<LineBreak />
-							<Bold>v????:</Bold> These modules have an unsupported archive version.<LineBreak />
+							Some older apps only support <Bold>v1</Bold>.<LineBreak />
+							<LineBreak />
+							<Bold>v????:</Bold> Archives with an unsupported version.<LineBreak />
 							Fallout 4 supports only <Bold>v1</Bold>, <Bold>v7</Bold>, and <Bold>v8</Bold>.<LineBreak />
 							<LineBreak />
 							Files with other versions were likey made for other games and should be repacked for Fallout 4.
@@ -382,33 +441,33 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					</ToolTip.Tip>
 
 					<Separator Grid.Row="0"
-							   Grid.Column="0"
-							   Grid.ColumnSpan="3" />
+					           Grid.Column="0"
+					           Grid.ColumnSpan="3" />
 
 					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="(OG) v1   :" />
+					           Grid.Column="0"
+					           Text="(OG) v1   :" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
 
 					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="(NG) v7/8 :" />
+					           Grid.Column="0"
+					           Text="(NG) v7/8 :" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
 
 					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="v????:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+					           Grid.Column="0"
+					           Text="v????:"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasArchivesUnknown}" />
 					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasArchivesUnknown}" />
 				</Grid>
 			</StackPanel>
 			<!--</DockPanel>-->
@@ -416,83 +475,83 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Modules -->
 		<ctrl:GroupBox Grid.Row="2"
-					   Grid.Column="1"
-					   Header="Modules (ESM/ESL/ESP)">
+		               Grid.Column="1"
+		               Header="Modules (ESM/ESL/ESP)">
 
 			<StackPanel>
 				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+				      ColumnDefinitions="Auto,Auto,*"
+				      RowDefinitions="Auto,Auto,Auto,Auto">
 
 					<ToolTip.Tip>
 						<TextBlock>
 							<Bold>Full modules</Bold> include all non-<Bold>Light</Bold> modules.<LineBreak />
-							<Bold>Light modules</Bold> are <Bold>ESL-flagged</Bold> and/or have the <Bold>.esl</Bold> extension.<LineBreak />
+							<Bold>Light modules</Bold> are <Bold>ESL-flagged</Bold> and/or have the <Bold>.esl</Bold>
+							extension.
 							<LineBreak />
-							Light modules give up the capacity to contain more than <Bold>4095</Bold> new records in exchange for having a higher plugin limit.<LineBreak />
+							<LineBreak />
+							Light modules give up the capacity to contain more than <Bold>4095</Bold> new records in exchange for having a higher plugin limit.
+							<LineBreak />
 							<LineBreak />
 							<Bold>Unreadable:</Bold> Files that could not be read due to permissions, unexpected format, or corruption. These are excluded from the counts.
 						</TextBlock>
 					</ToolTip.Tip>
 
 					<TextBlock Grid.Row="0"
-							   Grid.Column="0"
-							   Text="Full:" />
+					           Grid.Column="0"
+					           Text="Full:" />
 					<TextBlock Grid.Row="0"
-							   Grid.Column="1"
-							   Text="{Binding Game.ModulesFull.Count, StringFormat='{}{0,5}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ModulesFullWarning}"
-							   Classes.Bad="{Binding Game.ModulesFullMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ModulesFull.Count, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding Game.ModulesFullStatus}" />
 					<TextBlock Grid.Row="0"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxModulesFull, StringFormat=' /  {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.MaxModulesFull, StringFormat=' /  {0}'}" />
 
 					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="Light:" />
+					           Grid.Column="0"
+					           Text="Light:" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.ModulesLight.Count, StringFormat='{}{0,5}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.ModulesLightWarning}"
-							   Classes.Bad="{Binding Game.ModulesLightMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ModulesLight.Count, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding Game.ModulesLightStatus}" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="2"
-							   Text="{Binding Game.MaxModulesLight, StringFormat=' / {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.MaxModulesLight, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="Total:" />
+					           Grid.Column="0"
+					           Text="Total:" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.TotalModules, StringFormat='{}{0,5}'}"
-							   Classes="Good"
-							   Classes.Warning="{Binding Game.TotalModulesWarning}"
-							   Classes.Bad="{Binding Game.TotalModulesMaxed}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.TotalModules, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding Game.TotalModulesStatus}" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="2"
-							   Text="{Binding Game.TotalModulesMax, StringFormat=' / {0}'}" />
+					           Grid.Column="2"
+					           Text="{Binding Game.TotalModulesMax, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="Unreadable:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+					           Grid.Column="0"
+					           Text="Unreadable:"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasModulesUnreadable}" />
 					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ModulesUnreadable.Count, StringFormat='{}{0,5}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ModulesUnreadable.Count, StringFormat='{}{0,5}'}"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasModulesUnreadable}" />
 				</Grid>
 				<Grid Classes="Table"
-					  ColumnDefinitions="Auto,Auto,*"
-					  RowDefinitions="Auto,Auto,Auto,Auto">
+				      ColumnDefinitions="Auto,Auto,*"
+				      RowDefinitions="Auto,Auto,Auto,Auto">
 
 					<ToolTip.Tip>
 						<TextBlock>
-							<Bold>Plugin header v1.00</Bold> has a larger Form ID range than <Bold>v0.95</Bold>.<LineBreak />
-							Any plugins with IDs below <Bold>800</Bold> <Bold Classes="Caution">MUST</Bold> be <Bold>v1.00</Bold>.<LineBreak />
+							<Bold>Plugin header v1.00</Bold> enables a larger Form ID range than <Bold>v0.95</Bold>.
+							<LineBreak />
+							Any plugins with IDs below <Bold>800</Bold> <Bold Classes="Caution">MUST</Bold> be
+							<Bold>v1.00</Bold>.
+							<LineBreak />
 							<LineBreak />
 							FO4VR only supports <Bold>v0.95</Bold>.<LineBreak />
 							<LineBreak />
@@ -505,143 +564,107 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							<Bold>HEDR v????:</Bold> These modules have an unsupported header version.<LineBreak />
 							Fallout 4 supports only <Bold>v0.95</Bold> and <Bold>v1.00</Bold>.<LineBreak />
 							<LineBreak />
-							Files with <Bold Classes="Bad">v0.94</Bold> were likey made with <Bold Classes="Bad">FalloutSnip</Bold> and should be replaced, recreated, or removed.<LineBreak />
+							Files with <Bold Classes="Bad">v0.94</Bold> were likey made with
+							<Bold Classes="Bad">FalloutSnip</Bold> and should be replaced, recreated, or removed.
+							<LineBreak />
 							Use such mods <Bold Classes="Bad">AT YOUR OWN RISK</Bold> as they may result in unknown behavior or issues due to having an invalid structure or corruption.
 						</TextBlock>
 					</ToolTip.Tip>
 
 					<Separator Grid.Row="0"
-							   Grid.Column="0"
-							   Grid.ColumnSpan="3" />
+					           Grid.Column="0"
+					           Grid.ColumnSpan="3" />
 
 					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="HEDR v1.00:" />
+					           Grid.Column="0"
+					           Text="HEDR v1.00:" />
 					<TextBlock Grid.Row="1"
-							   Grid.Column="1"
-							   Text="{Binding Game.Modules100.Count, StringFormat='{}{0,5}'}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.Modules100.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="HEDR v0.95:" />
+					           Grid.Column="0"
+					           Text="HEDR v0.95:" />
 					<TextBlock Grid.Row="2"
-							   Grid.Column="1"
-							   Text="{Binding Game.Modules095.Count, StringFormat='{}{0,5}'}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.Modules095.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="HEDR v????:"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasModulesUnknown}" />
+					           Grid.Column="0"
+					           Text="HEDR v????:"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasModulesUnknown}" />
 					<TextBlock Grid.Row="3"
-							   Grid.Column="1"
-							   Text="{Binding Game.ModulesUnknown.Count, StringFormat='{}{0,5}'}"
-							   Classes="Neutral"
-							   Classes.Bad="{Binding Game.HasModulesUnknown}" />
+					           Grid.Column="1"
+					           Text="{Binding Game.ModulesUnknown.Count, StringFormat='{}{0,5}'}"
+					           Classes="Neutral"
+					           Classes.Bad="{Binding Game.HasModulesUnknown}" />
 				</Grid>
 			</StackPanel>
 		</ctrl:GroupBox>
 
-		<!-- F4SE -->
+		<!-- Issues found while gathering the info above -->
 		<ctrl:GroupBox Grid.Row="1"
-					   Grid.Column="2"
-					   Header="F4SE">
+		               Grid.RowSpan="2"
+		               Grid.Column="2"
+		               Header="Issues">
 
-			<StackPanel Orientation="Vertical"
-						Margin="5"
-						Spacing="5">
+			<Grid RowDefinitions="Auto,*">
+				<TextBlock Grid.Row="0"
+				           Classes="Good"
+				           Margin="5"
+				           Text="No issues found."
+				           IsVisible="{Binding !Game.HasProblems}" />
 
-				<UniformGrid Rows="1"
-							 Columns="3">
+				<ScrollViewer Grid.Row="1"
+				              HorizontalScrollBarVisibility="Disabled"
+				              VerticalScrollBarVisibility="Auto">
+					<ItemsControl ItemsSource="{Binding Game.Problems}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="models:ProblemInfo">
+								<StackPanel Margin="5,0,5,8"
+								            Spacing="1">
+									<TextBlock Classes="Readable"
+									           TextWrapping="Wrap"
+									           ctrl:Status.Level="{Binding Level}">
+										<Span Classes="Emoji">
+											<Run Text="{Binding SeverityMark}" />
+										</Span>
+										<Bold>
+											<Run Text="{Binding Problem}" />
+										</Bold>
+									</TextBlock>
 
-					<TextBlock Grid.Column="0"
-							   TextAlignment="Center"
-							   Classes="Good">
-						<Span Classes="Emoji">✔</Span> 20
-					</TextBlock>
+									<TextBlock Classes="Readable"
+									           TextWrapping="Wrap"
+									           Text="{Binding Summary}" />
 
-					<TextBlock Grid.Column="1"
-							   TextAlignment="Center"
-							   Classes="Bad">
-						<Span Classes="Emoji">❌</Span> 3
-					</TextBlock>
+									<TextBlock Classes="Readable Neutral"
+									           TextWrapping="Wrap"
+									           Text="{Binding Solution}"
+									           IsVisible="{Binding Solution, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-					<TextBlock Grid.Column="2"
-							   TextAlignment="Center"
-							   Classes="Caution">
-						<Span Classes="Emoji">⚠️</Span> 2
-					</TextBlock>
-				</UniformGrid>
-
-				<!-- F4SE DLLs -->
-				<DataGrid DockPanel.Dock="Top"
-						  Name="F4SEDLLsList"
-						  ItemsSource="{Binding DLLs}"
-						  AutoGenerateColumns="False"
-						  IsReadOnly="True"
-						  CanUserResizeColumns="False"
-						  CanUserSortColumns="False"
-						  HeadersVisibility="None"
-						  SelectionMode="Single"
-						  SelectionChanged="DataGrid_SelectionChanged"
-						  HorizontalScrollBarVisibility="Disabled"
-						  VerticalScrollBarVisibility="Disabled">
-
-					<DataGrid.Columns>
-						<DataGridTemplateColumn Width="*">
-							<DataGridTemplateColumn.CellTemplate>
-								<DataTemplate>
-									<DataGridCell>
-										<TextBlock Text="{Binding Key, StringFormat='{}{0}:'}"
-												   VerticalAlignment="Center"
-												   HorizontalAlignment="Right"
-												   Classes="Small" />
-									</DataGridCell>
-								</DataTemplate>
-							</DataGridTemplateColumn.CellTemplate>
-						</DataGridTemplateColumn>
-
-						<DataGridTemplateColumn Width="Auto">
-							<DataGridTemplateColumn.CellTemplate>
-								<DataTemplate>
-									<DataGridCell MinWidth="95">
-										<TextBlock Text="{Binding Value, TargetNullValue='Not Found'}"
-												   VerticalAlignment="Center"
-												   HorizontalAlignment="Left"
-												   Margin="5,0,0,0"
-												   Classes="Small Good"
-												   Classes.Bad="{Binding Value, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-									</DataGridCell>
-								</DataTemplate>
-							</DataGridTemplateColumn.CellTemplate>
-						</DataGridTemplateColumn>
-					</DataGrid.Columns>
-				</DataGrid>
-
-			</StackPanel>
-		</ctrl:GroupBox>
-
-		<!-- Misc -->
-		<ctrl:GroupBox Grid.Row="2"
-					   Grid.Column="2"
-					   Header="Misc">
-
-			<StackPanel>
-				<TextBlock>
-					Crash Logs Today: <Span Classes="Bad">4</Span>
-					<InlineUIContainer>
-						<Svg Grid.Row="0"
-							 Grid.Column="1"
-							 Margin="0"
-							 MaxHeight="24"
-							 MaxWidth="24"
-							 HorizontalAlignment="Center"
-							 Stretch="Uniform"
-							 Path="/Assets/Images/icon-folder.svg" />
-					</InlineUIContainer>
-				</TextBlock>
-			</StackPanel>
-
+									<StackPanel Orientation="Horizontal"
+									            Spacing="5">
+										<Button Content="&#x1F4C2;"
+										        Padding="6,0"
+										        ToolTip.Tip="Show in Explorer"
+										        IsVisible="{Binding HasPath}"
+										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).RevealProblemCommand}"
+										        CommandParameter="{Binding}" />
+										<Button Content="Open Page"
+										        Padding="6,0"
+										        ToolTip.Tip="{Binding Url}"
+										        IsVisible="{Binding Url, Converter={x:Static ObjectConverters.IsNotNull}}"
+										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).OpenProblemUrlCommand}"
+										        CommandParameter="{Binding}" />
+									</StackPanel>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</ScrollViewer>
+			</Grid>
 		</ctrl:GroupBox>
 
 	</Grid>

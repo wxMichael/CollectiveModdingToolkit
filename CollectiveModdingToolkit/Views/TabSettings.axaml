@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,63 +19,57 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabSettings"
-			 x:DataType="vm:MainWindowViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             xmlns:conv="using:CollectiveModdingToolkit.Converters"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabSettings"
+             x:DataType="vm:SettingsViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:SettingsViewModel />
 	</Design.DataContext>
 
-	<DockPanel>
-		<StackPanel DockPanel.Dock="Top"
-					Orientation="Horizontal"
-					VerticalAlignment="Top">
-			<ctrl:GroupBox Header="Updates Channel">
+	<UserControl.Resources>
+		<conv:EnumIsConverter x:Key="EnumIs" />
+	</UserControl.Resources>
 
-				<StackPanel Orientation="Vertical">
-					<RadioButton GroupName="UpdateSource"
-								 Content="All: GitHub &amp; Nexus Mods"
-								 IsEnabled="False" />
-					<RadioButton GroupName="UpdateSource"
-								 Content="Early: GitHub"
-								 IsEnabled="False" />
-					<RadioButton GroupName="UpdateSource"
-								 Content="Stable: Nexus Mods"
-								 IsEnabled="False" />
-					<RadioButton GroupName="UpdateSource"
-								 Content="Never: Don't Check"
-								 IsEnabled="False" />
-				</StackPanel>
-			</ctrl:GroupBox>
+	<StackPanel Orientation="Horizontal"
+	            VerticalAlignment="Top"
+	            HorizontalAlignment="Left"
+	            Spacing="5">
 
-			<ctrl:GroupBox Header="Log Level"
-						   Margin="5,0">
+		<ctrl:GroupBox Header="Log Level">
+			<StackPanel Orientation="Vertical"
+			            ToolTip.Tip="How much detail is written to the log file. Debug is the most useful when reporting a problem.">
+				<RadioButton GroupName="LogLevel"
+				             Content="Debug"
+				             IsChecked="{Binding Settings.LogLevel, Mode=TwoWay, Converter={StaticResource EnumIs}, ConverterParameter=Debug}" />
+				<RadioButton GroupName="LogLevel"
+				             Content="Info"
+				             IsChecked="{Binding Settings.LogLevel, Mode=TwoWay, Converter={StaticResource EnumIs}, ConverterParameter=Info}" />
+				<RadioButton GroupName="LogLevel"
+				             Content="Warning"
+				             IsChecked="{Binding Settings.LogLevel, Mode=TwoWay, Converter={StaticResource EnumIs}, ConverterParameter=Warning}" />
+				<RadioButton GroupName="LogLevel"
+				             Content="Error"
+				             IsChecked="{Binding Settings.LogLevel, Mode=TwoWay, Converter={StaticResource EnumIs}, ConverterParameter=Error}" />
+			</StackPanel>
+		</ctrl:GroupBox>
 
-				<StackPanel Orientation="Vertical">
-					<RadioButton GroupName="UpdateSource"
-								 Content="Debug"
-								 IsEnabled="False" />
-					<RadioButton GroupName="UpdateSource"
-								 Content="Info"
-								 IsEnabled="False" />
-					<RadioButton GroupName="UpdateSource"
-								 Content="Error"
-								 IsEnabled="False" />
-				</StackPanel>
-			</ctrl:GroupBox>
-		</StackPanel>
-		<TextBlock DockPanel.Dock="Top"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Center">
-			Settings are a work-in-progress and not currently available.
-		</TextBlock>
-	</DockPanel>
+		<ctrl:GroupBox Header="Files">
+			<StackPanel Orientation="Vertical"
+			            Spacing="5">
+				<Button Content="Show Log File"
+				        Command="{Binding ShowLogFileCommand}" />
+				<Button Content="Show Settings File"
+				        Command="{Binding ShowSettingsFileCommand}" />
+			</StackPanel>
+		</ctrl:GroupBox>
+	</StackPanel>
 </UserControl>

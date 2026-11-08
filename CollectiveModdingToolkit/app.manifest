@@ -3,7 +3,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 <assembly manifestVersion="1.0"
 		  xmlns="urn:schemas-microsoft-com:asm.v1">
 	<assemblyIdentity version="1.0.0.0"
-					  name="CollectiveModdingToolkit.Desktop"/>
+					  name="CollectiveModdingToolkit.Desktop" />
 	<compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
 		<application>
 			<!-- Windows 10 & 11 -->

@@ -1,0 +1,69 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia">
+
+	<Style Selector="Button">
+		<Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
+		<Setter Property="Padding" Value="5" />
+	</Style>
+
+	<!-- Accent-filled buttons may need dark text; computed per accent (OnAccentColor) -->
+	<Style Selector="Button.Primary">
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+	</Style>
+
+	<Style Selector="ProgressBar">
+		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+	</Style>
+	<Style Selector="ProgressBar /template/ Border#PART_Indicator">
+		<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+	</Style>
+
+	<Style Selector="RadioButton">
+		<Setter Property="FontWeight" Value="Normal" />
+	</Style>
+
+	<Style Selector="Separator">
+		<Setter Property="Background" Value="{DynamicResource StrokeMidBrush}" />
+		<Setter Property="Height" Value="2" />
+	</Style>
+
+	<Style Selector="Border#CriticalErrorContent">
+		<Setter Property="BorderBrush" Value="{DynamicResource StrokeBrightBrush}" />
+		<Setter Property="BorderThickness" Value="2" />
+		<Setter Property="Padding" Value="5" />
+		<Setter Property="Background" Value="{DynamicResource BgRaisedBrush}" />
+	</Style>
+
+	<Style Selector="dialogHost|DialogHost">
+		<Setter Property="DialogMargin" Value="0" />
+	</Style>
+
+	<Style Selector="Expander:down /template/ ToggleButton#ExpanderHeader">
+		<Setter Property="Padding" Value="0" />
+	</Style>
+	<Style Selector="Expander:down /template/ LayoutTransformControl#ExpanderHeaderLayoutContainer">
+		<Setter Property="Margin" Value="0" />
+	</Style>
+</Styles>

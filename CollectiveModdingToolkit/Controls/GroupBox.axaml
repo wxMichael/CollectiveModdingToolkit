@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 
 https://github.com/BinToss/GroupBox.Avalonia
 
@@ -27,64 +27,69 @@ SOFTWARE.
 -->
 
 <HeaderedContentControl x:Class="CollectiveModdingToolkit.Controls.GroupBox"
-						xmlns="https://github.com/avaloniaui"
-						xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-						xmlns:conv="using:CollectiveModdingToolkit.Converters"
-						xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
-						xmlns:sys="using:System">
+                        xmlns="https://github.com/avaloniaui"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:avaMedia="using:Avalonia.Media"
+                        xmlns:conv="using:CollectiveModdingToolkit.Converters"
+                        xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+                        xmlns:sys="using:System">
 
 	<HeaderedContentControl.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceDictionary>
-					<Color x:Key="ThemeBorderMidColor">#FF808080</Color>
+					<!-- ReSharper disable once Xaml.RedundantResource -->
 					<ControlTheme x:Key="{x:Type ctrl:GroupBox}"
-								  TargetType="ctrl:GroupBox">
+					              TargetType="ctrl:GroupBox">
 
 						<Setter Property="BorderBrush"
-								Value="{StaticResource ThemeBorderMidColor}" />
+						        Value="{DynamicResource StrokeMidBrush}" />
 						<Setter Property="CornerRadius"
-								Value="3" />
+						        Value="3" />
 						<Setter Property="FontWeight"
-								Value="Bold" />
+						        Value="Bold" />
 						<Setter Property="Padding"
-								Value="8" />
+						        Value="8" />
 						<Setter Property="Template">
 							<ControlTemplate>
 								<Grid Name="GBGrid"
-									  ColumnDefinitions="Auto *"
-									  RowDefinitions="Auto *">
+								      ColumnDefinitions="Auto *"
+								      RowDefinitions="Auto *">
 									<Grid.Resources>
 										<ResourceDictionary>
 											<sys:Double x:Key="GbBorderPadding">3</sys:Double>
 											<sys:Double x:Key="GbBorderMargin">0</sys:Double>
-											<SolidColorBrush x:Key="ThemeBorderMidBrush"
-															 Color="{StaticResource ThemeBorderMidColor}" />
 										</ResourceDictionary>
 									</Grid.Resources>
 
 									<TextBlock Name="GBHeaderText"
-											   Margin="5,1"
-											   Padding="5,0"
-											   Text="{TemplateBinding Header}"
-											   FontWeight="{TemplateBinding FontWeight}" />
+									           Margin="5,1"
+									           Padding="5,0"
+									           Text="{TemplateBinding Header}"
+									           FontWeight="{TemplateBinding FontWeight}" />
+
+									<Border Name="GBBorderVisual"
+									        Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Grid.Column="0"
+									        BorderBrush="{DynamicResource StrokeMidBrush}"
+									        BorderThickness="1" CornerRadius="3"
+									        Clip="{Binding #GBBorder.Clip}"
+									        Padding="{Binding #GBBorder.Padding}"
+									        Margin="{Binding #GBBorder.Margin}"
+									        RenderOptions.EdgeMode="Aliased" />
 
 									<Border Name="GBBorder"
-											Grid.Row="0"
-											Grid.RowSpan="2"
-											Grid.ColumnSpan="2"
-											Grid.Column="0"
-											BorderBrush="{DynamicResource ThemeBorderMidBrush}"
-											BorderThickness="1"
-											CornerRadius="3"
-											RenderOptions.EdgeMode="Unspecified">
+									        Grid.Row="0" Grid.RowSpan="2"
+									        Grid.ColumnSpan="2" Grid.Column="0"
+									        BorderBrush="{x:Static avaMedia:Brushes.Transparent}"
+									        BorderThickness="1"
+									        CornerRadius="3">
 
 										<Border.Clip>
 											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertBoundsToOuterBorder}">
 												<Binding Path="#GBGrid.Bounds" />
 												<Binding Path="#GBHeaderText.Bounds" />
 												<Binding Converter="{x:Static conv:GroupBoxConverters.ThicknessRectConverter}"
-														 Path="#GBBorder.Margin" />
+												         Path="#GBBorder.Margin" />
 											</MultiBinding>
 										</Border.Clip>
 
@@ -92,7 +97,7 @@ SOFTWARE.
 											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertDoublesToThickness}">
 												<Binding Source="{StaticResource GbBorderPadding}" />
 												<Binding Converter="{x:Static conv:GroupBoxConverters.BoundsToHeaderHeightDividedByTwo}"
-														 Path="#GBHeaderText.Bounds" />
+												         Path="#GBHeaderText.Bounds" />
 												<Binding Source="{StaticResource GbBorderPadding}" />
 												<Binding Source="{StaticResource GbBorderPadding}" />
 											</MultiBinding>
@@ -102,15 +107,15 @@ SOFTWARE.
 											<MultiBinding Converter="{x:Static conv:GroupBoxConverters.ConvertDoublesToThickness}">
 												<Binding Source="{StaticResource GbBorderMargin}" />
 												<Binding Converter="{x:Static conv:GroupBoxConverters.BoundsToHeaderHeightDividedByTwo}"
-														 Path="#GBHeaderText.Bounds" />
+												         Path="#GBHeaderText.Bounds" />
 												<Binding Source="{StaticResource GbBorderMargin}" />
 												<Binding Source="{StaticResource GbBorderMargin}" />
 											</MultiBinding>
 										</Border.Margin>
 
 										<ContentPresenter Name="PART_ContentPresenter"
-														  Content="{TemplateBinding Content}"
-														  RenderOptions.EdgeMode="Antialias" />
+										                  Content="{TemplateBinding Content}"
+										                  RenderOptions.EdgeMode="Antialias" />
 									</Border>
 								</Grid>
 							</ControlTemplate>

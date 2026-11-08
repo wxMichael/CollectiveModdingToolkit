@@ -1,0 +1,84 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<!--
+	Text defaults plus semantic classes: size (Small/Smaller/Smallest/Readable) and
+	color (Neutral/Neutral2/Good/Caution/Warning/Bad/Blue/Purple).
+	Written once and applied to every text-bearing element type.
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<Style Selector="TextBlock:not(#GBHeaderText)">
+		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize" Value="{StaticResource FontSizeBase}" />
+		<Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+	</Style>
+
+	<Style Selector="Label#GBHeaderText">
+		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize" Value="{StaticResource Smaller}" />
+	</Style>
+	<Style Selector="TextBlock#GBHeaderText">
+		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
+		<Setter Property="FontSize" Value="{StaticResource Smaller}" />
+	</Style>
+
+	<Style Selector=":is(TextElement), TextBlock:not(#GBHeaderText), Span, Run">
+		<Style Selector="^.Readable">
+			<Setter Property="(TextElement.FontFamily)" Value="{StaticResource Readable}" />
+			<Setter Property="(TextElement.FontSize)" Value="{StaticResource Small}" />
+		</Style>
+		<Style Selector="^.Small">
+			<Setter Property="(TextElement.FontSize)" Value="{StaticResource Small}" />
+		</Style>
+		<Style Selector="^.Smaller">
+			<Setter Property="(TextElement.FontSize)" Value="{StaticResource Smaller}" />
+		</Style>
+		<Style Selector="^.Smallest">
+			<Setter Property="(TextElement.FontSize)" Value="{StaticResource Smallest}" />
+		</Style>
+
+		<Style Selector="^.Neutral">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource NeutralBrush}" />
+		</Style>
+		<Style Selector="^.Neutral2">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource Neutral2Brush}" />
+		</Style>
+		<Style Selector="^.Good">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource GoodBrush}" />
+		</Style>
+		<Style Selector="^.Caution">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource CautionBrush}" />
+		</Style>
+		<Style Selector="^.Warning">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource WarningBrush}" />
+		</Style>
+		<Style Selector="^.Bad">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource BadBrush}" />
+		</Style>
+		<Style Selector="^.Blue">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource BlueBrush}" />
+		</Style>
+		<Style Selector="^.Purple">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource PurpleBrush}" />
+		</Style>
+	</Style>
+</Styles>

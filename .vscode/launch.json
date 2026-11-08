@@ -1,0 +1,13 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "C#: CollectiveModdingToolkit [CollectiveModdingToolkit]",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "C:\\Users\\Michael\\source\\repos\\CollectiveModdingToolkit\\CollectiveModdingToolkit\\CollectiveModdingToolkit.csproj",
+			"launchProfileName": "CollectiveModdingToolkit",
+			"launchConfigurationId": "CollectiveModdingToolkit"
+		}
+	]
+}

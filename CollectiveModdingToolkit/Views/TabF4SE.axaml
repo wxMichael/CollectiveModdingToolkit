@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,139 +19,171 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 xmlns:conv="using:CollectiveModdingToolkit.Converters"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabF4SE"
-			 x:DataType="vm:MainWindowViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:b="using:CollectiveModdingToolkit.Behaviors"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabF4SE"
+             x:DataType="vm:F4SEViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:F4SEViewModel />
 	</Design.DataContext>
-
-	<UserControl.Resources>
-		<conv:F4SEEmojiConverter x:Key="F4SEEmojiConverter" />
-	</UserControl.Resources>
 
 	<UserControl.Styles>
 		<Style Selector="DataGridCell TextBlock">
 			<Setter Property="FontFamily"
-					Value="{StaticResource Readable}" />
+			        Value="{StaticResource Readable}" />
 			<Setter Property="FontSize"
-					Value="{StaticResource Small}" />
+			        Value="{StaticResource Small}" />
 		</Style>
 	</UserControl.Styles>
 
 	<DockPanel>
+		<TextBlock DockPanel.Dock="Top"
+		           Classes="Readable Caution"
+		           TextWrapping="Wrap"
+		           Margin="5"
+		           Text="{Binding Game.F4SEMessage}"
+		           IsVisible="{Binding Game.F4SEMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
 		<StackPanel DockPanel.Dock="Right"
-					Orientation="Vertical"
-					Margin="10,0,0,0">
+		            Orientation="Vertical"
+		            Margin="10,0,0,0">
 			<TextBlock HorizontalAlignment="Center"
-					   Text="F4SE DLLs" />
+			           Text="F4SE DLLs" />
 			<TextBlock Classes="Readable"
-					   TextWrapping="Wrap"
-					   Width="180">
-				This checks all DLLs in <Span Classes="Neutral2">Data/F4SE/Plugins/</Span> for version-specific code to determine OG/NG support.<LineBreak />
+			           TextWrapping="Wrap"
+			           Width="180">
+				This checks all DLLs in <Span Classes="Neutral2">Data/F4SE/Plugins/</Span> for the versions of the game they support: Old-Gen, Next-Gen and Anniversary.
+				<LineBreak />
 				<LineBreak />
 				<Span Classes="Emoji Good">✔</Span> Version is supported.<LineBreak />
 				<LineBreak />
+				<Span Classes="Emoji Blue">✱</Span> Works with any version of that edition: it uses Address Library or signatures and doesn't depend on game structures.
+				<LineBreak />
+				<LineBreak />
+				<Span Classes="Emoji Caution">⚠️</Span> Supports that edition, but not the version your game is running.
+				<LineBreak />
+				<LineBreak />
 				<Span Classes="Emoji Bad">❌</Span> Version not supported.<LineBreak />
 				<LineBreak />
-				<Span Classes="Emoji Neutral">❔</Span> Not an F4SE DLL. May still be loaded by other DLLs.<LineBreak />
-				<LineBreak />
-				<Span Classes="Emoji Caution">⚠️</Span> Consult mod page to verify version support if you see this icon.
-				Some DLLs detected as OG+NG only actually support both enough to tell users if they have the wrong DLL.
+				<Span Classes="Emoji Neutral">❓</Span> Not an F4SE plugin (or unreadable). May still be loaded by other DLLs.
 			</TextBlock>
 		</StackPanel>
 		<DataGrid Name="F4SEList"
-				  DockPanel.Dock="Right"
-				  ItemsSource="{Binding Game.Dlls}"
-				  AutoGenerateColumns="False"
-				  IsReadOnly="True"
-				  GridLinesVisibility="All"
-				  BorderThickness="1"
-				  CanUserResizeColumns="False"
-				  CanUserSortColumns="True"
-				  BorderBrush="Gray"
-				  SelectionMode="Single"
-				  SelectionChanged="DataGrid_SelectionChanged"
-				  HorizontalScrollBarVisibility="Disabled">
+		          DockPanel.Dock="Right"
+		          ItemsSource="{Binding Game.Dlls}"
+		          RowHeight="24"
+		          AutoGenerateColumns="False"
+		          IsReadOnly="True"
+		          GridLinesVisibility="All"
+		          BorderThickness="1"
+		          CanUserResizeColumns="False"
+		          CanUserSortColumns="True"
+		          BorderBrush="{DynamicResource StrokeMidBrush}"
+		          SelectionMode="Single"
+		          b:NoSelection.IsEnabled="True"
+		          HorizontalScrollBarVisibility="Disabled">
 
 			<DataGrid.Columns>
 
 				<DataGridTemplateColumn Header="OG"
-										Width="Auto">
+				                        Width="Auto"
+				                        CanUserSort="True"
+				                        SortMemberPath="OGSort">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<TextBlock VerticalAlignment="Center"
-									   HorizontalAlignment="Center"
-									   FontFamily="{StaticResource icomoon}"
-									   Classes.Good="{Binding SupportsOG}"
-									   Classes.Bad="{Binding !SupportsOG}"
-									   Classes.Caution="{Binding SupportsOGNGUnverified}">
-								<TextBlock.Text>
-									<MultiBinding Converter="{StaticResource F4SEEmojiConverter}">
-										<Binding Path="SupportsOG" />
-										<Binding Path="SupportsOGNGUnverified" />
-									</MultiBinding>
-								</TextBlock.Text>
-							</TextBlock>
+							           HorizontalAlignment="Center"
+							           FontFamily="{StaticResource Icomoon}"
+							           Text="{Binding OGText}"
+							           ctrl:Status.Level="{Binding OGLevel}" />
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
 
 				<DataGridTemplateColumn Header="NG"
-										Width="Auto">
+				                        Width="Auto"
+				                        CanUserSort="True"
+				                        SortMemberPath="NGSort">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<TextBlock VerticalAlignment="Center"
-									   HorizontalAlignment="Center"
-									   FontFamily="{StaticResource icomoon}"
-									   Classes.Good="{Binding SupportsNG}"
-									   Classes.Bad="{Binding !SupportsNG}"
-									   Classes.Caution="{Binding SupportsOGNGUnverified}">
-								<TextBlock.Text>
-									<MultiBinding Converter="{StaticResource F4SEEmojiConverter}">
-										<Binding Path="SupportsNG" />
-										<Binding Path="SupportsOGNGUnverified" />
-									</MultiBinding>
-								</TextBlock.Text>
-							</TextBlock>
+							           HorizontalAlignment="Center"
+							           FontFamily="{StaticResource Icomoon}"
+							           Text="{Binding NGText}"
+							           ctrl:Status.Level="{Binding NGLevel}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header="AE"
+				                        Width="Auto"
+				                        CanUserSort="True"
+				                        SortMemberPath="AESort">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock VerticalAlignment="Center"
+							           HorizontalAlignment="Center"
+							           FontFamily="{StaticResource Icomoon}"
+							           Text="{Binding AEText}"
+							           ctrl:Status.Level="{Binding AELevel}" />
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
 
 				<DataGridTemplateColumn Header="Your Game"
-										Width="Auto">
+				                        Width="Auto"
+				                        CanUserSort="True"
+				                        SortMemberPath="CurrentSort">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<Grid Classes="HighlightBG">
 								<TextBlock VerticalAlignment="Center"
-										   HorizontalAlignment="Center"
-										   FontFamily="{StaticResource icomoon}"
-										   Classes.Good="{Binding SupportsCurrent}"
-										   Classes.Bad="{Binding !SupportsCurrent}"
-										   Classes.Caution="{Binding SupportsOGNGUnverified}">
-									<TextBlock.Text>
-										<MultiBinding Converter="{StaticResource F4SEEmojiConverter}">
-											<Binding Path="SupportsCurrent" />
-											<Binding Path="SupportsOGNGUnverified" />
-										</MultiBinding>
-									</TextBlock.Text>
-								</TextBlock>
+								           HorizontalAlignment="Center"
+								           FontFamily="{StaticResource Icomoon}"
+								           Text="{Binding CurrentText}"
+								           ctrl:Status.Level="{Binding CurrentLevel}" />
 							</Grid>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
 
-				<DataGridTextColumn Header="Name"
-									Width="*"
-									Binding="{Binding Name}" />
+				<DataGridTemplateColumn Header="Name"
+				                        Width="*"
+				                        CanUserSort="True"
+				                        SortMemberPath="Name">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Margin="{DynamicResource DataGridCellTextBlockDefaultMargin}"
+							           VerticalAlignment="Center"
+							           TextWrapping="Wrap"
+							           Text="{Binding Name}"
+							           ToolTip.Tip="{Binding OriginText}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Header=""
+				                        Width="Auto"
+				                        CanUserSort="False">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<Button Content="&#x1F4C2;"
+							        Padding="6,0"
+							        Margin="2"
+							        VerticalAlignment="Center"
+							        ToolTip.Tip="Show in Explorer"
+							        Command="{Binding $parent[DataGrid].((vm:F4SEViewModel)DataContext).RevealFileCommand}"
+							        CommandParameter="{Binding}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 			</DataGrid.Columns>
 		</DataGrid>
 	</DockPanel>

@@ -1,7 +1,7 @@
 <!--
 
 Collective Modding Toolkit
-Copyright (C) 2024, 2025  wxMichael
+Copyright (C) 2024, 2025, 2026  wxMichael
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,114 +19,112 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 -->
 
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
-			 xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
-			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:Class="CollectiveModdingToolkit.Views.TabTools"
-			 x:DataType="vm:MainWindowViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabTools"
+             x:DataType="vm:ToolsViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:ToolsViewModel />
 	</Design.DataContext>
 
 	<UserControl.Styles>
 		<Style Selector="ctrl|GroupBox.CenteredHeader /template/ TextBlock#GBHeaderText">
 			<Setter Property="Grid.ColumnSpan"
-					Value="2" />
+			        Value="2" />
 			<Setter Property="HorizontalAlignment"
-					Value="Center" />
+			        Value="Center" />
 		</Style>
 
 		<Style Selector="StackPanel.ToolBox">
 			<Setter Property="Spacing"
-					Value="5" />
+			        Value="5" />
 		</Style>
 
 		<Style Selector="StackPanel.ToolBox, Grid.ToolBox">
 			<Setter Property="Margin"
-					Value="5" />
+			        Value="5" />
 			<Style Selector="^ Button">
 				<Setter Property="HorizontalAlignment"
-						Value="Stretch" />
+				        Value="Stretch" />
 				<Setter Property="Margin"
-						Value="0,5,0,0" />
+				        Value="0,5,0,0" />
 				<Setter Property="FontSize"
-						Value="{StaticResource Smaller}" />
+				        Value="{StaticResource Smaller}" />
 
 				<Style Selector="^ > AccessText">
 					<Setter Property="TextWrapping"
-							Value="Wrap" />
+					        Value="Wrap" />
 					<Setter Property="TextAlignment"
-							Value="Center" />
+					        Value="Center" />
 				</Style>
 			</Style>
 
 			<Style Selector="^ Image.Info">
 				<Setter Property="MaxWidth"
-						Value="16" />
+				        Value="16" />
 				<Setter Property="MaxHeight"
-						Value="16" />
+				        Value="16" />
 				<Setter Property="HorizontalAlignment"
-						Value="Center" />
+				        Value="Center" />
 				<Setter Property="VerticalAlignment"
-						Value="Center" />
+				        Value="Center" />
 				<Setter Property="Margin"
-						Value="5,5,0,0" />
+				        Value="5,5,0,0" />
 				<Setter Property="ToolTip.Placement"
-						Value="Right" />
+				        Value="Right" />
 			</Style>
 		</Style>
 
 		<Style Selector="ctrl|GroupBox > StackPanel">
 			<Setter Property="Margin"
-					Value="5" />
+			        Value="5" />
 			<Setter Property="Spacing"
-					Value="5" />
+			        Value="5" />
 		</Style>
 	</UserControl.Styles>
 
 	<UniformGrid Rows="1"
-				 Columns="3">
+	             Columns="3">
 
 		<!-- Toolkit Utilities -->
 		<ctrl:GroupBox Classes="CenteredHeader"
-					   Grid.Row="1"
-					   Grid.Column="0"
-					   Header="Toolkit Utilities">
+		               Header="Toolkit Utilities">
 			<StackPanel Classes="ToolBox">
 
-				<Button Content="Downgrade Manager"
-						IsEnabled="False"
-						Click="Button_Click_OpenDowngradeManager" />
+				<Button Content="Tool 1"
+				        IsEnabled="False" />
+				<!-- 		Click="Button_Click_OpenDowngradeManager" /> -->
 
-				<Button Content="Archive Patcher"
-						Click="Button_Click_OpenArchivePatcher" />
+				<Button Content="Tool 2"
+				        IsEnabled="False" />
+				<!-- 		Click="Button_Click_OpenArchivePatcher" /> -->
 
 			</StackPanel>
 		</ctrl:GroupBox>
 
 		<!-- Other CM Authors' Tools -->
 		<ctrl:GroupBox Classes="CenteredHeader"
-					   Grid.Row="1"
-					   Grid.Column="1"
-					   Header="Other CM Authors' Tools">
+		               Header="Other CM Authors' Tools">
 			<Grid Classes="ToolBox"
-				  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
-				  ColumnDefinitions="*,Auto">
+			      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+			      ColumnDefinitions="*,Auto">
 
 				<Button Content="Bethini Pie"
-						Grid.Row="0"
-						Grid.Column="0"
-						Click="Button_Click_OpenBethini" />
+				        Grid.Row="0"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/site/mods/631" />
 				<Image Classes="Info"
-					   Grid.Row="0"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="0"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -139,17 +137,19 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="CLASSIC Crash Log Scanner"
-						Grid.Row="1"
-						Grid.Column="0"
-						Click="Button_Click_OpenCLASSIC" />
+				        Grid.Row="1"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/56255" />
 				<Image Classes="Info"
-					   Grid.Row="1"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="1"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
-							Scans Buffout crash logs for key indicators of crashes. You can also post crash logs to the CM Discord for assistance.<LineBreak />
+							Scans Buffout crash logs for key indicators of crashes. You can also post crash logs to the CM Discord for assistance.
+							<LineBreak />
 							<LineBreak />
 							<Bold>Authors:</Bold> Poet &amp; evildarkarchon<LineBreak />
 							<Bold>Channel:</Bold> #🚨-fo4-crash-logs
@@ -158,13 +158,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="Vault-Tec Enhanced&#x0d;&#x0a;FaceGen System (VEFS)"
-						Grid.Row="2"
-						Grid.Column="0"
-						Click="Button_Click_OpenVEFS" />
+				        Grid.Row="2"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/86374" />
 				<Image Classes="Info"
-					   Grid.Row="2"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="2"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -177,17 +178,19 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="PJM's Precombine/Previs Patching Scripts"
-						Grid.Row="3"
-						Grid.Column="0"
-						Click="Button_Click_OpenPJM" />
+				        Grid.Row="3"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/69978" />
 				<Image Classes="Info"
-					   Grid.Row="3"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="3"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
-							Scripts to find precombine/previs (flickering/occlusion) errors in your mod list, and optionally generate a patch to fix those problems.<LineBreak />
+							Scripts to find precombine/previs (flickering/occlusion) errors in your mod list, and optionally generate a patch to fix those problems.
+							<LineBreak />
 							<LineBreak />
 							<Bold>Author:</Bold> PJM<LineBreak />
 							<Bold>Channel:</Bold> N/A
@@ -196,13 +199,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="DDS Texture Scanner"
-						Grid.Row="4"
-						Grid.Column="0"
-						Click="Button_Click_OpenDDSScanner" />
+				        Grid.Row="4"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/71588" />
 				<Image Classes="Info"
-					   Grid.Row="4"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="4"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -219,21 +223,20 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Other Useful Tools -->
 		<ctrl:GroupBox Classes="CenteredHeader"
-					   Grid.Row="1"
-					   Grid.Column="2"
-					   Header="Other Useful Tools">
+		               Header="Other Useful Tools">
 			<Grid Classes="ToolBox"
-				  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-				  ColumnDefinitions="*,Auto">
+			      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+			      ColumnDefinitions="*,Auto">
 
 				<Button Content="xEdit / FO4Edit"
-						Grid.Row="0"
-						Grid.Column="0"
-						Click="Button_Click_OpenxEdit" />
+				        Grid.Row="0"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://github.com/TES5Edit/TES5Edit#xedit" />
 				<Image Classes="Info"
-					   Grid.Row="0"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="0"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -246,13 +249,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="Creation Kit Platform&#x0d;&#x0a;Extended (CKPE)"
-						Grid.Row="1"
-						Grid.Column="0"
-						Click="Button_Click_OpenCKPE" />
+				        Grid.Row="1"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/51165" />
 				<Image Classes="Info"
-					   Grid.Row="1"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="1"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -263,32 +267,15 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					</ToolTip.Tip>
 				</Image>
 
-				<Button Content="Unpackrr"
-						Grid.Row="2"
-						Grid.Column="0"
-						Click="Button_Click_OpenUnpackrr" />
-				<Image Classes="Info"
-					   Grid.Row="2"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
-
-					<ToolTip.Tip>
-						<TextBlock>
-							Batch unpacks small BA2 files to stay below the limit.<LineBreak />
-							<LineBreak />
-							<Bold>Author:</Bold> KazumaKuun
-						</TextBlock>
-					</ToolTip.Tip>
-				</Image>
-
 				<Button Content="Cathedral Assets&#x0d;&#x0a;Optimizer (CAO)"
-						Grid.Row="3"
-						Grid.Column="0"
-						Click="Button_Click_OpenCAO" />
+				        Grid.Row="3"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/skyrimspecialedition/mods/23316" />
 				<Image Classes="Info"
-					   Grid.Row="3"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="3"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -300,13 +287,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="BA2 Merging Automation&#x0d;&#x0a;Tool (BMAT)"
-						Grid.Row="4"
-						Grid.Column="0"
-						Click="Button_Click_OpenBMAT" />
+				        Grid.Row="4"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.nexusmods.com/fallout4/mods/89306" />
 				<Image Classes="Info"
-					   Grid.Row="4"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="4"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -318,13 +306,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="IceStorm's Texture Tools"
-						Grid.Row="5"
-						Grid.Column="0"
-						Click="Button_Click_OpenIceStormTT" />
+				        Grid.Row="5"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://storage.icestormng-mods.de/s/QG43aExydefeGXy" />
 				<Image Classes="Info"
-					   Grid.Row="5"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="5"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
@@ -336,17 +325,19 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</Image>
 
 				<Button Content="CapFrameX"
-						Grid.Row="6"
-						Grid.Column="0"
-						Click="Button_Click_OpenCapFrameX" />
+				        Grid.Row="6"
+				        Grid.Column="0"
+				        Command="{Binding OpenUrlCommand}"
+				        CommandParameter="https://www.capframex.com/" />
 				<Image Classes="Info"
-					   Grid.Row="6"
-					   Grid.Column="1"
-					   Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
+				       Grid.Row="6"
+				       Grid.Column="1"
+				       Source="avares://CollectiveModdingToolkit/Assets/Images/info-32.png">
 
 					<ToolTip.Tip>
 						<TextBlock>
-							Benchmarking tool - Record FPS, frametime, and sensors; analyse and plot the results.<LineBreak />
+							Benchmarking tool - Record FPS, frametime, and sensors; analyse and plot the results.
+							<LineBreak />
 							<LineBreak />
 							<Bold>Authors:</Bold> CapframeX Team
 						</TextBlock>

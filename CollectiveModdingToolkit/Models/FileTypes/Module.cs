@@ -1,50 +1,31 @@
 ﻿/*
- * 
+ *
  * Collective Modding Toolkit
- * Copyright (C) 2024, 2025  wxMichael
- * 
+ * Copyright (C) 2024, 2025, 2026  wxMichael
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
 
 public class Module : IFile
 {
-	public string Name { get; private set; }
-	public string Ext { get; private set; }
-	public string PathFull { get; private set; }
-	public string PathRelative { get; private set; }
-
-	public bool WasRead => IsReadable != null;
-	[MemberNotNullWhen(true, nameof(IsLight), nameof(HEDRVersion))]
-	public bool? IsReadable { get; private set; }
-	public bool? IsLight { get; private set; }
-	public double? HEDRVersion { get; private set; }
-
-	public int Priority { get; private set; }
-	//[MemberNotNullWhen(true, nameof(Mod))]
-	public bool IsManaged => Mod != null;
-	public string? Mod { get; private set; }
-
-	public bool? IsEnabled { get; set; }
-
 	// TODO: check if counted against limits (+ba2) when !IsReadable
 	internal Module(
 		string name,
@@ -57,21 +38,56 @@ public class Module : IFile
 		Name = name;
 		PathFull = pathFull;
 		PathRelative = pathRelative ?? name;
-		Ext = ext ?? Path.GetExtension(name).ToLower();
+		Ext = ext ?? Path.GetExtension(name).ToLowerInvariant();
 		Priority = priority == 0 ? 0 : priority + 1;
 		Mod = modName;
 	}
 
+	public bool? IsLight { get; private set; }
+	public double HEDRVersion { get; private set; }
+	public string OriginText => Origin?.DisplayName ?? "Unknown";
+
+	/// <summary>
+	///     The real file on disk: the manager's source file for mod files (correct with or without MO2's VFS), otherwise
+	///     the game-folder path. Use for reading and editing.
+	/// </summary>
+	private string RealPath => Origin?.SourcePath ?? PathFull;
+
+	public bool? IsEnabled { get; set; }
+	public string Name { get; }
+	public string Ext { get; }
+	public string PathFull { get; }
+	public string PathRelative { get; }
+
+	public bool WasRead => IsReadable != null;
+
+	[MemberNotNullWhen(true, nameof(IsLight), nameof(HEDRVersion))]
+	public bool? IsReadable { get; private set; }
+
+	public int Priority { get; private set; }
+
+	//[MemberNotNullWhen(true, nameof(Mod))]
+	public bool IsManaged => Mod != null;
+	public string? Mod { get; private set; }
+
+	public FileOrigin? Origin { get; private set; }
+
+	internal void SetOrigin(FileOrigin? origin)
+	{
+		Origin = origin;
+		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
+		Priority = origin?.Priority ?? 0;
+	}
+
 	internal void ReadHeader()
 	{
-		if (WasRead)
-			throw new NotSupportedException("Module read twice");
+		if (WasRead) throw new NotSupportedException("Module read twice");
 
-		byte[] header = new byte[34];
+		var header = new byte[34];
 		int bytesRead;
 		try
 		{
-			using FileStream file = File.OpenRead(PathFull);
+			using var file = File.OpenRead(RealPath);
 			bytesRead = file.Read(header, 0, header.Length);
 		}
 		catch (IOException)
@@ -80,11 +96,13 @@ public class Module : IFile
 			return;
 		}
 
-		if (bytesRead != header.Length || !header.AsSpan(0, 4).SequenceEqual(Magic.TES4) || !header.AsSpan(24, 4).SequenceEqual(Magic.HEDR))
+		if (bytesRead != header.Length || !header.AsSpan(0, 4).SequenceEqual(Magic.TES4) ||
+		    !header.AsSpan(24, 4).SequenceEqual(Magic.HEDR))
 		{
 			IsReadable = false;
 			return;
 		}
+
 		HEDRVersion = Math.Round(BitConverter.ToSingle(header, 30), 2);
 		//if (HEDRVersion != 1 && HEDRVersion != 0.95)
 		//	IsUnknown = true;
@@ -95,9 +113,10 @@ public class Module : IFile
 		}
 		else
 		{
-			int flags = BitConverter.ToInt32(header, 8);
+			var flags = BitConverter.ToInt32(header, 8);
 			IsLight = (flags & Magic.Light) != 0;
 		}
+
 		IsReadable = true;
 	}
 }

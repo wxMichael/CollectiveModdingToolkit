@@ -1,21 +1,21 @@
-/* 
- * 
+/*
+ *
  * https://github.com/BinToss/GroupBox.Avalonia
- * 
+ *
  * MIT License
- * 
+ *
  * Copyright (c) 2023 Noah Sherwin
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,46 +23,45 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
-*/
+ *
+ */
 
-using Avalonia;
-using Avalonia.Data.Converters;
-using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
+using Avalonia.Data.Converters;
+using Avalonia.Media;
 
 namespace CollectiveModdingToolkit.Converters;
 
 public static class GroupBoxConverters
 {
 	public static FuncMultiValueConverter<Rect?, CombinedGeometry> ConvertBoundsToOuterBorder { get; } =
-	new(rects =>
-	{
-		List<Rect> arr = rects.Cast<Rect>().ToList() ?? throw new NullReferenceException();
-		return arr.Count < 3
-			? throw new ArgumentOutOfRangeException(nameof(rects), "Amount of given Bounds was less than 3")
-			: new CombinedGeometry(
-				GeometryCombineMode.Exclude,
-				new RectangleGeometry(arr[0]),
-				new RectangleGeometry(arr[1]),
-				new TranslateTransform(-arr[2].Left, -arr[2].Top)
-			);
-	});
+		new(rects =>
+		{
+			List<Rect> arr = [.. rects.Cast<Rect>()];
+			return arr.Count < 3
+				? throw new ArgumentOutOfRangeException(nameof(rects), "Amount of given Bounds was less than 3")
+				: new CombinedGeometry(
+					GeometryCombineMode.Exclude,
+					new RectangleGeometry(arr[0]),
+					new RectangleGeometry(arr[1]),
+					new TranslateTransform(-arr[2].Left, -arr[2].Top)
+				);
+		});
 
 	/// <summary>
-	/// Disguise a Thickness (e.g. Margin) as a Rect. The Rect's Left, Right, Top, and Bottom are equal to the Thickness's properties.
+	///     Disguise a Thickness (e.g. Margin) as a Rect. The Rect's Left, Right, Top, and Bottom are equal to the Thickness's
+	///     properties.
 	/// </summary>
 	public static FuncValueConverter<Thickness?, Rect> ThicknessRectConverter { get; } =
-	new(thickness =>
-	{
-		return thickness is Thickness thick
+		new(thickness => thickness is { } thick
 			? new Rect(thick.Left, thick.Top, thick.Right - thick.Left, thick.Top - thick.Bottom)
-			: throw new InvalidCastException();
-	});
-	public static FuncValueConverter<OperatingSystem?, CornerRadius> OsBorderCornerRadius { get; } = new((OperatingSystem? osVersion) =>
-		new(osVersion?.Platform switch
+			: throw new InvalidCastException());
+
+	public static FuncValueConverter<OperatingSystem?, CornerRadius> OsBorderCornerRadius { get; } = new(osVersion =>
+		new CornerRadius(osVersion?.Platform switch
 		{
 			PlatformID.Win32NT => osVersion.Version.Major switch
 			{
@@ -85,28 +84,28 @@ public static class GroupBoxConverters
 				},
 				_ => 0,
 			},
-			_ => 0
+			_ => 0,
 		}));
 
 	public static FuncMultiValueConverter<object?, Thickness> ConvertDoublesToThickness { get; } = new(src =>
 	{
 		List<double> doubles = [];
-		foreach (object? nd in src)
-		{
+		foreach (var nd in src)
 			if (nd is double d)
 				doubles.Add(d);
 			else
 				throw new InvalidCastException();
-		}
+
 		return doubles.Count switch
 		{
 			1 => new Thickness(doubles[0]),
 			2 => new Thickness(doubles[0], doubles[1]),
 			4 => new Thickness(doubles[0], doubles[1], doubles[2], doubles[3]),
-			_ => throw new IndexOutOfRangeException("Source data must be doubles. Thickness' constructors only allow for 1, 2, or 4 arguments"),
+			_ => throw new ArgumentOutOfRangeException(nameof(src), doubles.Count,
+				"Thickness constructors only allow for 1, 2, or 4 arguments"),
 		};
 	});
 
 	public static FuncValueConverter<Rect?, double> BoundsToHeaderHeightDividedByTwo { get; } = new(rect =>
-	rect.HasValue ? rect.Value.Height / 2 : throw new InvalidCastException());
+		rect.HasValue ? rect.Value.Height / 2 : throw new InvalidCastException());
 }

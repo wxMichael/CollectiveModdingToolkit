@@ -1,0 +1,62 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<!-- Semantic brushes: what views and styles should use. Each follows a Color in Colors.axaml, so changing a Color at runtime recolors the UI. -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!-- Surfaces -->
+	<SolidColorBrush x:Key="BgSunkenBrush" Color="{DynamicResource Blackish}" />
+	<SolidColorBrush x:Key="BgBrush" Color="{DynamicResource Grey0}" />
+	<SolidColorBrush x:Key="BgRaisedBrush" Color="{DynamicResource Grey1}" />
+	<SolidColorBrush x:Key="BgHighBrush" Color="{DynamicResource Grey2}" />
+	<SolidColorBrush x:Key="BgTooltipBrush" Color="{DynamicResource Grey2}" />
+	<SolidColorBrush x:Key="HighlightBrush" Color="#16FFFFFF" />
+
+	<!-- Strokes -->
+	<SolidColorBrush x:Key="StrokeSubtleBrush" Color="{DynamicResource Grey2}" />
+	<SolidColorBrush x:Key="StrokeBrush" Color="{DynamicResource Grey3}" />
+	<SolidColorBrush x:Key="StrokeMidBrush" Color="#808080" />
+	<SolidColorBrush x:Key="StrokeBrightBrush" Color="#BBBBBB" />
+
+	<!-- Text -->
+	<SolidColorBrush x:Key="TextBrush" Color="{DynamicResource Grey11}" />
+	<SolidColorBrush x:Key="TextFaintBrush" Color="DimGray" />
+	<SolidColorBrush x:Key="NeutralBrush" Color="{DynamicResource NeutralColor}" />
+	<SolidColorBrush x:Key="Neutral2Brush" Color="{DynamicResource Neutral2Color}" />
+
+	<!-- Status -->
+	<SolidColorBrush x:Key="GoodBrush" Color="{DynamicResource GoodColor}" />
+	<SolidColorBrush x:Key="BadBrush" Color="{DynamicResource BadColor}" />
+	<SolidColorBrush x:Key="CautionBrush" Color="{DynamicResource CautionColor}" />
+	<SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}" />
+	<SolidColorBrush x:Key="BlueBrush" Color="{DynamicResource BlueColor}" />
+	<SolidColorBrush x:Key="PurpleBrush" Color="{DynamicResource PurpleColor}" />
+
+	<!-- Accent (per-game, see ThemeService) -->
+	<SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+	<SolidColorBrush x:Key="AccentBrightBrush" Color="{DynamicResource AccentBrightColor}" />
+	<SolidColorBrush x:Key="AccentHoverBrush" Color="{DynamicResource AccentHoverColor}" />
+	<SolidColorBrush x:Key="AccentActiveBrush" Color="{DynamicResource AccentActiveColor}" />
+	<SolidColorBrush x:Key="AccentDimBrush" Color="{DynamicResource AccentDimColor}" />
+	<SolidColorBrush x:Key="AccentTintBrush" Color="{DynamicResource AccentTintColor}" />
+	<SolidColorBrush x:Key="OnAccentBrush" Color="{DynamicResource OnAccentColor}" />
+
+</ResourceDictionary>

@@ -1,115 +1,47 @@
 /*
- * 
+ *
  * Collective Modding Toolkit
- * Copyright (C) 2024, 2025  wxMichael
- * 
+ * Copyright (C) 2024, 2025, 2026  wxMichael
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
- * 
+ *
  */
 
-using CollectiveModdingToolkit.Managers;
-using CollectiveModdingToolkit.Models.FileTypes;
-using CollectiveModdingToolkit.Views;
-using CommunityToolkit.Mvvm.ComponentModel;
-using IniParser;
-using IniParser.Model;
-using IniParser.Model.Configuration;
-using IniParser.Parser;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Avalonia.Collections;
+using CollectiveModdingToolkit.Controls;
+using CollectiveModdingToolkit.Managers;
+using CollectiveModdingToolkit.Models.FileTypes;
+using CollectiveModdingToolkit.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using IniParser;
+using IniParser.Exceptions;
+using IniParser.Model;
+using IniParser.Model.Configuration;
+using IniParser.Parser;
+using Microsoft.Win32;
 
 namespace CollectiveModdingToolkit.Models;
 
 public partial class Game : ObservableObject
 {
-	public static Game? Instance { get; private set; }
-	public static IModManager? Manager { get; private set; }
-
-	[ObservableProperty] public partial string GamePath { get; set; } = string.Empty;
-	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
-	[ObservableProperty] public partial string Source { get; set; } = string.Empty;
-
-	public ObservableCollection<DLL> Dlls { get; set; } = [];
-	public ObservableCollection<Binary> Binaries { get; set; } = [];
-
-	public string DataPath { get; private set; } = string.Empty;
-	public string F4SEPath { get; private set; } = string.Empty;
-	public string Language { get; private set; } = "en";
-
-	public SortedSet<string> ArchivesINI { get; } = [];
-	public SortedSet<string> ArchivesEnabled { get; } = [];
-	public SortedSet<string> ArchivesGeneral { get; } = [];
-	public SortedSet<string> ArchivesTexture { get; } = [];
-	public SortedSet<string> ArchivesOG { get; } = [];
-	public SortedSet<string> ArchivesNG { get; } = [];
-	public SortedSet<string> ArchivesUnreadable { get; } = [];
-	public SortedSet<string> ArchivesUnknown { get; } = [];
-
-	public SortedSet<string> ModulesCCC { get; } = [];
-	public SortedSet<string> ModulesEnabled { get; } = [];
-	public SortedSet<string> Modules095 { get; } = [];
-	public SortedSet<string> Modules100 { get; } = [];
-	public SortedSet<string> ModulesFull { get; } = [];
-	public SortedSet<string> ModulesLight { get; } = [];
-	public SortedSet<string> ModulesUnreadable { get; } = [];
-	public SortedSet<string> ModulesUnknown { get; } = [];
-	public SortedSet<string> DllsUnreadable { get; } = [];
-
-	// TODO: remove .DownGrade and just have IsDG?
-	public bool IsOG => GameVersion == Models.GameVersion.DownGrade || GameVersion == Models.GameVersion.OldGen;
-	public bool IsNG => GameVersion == Models.GameVersion.NextGen;
-
-	public int TotalArchives => ArchivesGeneral.Count + ArchivesTexture.Count;
-	public int TotalModules => ModulesFull.Count + ModulesLight.Count;
-
-	public bool ModulesFullWarning => ModulesFull.Count >= MaxModulesFull * 0.95;
-	public bool ModulesFullMaxed => ModulesFull.Count > MaxModulesFull;
-	public bool ModulesLightWarning => ModulesLight.Count >= MaxModulesLight * 0.95;
-	public bool ModulesLightMaxed => ModulesLight.Count > MaxModulesLight;
-	public bool TotalModulesWarning => TotalModules >= TotalModulesMax * 0.95;
-	public bool TotalModulesMaxed => TotalModules > TotalModulesMax;
-
-	public bool HasModulesUnreadable => ModulesUnreadable.Count > 0;
-	public bool HasModulesUnknown => ModulesUnreadable.Count > 0;
-
-	public bool ArchivesGeneralWarning => ArchivesGeneral.Count >= MaxArchivesGeneral * 0.95;
-	public bool ArchivesGeneralMaxed => ArchivesGeneral.Count > MaxArchivesGeneral;
-	public bool ArchivesTextureWarning => ArchivesTexture.Count >= MaxArchivesTexture * 0.95;
-	public bool ArchivesTextureMaxed => ArchivesTexture.Count > MaxArchivesTexture;
-	public bool TotalArchivesWarning => TotalArchives >= TotalArchivesMax * 0.95;
-	public bool TotalArchivesMaxed => TotalArchives > TotalArchivesMax;
-
-	public bool HasArchivesUnreadable => ArchivesUnreadable.Count > 0;
-	public bool HasArchivesUnknown => ArchivesUnreadable.Count > 0;
-
-	public SortedSet<string> BA2Suffixes { get; private set; }
-	private static readonly string[] _default_ba2_suffixes = ["main", "textures", "voices_en"];
-
-	public static int MaxArchivesGeneral { get; } = 256;
-	public static int MaxArchivesTexture { get; } = 255;
-	public static int MaxModulesFull { get; } = 254;
-	public static int MaxModulesLight { get; } = 4096;
-	public static int TotalArchivesMax { get; } = MaxArchivesGeneral + MaxArchivesTexture;
-	public static int TotalModulesMax { get; } = MaxModulesFull + MaxModulesLight;
-
-	internal IniData? Config { get; private set; }
-	internal IniData? Prefs { get; private set; }
+	private static readonly string[] DefaultBA2Suffixes = ["main", "textures", "voices_en"];
 
 	private static readonly IniParserConfiguration IniParserConfig = new()
 	{
@@ -122,7 +54,10 @@ public partial class Game : ObservableObject
 		SkipInvalidLines = true,
 	};
 
-	private static readonly string[] _gameMasters = [
+	private static readonly string[] ModuleExtensions = [".esm", ".esl", ".esp"];
+
+	private static readonly string[] GameMasters =
+	[
 		"Fallout4.esm",
 		"Fallout4_VR.esm",
 		"DLCRobot.esm",
@@ -134,88 +69,191 @@ public partial class Game : ObservableObject
 		"DLCUltraHighResolution.esm",
 	];
 
-	public Game(IModManager manager)
+	public Game(IModManager manager, string name)
 	{
-		Instance = this;
 		Manager = manager;
+		Name = name;
 
-		BA2Suffixes = [.. _default_ba2_suffixes]; // TODO: Remove
-		string? gamePath = FindGamePath(manager);
+		BA2Suffixes = [.. DefaultBA2Suffixes]; // TODO: Remove
+		var gamePath = FindGamePath(manager);
 		if (gamePath == null)
 		{
-			MainWindow.CriticalError(typeof(DirectoryNotFoundException), "Fallout 4 install folder.");
+			ErrorReporter.Current.Critical(typeof(DirectoryNotFoundException), "Fallout 4 install folder.");
 			return;
 		}
+
 		GamePath = gamePath;
 		DataPath = Path.Combine(GamePath, "Data");
 		F4SEPath = Path.Combine(DataPath, "F4SE", "Plugins");
 
 		if (!Directory.Exists(GamePath))
 		{
-			MainWindow.CriticalError(typeof(DirectoryNotFoundException), GamePath);
+			ErrorReporter.Current.Critical(typeof(DirectoryNotFoundException), GamePath);
 			return;
 		}
 
-		if (!Directory.Exists(DataPath))
-		{
-			MainWindow.CriticalError(typeof(DirectoryNotFoundException), DataPath);
-			return;
-		}
-
-		string mainExePath = Path.Combine(GamePath, Binary.mainExeName);
+		var mainExePath = Path.Combine(GamePath, Binary.MainExeName);
 		if (!File.Exists(mainExePath))
 		{
-			MainWindow.CriticalError(typeof(FileNotFoundException), mainExePath);
+			ErrorReporter.Current.Critical(typeof(FileNotFoundException), mainExePath);
 			return;
 		}
 
-		if (!File.Exists(manager.PluginsTxtPath))
+		// From here on, problems are recorded and the app carries on with whatever it can still inspect.
+		var hasData = Directory.Exists(DataPath);
+		if (!hasData)
+			AddProblem(ProblemType.FileNotFound, Severity.Critical,
+				"The game's Data folder was not found, so plugins, archives and F4SE plugins can't be checked.",
+				DataPath, solution: SolutionVerify, solutionType: SolutionType.VerifyFiles);
+
+		if (Directory.Exists(manager.GameIniFolderPath))
+			ReadGameINIs(manager.GameIniFolderPath);
+		else
+			AddProblem(ProblemType.Configuration, Severity.Medium,
+				"The folder with the game's INI files was not found, so archive lists can't be read and archive counts will be inaccurate.",
+				manager.GameIniFolderPath, solution: "Run the Fallout 4 Launcher once to create the INI files.");
+
+		GetBinaryInfo();
+
+		if (hasData)
 		{
-			MainWindow.CriticalError(typeof(FileNotFoundException), manager.PluginsTxtPath);
-			return;
+			GetModuleLists(manager);
+			GetArchiveLists();
+
+			GetModuleInfo();
+			GetArchiveInfo();
+
+			GetDllLists();
+			GetDllInfo();
 		}
 
-		if (!Directory.Exists(manager.GameIniFolderPath))
-		{
-			MainWindow.CriticalError(typeof(DirectoryNotFoundException), manager.GameIniFolderPath);
-			return;
-		}
+		Dlls = [.. DllsWinning.Values.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)];
+		if (!hasData)
+			F4SEMessage = "The game's Data folder was not found.";
+		else if (F4SEMessage == null && Dlls.Count == 0)
+			F4SEMessage = "No DLLs were found in Data/F4SE/Plugins.";
 
-		ReadGameINIs(manager.GameIniFolderPath);
-
-		if (!GetBinaryInfo())
-			return;
-		if (!GetModuleLists(manager))
-			return;
-		GetArchiveLists(manager);
-
-		GetModuleInfo(manager);
-		GetArchiveInfo(manager);
-
-		GetDllLists(manager);
-		GetDllInfo(manager);
-		Dlls = [.. manager.DllsWinning.Values.Where(x => x.IsF4SE)];
+		FindProblems();
+		Log.Info(
+			$"Game: {GameVersion} at {GamePath} via {manager.AppName}; {ModulesEnabled.Count} modules, {ArchivesEnabled.Count} archives, {Dlls.Count} DLLs, {Problems.Count} problems.");
 
 		//GameVersion = string.Empty;
 		//Source = string.Empty;
 	}
+
+	/// <summary>The game chosen at app start (see <c>GameSession.GameName</c>).</summary>
+	public string Name { get; }
+
+	public IModManager Manager { get; }
+
+	[ObservableProperty] public partial string GamePath { get; set; } = string.Empty;
+	[ObservableProperty] public partial string GameVersion { get; set; } = string.Empty;
+	[ObservableProperty] public partial string Source { get; set; } = string.Empty;
+
+	public ObservableCollection<DLL> Dlls { get; set; } = [];
+	public ObservableCollection<Binary> Binaries { get; set; } = [];
+	public ObservableCollection<Binary> BinariesGame { get; set; } = [];
+	public ObservableCollection<Binary> BinariesCK { get; set; } = [];
+
+	/// <summary>Fallout4.exe's version packed the way F4SE packs it, or null if it couldn't be determined.</summary>
+	internal uint? ExeVersion { get; private set; }
+
+	/// <summary>Why the F4SE tab has nothing to show, or null if it has DLLs to list.</summary>
+	public string? F4SEMessage { get; private set; }
+
+	public string DataPath { get; } = string.Empty;
+	public string F4SEPath { get; } = string.Empty;
+	public string Language { get; private set; } = "en";
+
+	public SortedSet<string> ArchivesINI { get; } = [];
+	public SortedSet<string> ArchivesEnabled { get; } = [];
+	public SortedSet<string> ArchivesGeneral { get; } = [];
+	public SortedSet<string> ArchivesTexture { get; } = [];
+	public SortedSet<string> ArchivesOG { get; } = [];
+	public SortedSet<string> ArchivesNG { get; } = [];
+	public SortedSet<string> ArchivesUnreadable { get; } = [];
+	public SortedSet<string> ArchivesUnknown { get; } = [];
+
+	private List<Module> Modules { get; } = [];
+	public Dictionary<string, Module> ModulesWinning { get; } = new(StringComparer.OrdinalIgnoreCase);
+	private List<Archive> Archives { get; } = [];
+	public AvaloniaDictionary<string, Archive> ArchivesWinning { get; } = new();
+
+	// List<DLL> Dlls { get; }
+	public Dictionary<string, DLL> DllsWinning { get; } = new();
+
+	public SortedSet<string> ModulesCCC { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ModulesEnabled { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> Modules095 { get; } = [];
+	public SortedSet<string> Modules100 { get; } = [];
+	public SortedSet<string> ModulesFull { get; } = [];
+	public SortedSet<string> ModulesLight { get; } = [];
+	public SortedSet<string> ModulesUnreadable { get; } = [];
+	public SortedSet<string> ModulesUnknown { get; } = [];
+	public SortedSet<string> DLLsUnreadable { get; } = [];
+
+	// TODO: remove .DownGrade and just have IsDG?
+	public bool IsOG => GameVersion is Models.GameVersion.DownGrade or Models.GameVersion.OldGen;
+	public bool IsNG => GameVersion == Models.GameVersion.NextGen;
+	public bool IsAE => GameVersion == Models.GameVersion.Anniversary;
+
+	public int TotalArchives => ArchivesGeneral.Count + ArchivesTexture.Count;
+	public int TotalModules => ModulesFull.Count + ModulesLight.Count;
+
+	public StatusLevel ModulesFullStatus => Status.ForLimit(ModulesFull.Count, MaxModulesFull);
+	public StatusLevel ModulesLightStatus => Status.ForLimit(ModulesLight.Count, MaxModulesLight);
+	public StatusLevel TotalModulesStatus => Status.ForLimit(TotalModules, TotalModulesMax);
+
+	public bool HasModulesUnreadable => ModulesUnreadable.Count > 0;
+	public bool HasModulesUnknown => ModulesUnknown.Count > 0;
+
+	public StatusLevel ArchivesGeneralStatus => Status.ForLimit(ArchivesGeneral.Count, MaxArchivesGeneral);
+	public StatusLevel ArchivesTextureStatus => Status.ForLimit(ArchivesTexture.Count, MaxArchivesTexture);
+	public StatusLevel TotalArchivesStatus => Status.ForLimit(TotalArchives, TotalArchivesMax);
+
+	public bool HasArchivesUnreadable => ArchivesUnreadable.Count > 0;
+	public bool HasArchivesUnknown => ArchivesUnknown.Count > 0;
+
+	public SortedSet<string> BA2Suffixes { get; private set; }
+
+	/// <summary>
+	///     BA2 limits. 1.11.240 raised them; every earlier version (including older Anniversary releases, which are
+	///     "Obsolete") keeps the original limits.
+	/// </summary>
+	public int MaxArchivesGeneral => IsAE ? 1024 : 256;
+
+	public int MaxArchivesTexture => IsAE ? 1023 : 255;
+	public int TotalArchivesMax => MaxArchivesGeneral + MaxArchivesTexture;
+	public static int MaxModulesFull { get; } = 254;
+	public static int MaxModulesLight { get; } = 4096;
+	public static int TotalModulesMax { get; } = MaxModulesFull + MaxModulesLight;
+
+	private IniData? Config { get; set; }
+	private IniData? Prefs { get; set; }
 
 	// TODO: Detect steam library folders to find game
 	// TODO: Prompt user to choose between all non-manager game install detections or manual entry
 	// TODO: Game source
 	private static string? FindGamePath(IModManager manager) =>
 		manager.GamePath
-		?? GetRegistryInstallPath()
+		?? FindInstallPathFromRegistry();
+
+	internal static string? FindInstallPathFromRegistry() =>
+		GetRegistryInstallPath()
 		?? GetRegistryInstallPathGOG();
 
 	private static string? GetRegistryInstallPath()
 	{
 		try
 		{
-			using RegistryKey? key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Fallout4");
+			using var key =
+				Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Bethesda Softworks\Fallout4");
 			return key?.GetValue("Installed Path")?.ToString();
 		}
-		catch { return null; }
+		catch
+		{
+			return null;
+		}
 		// TODO: Specific exceptions
 	}
 
@@ -223,7 +261,7 @@ public partial class Game : ObservableObject
 	{
 		try
 		{
-			using RegistryKey? key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\GOG.com\Games\1998527297");
+			using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\GOG.com\Games\1998527297");
 			return key?.GetValue("path")?.ToString();
 		}
 		catch (Exception)
@@ -238,220 +276,223 @@ public partial class Game : ObservableObject
 		Config = null;
 		Prefs = null;
 		FileIniDataParser parser = new(new IniDataParser(IniParserConfig));
-		string iniPath = Path.Combine(path, "Fallout4.ini");
-		string iniCustomPath = Path.Combine(path, "Fallout4Custom.ini");
-		string iniPrefsPath = Path.Combine(path, "Fallout4Prefs.ini");
+		var iniPath = Path.Combine(path, "Fallout4.ini");
+		var iniCustomPath = Path.Combine(path, "Fallout4Custom.ini");
+		var iniPrefsPath = Path.Combine(path, "Fallout4Prefs.ini");
+		const string runLauncher = "Run the Fallout 4 Launcher or Bethini Pie to create it.";
 
-		if (File.Exists(iniPath))
+		try
 		{
-			Config = parser.ReadFile(iniPath, Encoding.UTF8);
-			if (File.Exists(iniCustomPath))
+			if (File.Exists(iniPath))
 			{
-				IniData configCustom = parser.ReadFile(iniCustomPath);
-				Config.Merge(configCustom);
-			}
-		}
-		else
-		{
-			MainWindow.CriticalError(typeof(NotImplementedException), "Fallout4.ini Not Present");
-			return;
-		}
+				Config = parser.ReadFile(iniPath, Encoding.UTF8);
+				if (File.Exists(iniCustomPath)) Config.Merge(parser.ReadFile(iniCustomPath));
 
-		if (!File.Exists(iniPrefsPath))
-		{
-			MainWindow.CriticalError(typeof(NotImplementedException), "Fallout4Prefs.ini Not Present");
-			return;
-		}
-		Prefs = parser.ReadFile(iniPrefsPath);
-
-		if (Config == null)
-		{
-			MainWindow.CriticalError(typeof(NotImplementedException), "Config is null");
-			return;
-		}
-
-		if (Prefs == null)
-		{
-			MainWindow.CriticalError(typeof(NotImplementedException), "Prefs is null");
-			return;
-		}
-
-		BA2Suffixes = [.. _default_ba2_suffixes];
-		string? lang = Config["General"]["sLanguage"];
-		// TODO: Test if empty string is valid
-		if (string.IsNullOrEmpty(lang))
-			lang = "en";
-		else
-		{
-			lang = lang.ToLower();
-			if (lang != "en")
-				BA2Suffixes.Add($"voices_{lang}");
-		}
-		Language = lang;
-	}
-
-	private bool GetBinaryInfo()
-	{
-		Binary mainExe;
-
-		Binaries.Clear();
-		foreach (string relativePath in Binary.binariesOG.Keys)
-		{
-			// TODO: Support files from mod managers
-			string fullPath = Path.Combine(GamePath, relativePath);
-			string fileName = relativePath.Contains(Path.DirectorySeparatorChar) ? Path.GetFileName(relativePath) : relativePath;
-			string fileExt = Path.GetExtension(fileName);
-			Binary binary = new(fileName, fileExt, fullPath, relativePath);
-			if (fileName == Binary.mainExeName)
-			{
-				mainExe = binary;
-				GameVersion = binary.GameVersion!;
-				binary.IsGood = GameVersion != Models.GameVersion.Unknown;
-				if (binary.IsGood == false)
-				{
-					// TODO: Handle this gracefully in case of future game updates
-					MainWindow.CriticalError(typeof(NotImplementedException), $"Unknown version:\n{fullPath}");
-					return false;
-				}
+				if (!Config.Sections.ContainsSection("Archive"))
+					AddProblem(ProblemType.Configuration, Severity.Medium,
+						"The [Archive] section is missing from your game INIs. Base game archives can't be detected, so archive counts will be inaccurate.",
+						iniPath, solution: runLauncher);
 			}
 			else
 			{
-				if (binary.GameVersion == Models.GameVersion.NotFound)
-				{
-					if (IsOG)
-					{
-						if (Binary.binariesOG[relativePath] == Binary.NO_FILE)
-							continue;
-					}
-					else if (IsNG && Binary.binariesNG[relativePath] == Binary.NO_FILE)
-						continue;
-				}
-				binary.IsGood = binary.GameVersion == GameVersion;
+				AddProblem(ProblemType.FileNotFound, Severity.Medium,
+					"Fallout4.ini was not found. Base game archives can't be detected, so archive counts will be inaccurate.",
+					iniPath, solution: runLauncher);
 			}
-			Binaries.Add(binary);
+
+			if (File.Exists(iniPrefsPath))
+				Prefs = parser.ReadFile(iniPrefsPath);
+			else
+				AddProblem(ProblemType.FileNotFound, Severity.Low,
+					"Fallout4Prefs.ini was not found.",
+					iniPrefsPath, solution: runLauncher);
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException or ParsingException)
+		{
+			Log.Error($"Unable to read the game INIs in {path}", e);
+			AddProblem(ProblemType.Configuration, Severity.Medium,
+				$"The game's INI files could not be read: {e.Message}",
+				path,
+				solution:
+				"Check that the files aren't open in another program and that you have permission to read them.");
 		}
 
-		return true;
+		BA2Suffixes = [.. DefaultBA2Suffixes];
+		var lang = Config?["General"]["sLanguage"];
+		// TODO: Test if empty string is valid
+		if (string.IsNullOrEmpty(lang))
+		{
+			lang = "en";
+		}
+		else
+		{
+			lang = lang.ToLowerInvariant();
+			if (lang != "en") BA2Suffixes.Add($"voices_{lang}");
+		}
+
+		Language = lang;
 	}
 
-	private bool GetModuleLists(IModManager manager)
+	private void GetBinaryInfo()
+	{
+		Binaries.Clear();
+		BinariesGame.Clear();
+		BinariesCK.Clear();
+		foreach (var relativePath in Binary.BaseFiles.Keys)
+		{
+			var fullPath = Path.Combine(GamePath, relativePath);
+			var fileName = relativePath.Contains(Path.DirectorySeparatorChar)
+				? Path.GetFileName(relativePath)
+				: relativePath;
+			var fileExt = Path.GetExtension(fileName);
+			var origin = Manager.Resolve(fullPath);
+			Binary binary = new(fileName, fileExt, fullPath, relativePath, origin: origin);
+			binary.SetOrigin(origin);
+			if (fileName == Binary.MainExeName)
+			{
+				ExeVersion = F4SERuntime.Pack(binary.Version);
+				GameVersion = binary.GameVersion;
+				// An unknown version isn't fatal: it's reported, and the rest of the checks still run.
+				binary.IsGood = GameVersion != Models.GameVersion.Unknown;
+			}
+			else
+			{
+				if (IsNG || IsAE) binary.ResolveSharedVersion(GameVersion);
+
+				if (binary.GameVersion == Models.GameVersion.NotFound &&
+				    !Binary.IsExpectedFor(relativePath, GameVersion))
+					continue;
+
+				binary.IsGood = binary.GameVersion == GameVersion;
+			}
+
+			Binaries.Add(binary);
+			if (binary.Name.Contains("CreationKit") || binary.Name.Contains("Archive2"))
+				BinariesCK.Add(binary);
+			else
+				BinariesGame.Add(binary);
+		}
+	}
+
+	private void GetModuleLists(IModManager manager)
 	{
 		ModulesEnabled.Clear();
 
-		// TODO: Make case-insensitive
-		foreach (string moduleName in _gameMasters)
-		{
-			string modulePath = Path.Combine(DataPath, moduleName);
-			if (!File.Exists(modulePath))
-				continue;
+		foreach (var moduleName in GameMasters) EnableModule(moduleName);
 
-			Module module = new(moduleName, modulePath);
-			manager.Modules.Add(module);
-			manager.ModulesWinning.TryAdd(moduleName, module);
-			manager.ModulesWinning[moduleName].IsEnabled = true;
-			ModulesEnabled.Add(moduleName);
-		}
-
-		// TODO: check if force enabled or if its possible to disable
+		// Creation Club plugins listed in Fallout4.ccc are always enabled.
 		ModulesCCC.Clear();
-		string cccPath = Path.Combine(GamePath, "Fallout4.ccc");
-		if (!File.Exists(cccPath))
-		{
-			// TODO: Handle gracefully
-			MainWindow.CriticalError(typeof(FileNotFoundException), cccPath);
-			return false;
-		}
-
-		// TODO: Encoding
-		string[] contents = File.ReadAllLines(cccPath, Encoding.UTF8);
-		foreach (string moduleName in contents)
-		{
-			string modulePath = Path.Combine(DataPath, moduleName);
-			if (!File.Exists(modulePath))
-				continue;
-
-			Module module = new(moduleName, modulePath);
-			manager.Modules.Add(module);
-			manager.ModulesWinning.TryAdd(moduleName, module);
-			manager.ModulesWinning[moduleName].IsEnabled = true;
-			ModulesCCC.Add(moduleName);
-		}
-		ModulesEnabled.UnionWith(ModulesCCC);
-
-		// TODO: Encoding
-		contents = File.ReadAllLines(manager.PluginsTxtPath, Encoding.UTF8);
-		foreach (string line in contents)
-		{
-			if (!line.StartsWith('*'))
-				continue;
-			string moduleName = line[1..];
-			string modulePath = Path.Combine(DataPath, moduleName);
-			Module? module;
-			if (File.Exists(modulePath))
+		var cccPath = Path.Combine(GamePath, "Fallout4.ccc");
+		if (File.Exists(cccPath))
+			// TODO: Encoding
+			foreach (var line in File.ReadAllLines(cccPath, Encoding.UTF8))
 			{
-				module = new(moduleName, modulePath);
-				manager.Modules.Add(module);
-				manager.ModulesWinning.TryAdd(moduleName, module);
+				var moduleName = line.Trim();
+				if (moduleName.Length > 0 && EnableModule(moduleName)) ModulesCCC.Add(moduleName);
 			}
-			if (manager.ModulesWinning.TryGetValue(moduleName, out module))
-			{
-				module.IsEnabled = true;
-				ModulesEnabled.Add(moduleName);
-			}
-			// TODO: Store missing files
-			// TODO: Store disabled files
-			// TODO: Check first line comment
+		else
+			AddProblem(ProblemType.FileNotFound, Severity.Medium,
+				"Fallout4.ccc was not found. It lists the Creation Club plugins that are always enabled, so they can't be counted.",
+				cccPath, solution: SolutionVerify, solutionType: SolutionType.VerifyFiles);
+
+		if (File.Exists(manager.PluginsTxtPath))
+		{
+			// TODO: Encoding
+			foreach (var line in File.ReadAllLines(manager.PluginsTxtPath, Encoding.UTF8))
+				// Enabled plugins start with *. Disabled ones have no marker.
+				// TODO: Store missing files
+				// TODO: Check first line comment
+				if (line.StartsWith('*'))
+					EnableModule(line[1..].Trim());
+		}
+		else
+		{
+			AddProblem(ProblemType.FileNotFound, Severity.Medium,
+				"plugins.txt was not found, so the app can't tell which plugins are enabled. Counts assume every plugin in the Data folder is enabled.",
+				manager.PluginsTxtPath,
+				solution: manager is Unmanaged
+					? "Launch this app from your mod manager."
+					: "Run the game from your mod manager once to create it.");
+
+			foreach (var filePath in EnumerateDataFiles())
+				if (ModuleExtensions.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase))
+					EnableModule(Path.GetFileName(filePath));
 		}
 
-		return true;
+		return;
+
+		// Adds the module (once) and marks it enabled. False if the file isn't there.
+		bool EnableModule(string moduleName)
+		{
+			if (!ModulesWinning.TryGetValue(moduleName, out var module))
+			{
+				var modulePath = Path.Combine(DataPath, moduleName);
+				if (!FileExistsInGame(modulePath)) return false;
+
+				module = new Module(moduleName, modulePath);
+				module.SetOrigin(manager.Resolve(modulePath));
+				Modules.Add(module);
+				ModulesWinning[moduleName] = module;
+			}
+
+			module.IsEnabled = true;
+			ModulesEnabled.Add(moduleName);
+			return true;
+		}
 	}
 
-	private void GetDllLists(IModManager manager)
+	private void GetDllLists()
 	{
-		Dlls?.Clear();
-		if (Directory.Exists(F4SEPath)) // TODO: Handle not existing in Data or Stage
+		Dlls.Clear();
+		List<string> pluginFiles = [.. EnumerateDataFiles(Path.Combine("F4SE", "Plugins"))];
+		if (pluginFiles.Count == 0 && !Directory.Exists(F4SEPath))
 		{
-			foreach (string filePath in Directory.EnumerateFiles(F4SEPath))
-			{
-				// TODO: Get mod name from meta.ini
-				string fileName = Path.GetFileName(filePath);
-				string fileExt = Path.GetExtension(fileName);
-				if (fileExt == string.Empty)
-					continue;
-				string fileExtLower = fileExt.ToLower();
+			// Under a mod manager the folder only exists if F4SE plugins are installed; with none, there's nothing to check.
+			F4SEMessage = Manager is Unmanaged
+				? "The Data/F4SE/Plugins folder was not found. If your F4SE plugins are in a mod manager, launch this app from it."
+				: "The Data/F4SE/Plugins folder was not found, so no F4SE plugins are installed.";
+			Log.Info(F4SEMessage);
+			return;
+		}
 
-				if (fileExtLower == ".dll")
-				{
-					DLL dll = new(fileName, filePath);
-					//Console.WriteLine(dll.PathRelative);
-					manager.Dlls.Add(dll);
-					manager.DllsWinning.TryAdd(fileName, dll);
-					// TODO: Check if already present and add to DllsLosing
-					continue;
-				}
-			}
+		foreach (var filePath in pluginFiles)
+		{
+			// TODO: Get mod name from meta.ini
+			var fileName = Path.GetFileName(filePath);
+			var fileExt = Path.GetExtension(fileName);
+			if (fileExt == string.Empty) continue;
+
+			var fileExtLower = fileExt.ToLowerInvariant();
+
+			if (fileExtLower != ".dll") continue;
+
+			// Microsoft debug interface access DLLs that some plugins ship with. They are never F4SE plugins.
+			if (fileName.StartsWith("msdia", StringComparison.OrdinalIgnoreCase)) continue;
+
+			DLL dll = new(fileName, filePath);
+			dll.SetOrigin(Manager.Resolve(filePath));
+			//Console.WriteLine(dll.PathRelative);
+			Dlls.Add(dll);
+			DllsWinning.TryAdd(fileName, dll);
+			// TODO: Check if already present and add to DllsLosing
 		}
 	}
 
-	private void GetDllInfo(IModManager manager)
+	private void GetDllInfo()
 	{
 		//DllsUnreadable.Clear();
 
-		foreach ((string dllName, DLL dll) in manager.DllsWinning)
+		foreach (var (dllName, dll) in DllsWinning)
 		{
 			//if (dll.IsEnabled != true)
 			//	continue;
 
-			dll.Read();
-			if (dll.IsReadable != true)
-			{
-				DllsUnreadable.Add(dllName);
-				continue;
-			}
+			dll.Read(ExeVersion);
+			if (dll.IsReadable != true) DLLsUnreadable.Add(dllName);
 		}
 	}
 
-	private void GetModuleInfo(IModManager manager)
+	private void GetModuleInfo()
 	{
 		ModulesUnreadable.Clear();
 		ModulesUnknown.Clear();
@@ -460,10 +501,9 @@ public partial class Game : ObservableObject
 		Modules100.Clear();
 		Modules095.Clear();
 
-		foreach ((string moduleName, Module module) in manager.ModulesWinning)
+		foreach (var (moduleName, module) in ModulesWinning)
 		{
-			if (module.IsEnabled != true)
-				continue;
+			if (module.IsEnabled != true) continue;
 
 			module.ReadHeader();
 			if (module.IsReadable != true)
@@ -472,9 +512,9 @@ public partial class Game : ObservableObject
 				continue;
 			}
 
-			if (module.HEDRVersion == 1)
+			if (module.HEDRVersion.Equals(1))
 				Modules100.Add(moduleName);
-			else if (module.HEDRVersion == 0.95)
+			else if (module.HEDRVersion.Equals(0.95))
 				Modules095.Add(moduleName);
 			else
 				ModulesUnknown.Add(moduleName);
@@ -486,60 +526,137 @@ public partial class Game : ObservableObject
 		}
 	}
 
-	private void GetArchiveLists(IModManager manager)
+	/// <summary>
+	///     Files in a Data subfolder as the game sees them. Under MO2, mod files only appear in the real Data folder while
+	///     running inside its VFS,
+	///     so the mod folders are walked too. Paths are returned as Data-folder paths (what <see cref="IModManager.Resolve" />
+	///     expects); the highest priority file wins.
+	/// </summary>
+	private IEnumerable<string> EnumerateDataFiles(string relativeFolder = "")
+	{
+		var folder = Path.Combine(DataPath, relativeFolder);
+		HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+
+		if (Directory.Exists(folder))
+			foreach (var filePath in Directory.EnumerateFiles(folder))
+				if (seen.Add(Path.GetFileName(filePath)))
+					yield return filePath;
+
+		if (Manager is not ModOrganizer manager) yield break;
+		// Stage paths are only meaningful as a priority order for MO2; Vortex deploys real files into Data.
+
+		// StagePaths is lowest priority first, Overwrite last; later folders win.
+		for (var i = manager.StagePaths.Count - 1; i >= 0; i--)
+		{
+			var stageFolder = Path.Combine(manager.StagePaths[i], relativeFolder);
+			if (!Directory.Exists(stageFolder)) continue;
+
+			foreach (var filePath in Directory.EnumerateFiles(stageFolder))
+			{
+				var name = Path.GetFileName(filePath);
+				if (manager.SkipFileSuffixes.Any(s => name.EndsWith(s, StringComparison.OrdinalIgnoreCase))) continue;
+
+				if (seen.Add(name)) yield return Path.Combine(folder, name);
+			}
+		}
+	}
+
+	private void GetArchiveLists()
 	{
 		ArchivesEnabled.Clear();
 		ArchivesINI.Clear();
 
 		// TODO: bInvalidateOlderFiles = 1
 		// TODO: sResourceDataDirsFinal =
-		foreach (string list in new[] { "SResourceArchiveList", "SResourceArchiveList2", "sResourceIndexFileList", "sResourceStartUpArchiveList" })
+		foreach (var list in new[]
+		         {
+			         "SResourceArchiveList", "SResourceArchiveList2", "sResourceIndexFileList",
+			         "sResourceStartUpArchiveList",
+		         })
 		{
-			string? archives = Config?["Archive"][list];
-			if (archives == null || archives.Trim() == string.Empty)
-				continue;
-			ArchivesINI.UnionWith(archives.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+			var archives = Config?["Archive"][list];
+			if (archives == null || archives.Trim() == string.Empty) continue;
+
+			ArchivesINI.UnionWith(archives.Split(',',
+				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
 		}
-		// Test with custom Nvflex BA2
-		if (Config?["NVFlex"]["bNVFlexEnable"] == "1")
+
+		// TODO: Test with custom Nvflex BA2
+		// bNVFlexEnable lives in Fallout4Prefs.ini, not Fallout4.ini.
+		if ((Prefs?["NVFlex"]["bNVFlexEnable"] ?? Config?["NVFlex"]["bNVFlexEnable"]) == "1")
 			ArchivesINI.Add("Fallout4 - Nvflex.ba2");
 
-		foreach (string archiveName in ArchivesINI)
+		foreach (var archiveName in ArchivesINI)
 		{
-			string archivePath = Path.Combine(DataPath, archiveName);
+			var archivePath = Path.Combine(DataPath, archiveName);
 			Archive? archive;
-			if (File.Exists(archivePath))
+			if (FileExistsInGame(archivePath))
 			{
-				archive = new(archiveName, archivePath);
-				manager.Archives.Add(archive);
-				manager.ArchivesWinning.TryAdd(archiveName, archive);
+				archive = new Archive(archiveName, archivePath);
+				archive.SetOrigin(Manager.Resolve(archivePath));
+				Archives.Add(archive);
+				ArchivesWinning.TryAdd(archiveName, archive);
 			}
-			if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
+
+			if (ArchivesWinning.TryGetValue(archiveName, out archive))
 			{
 				archive.IsEnabled = true;
 				ArchivesEnabled.Add(archiveName);
 			}
-			// TODO: Store missing files
+
+			// The game still loads without these, but its own base archives being absent means a broken install.
+			if (archive == null && archiveName.Equals("Fallout4 - Nvflex.ba2", StringComparison.OrdinalIgnoreCase))
+				AddProblem(ProblemType.FileNotFound, Severity.Medium,
+					"NVIDIA Flex is enabled in your INI, but Fallout4 - Nvflex.ba2 was not found.",
+					archivePath, solution: SolutionVerify, solutionType: SolutionType.VerifyFiles);
 		}
 
-		foreach (string module in ModulesEnabled)
+		// The Anniversary Edition loads this archive without it being listed in the INI.
+		if (IsAE)
+		{
+			const string texturesPatch = "Fallout4 - TexturesPatch.ba2";
+			var texturesPatchPath = Path.Combine(DataPath, texturesPatch);
+			if (!ArchivesWinning.TryGetValue(texturesPatch, out var patch) && FileExistsInGame(texturesPatchPath))
+			{
+				patch = new Archive(texturesPatch, texturesPatchPath);
+				patch.SetOrigin(Manager.Resolve(texturesPatchPath));
+				Archives.Add(patch);
+				ArchivesWinning.TryAdd(texturesPatch, patch);
+			}
+
+			if (patch != null)
+			{
+				patch.IsEnabled = true;
+				ArchivesEnabled.Add(texturesPatch);
+			}
+			else
+			{
+				AddProblem(ProblemType.FileNotFound, Severity.Medium,
+					"Fallout4 - TexturesPatch.ba2 is a base game file for the Anniversary Edition but was not found.",
+					texturesPatchPath, solution: SolutionVerify, solutionType: SolutionType.VerifyFiles);
+			}
+		}
+
+		foreach (var module in ModulesEnabled)
 		{
 			// TODO: Check if this does more than split a string
-			string moduleBaseName = Path.GetFileNameWithoutExtension(module);
+			var moduleBaseName = Path.GetFileNameWithoutExtension(module);
 
-			foreach (string suffix in BA2Suffixes)
+			foreach (var suffix in BA2Suffixes)
 			{
 				// TODO: Review this
-				string archiveName = $"{moduleBaseName} - {suffix}.ba2";
-				string archivePath = Path.Combine(DataPath, archiveName);
+				var archiveName = $"{moduleBaseName} - {suffix}.ba2";
+				var archivePath = Path.Combine(DataPath, archiveName);
 				Archive? archive;
-				if (!ArchivesINI.Contains(archiveName) && File.Exists(archivePath))
+				if (!ArchivesINI.Contains(archiveName) && FileExistsInGame(archivePath))
 				{
-					archive = new(archiveName, archivePath);
-					manager.Archives.Add(archive);
-					manager.ArchivesWinning.TryAdd(archiveName, archive);
+					archive = new Archive(archiveName, archivePath);
+					archive.SetOrigin(Manager.Resolve(archivePath));
+					Archives.Add(archive);
+					ArchivesWinning.TryAdd(archiveName, archive);
 				}
-				if (manager.ArchivesWinning.TryGetValue(archiveName, out archive))
+
+				if (ArchivesWinning.TryGetValue(archiveName, out archive))
 				{
 					archive.IsEnabled = true;
 					ArchivesEnabled.Add(archiveName);
@@ -548,7 +665,7 @@ public partial class Game : ObservableObject
 		}
 	}
 
-	private void GetArchiveInfo(IModManager manager)
+	private void GetArchiveInfo()
 	{
 		ArchivesGeneral.Clear();
 		ArchivesTexture.Clear();
@@ -557,22 +674,21 @@ public partial class Game : ObservableObject
 		ArchivesUnreadable.Clear();
 		ArchivesUnknown.Clear();
 
-		if (GameVersion == Models.GameVersion.OldGen && manager.ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out Archive? startupArchive))
+		if (GameVersion == Models.GameVersion.OldGen &&
+		    ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out var startupArchive))
 		{
-			string hash = Utilities.GetFileHash(startupArchive.PathFull, skipBA2Header: true);
-			if (hash == "A5808F5F")
-				GameVersion = Models.GameVersion.DownGrade;
+			var hash = Utilities.GetFileHash(startupArchive.RealPath, true);
+			if (hash == "A5808F5F") GameVersion = Models.GameVersion.DownGrade;
 		}
 
-		foreach ((string archiveName, Archive archive) in manager.ArchivesWinning)
+		foreach (var (archiveName, archive) in ArchivesWinning)
 		{
-			if (archive.IsEnabled != true)
-				continue;
+			if (archive.IsEnabled != true) continue;
 
 			//archive.ReadHeader();
 			if (archive.IsReadable != true)
 			{
-				ModulesUnreadable.Add(archiveName);
+				ArchivesUnreadable.Add(archiveName);
 				continue;
 			}
 
