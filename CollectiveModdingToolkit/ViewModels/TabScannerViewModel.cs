@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
@@ -55,6 +56,7 @@ public partial class TabScannerViewModel : ViewModelBase
 	private readonly GameSession _session;
 	private readonly IShellService _shell;
 	private List<ProblemInfo> _problems = [];
+	private CancellationTokenSource? _scanCts;
 
 	/// <summary>Design-time only.</summary>
 	public TabScannerViewModel() : this(new GameSession(), new ShellService(), new ClipboardService(),
@@ -130,10 +132,7 @@ public partial class TabScannerViewModel : ViewModelBase
 			Issues.Add(new ScanRow(p, GroupByMod ? p.Problem : ModName(p)));
 	}
 
-	partial void OnGroupByModChanged(bool value)
-	{
-		BuildGroups();
-	}
+	partial void OnGroupByModChanged(bool value) => BuildGroups();
 
 	private static string ModName(ProblemInfo p) =>
 		p.Mod ?? (p.HasPath && p.Type != ProblemType.FileNotFound ? "<Unmanaged>" : "General");
@@ -168,10 +167,7 @@ public partial class TabScannerViewModel : ViewModelBase
 	}
 
 	[RelayCommand]
-	private void RevealIssue()
-	{
-		CurrentIssue?.Reveal();
-	}
+	private void RevealIssue() => CurrentIssue?.Reveal();
 
 	[RelayCommand]
 	private void OpenIssueUrl()
@@ -201,6 +197,9 @@ public partial class TabScannerViewModel : ViewModelBase
 			raceSubgraphs ? Scanner.InfoRaceSubgraphs : string.Empty, files.ToList());
 	}
 
+	[RelayCommand]
+	private void CancelScan() => _scanCts?.Cancel();
+
 	[RelayCommand(CanExecute = nameof(CanStartScan))]
 	private async Task StartScan()
 	{
@@ -208,6 +207,8 @@ public partial class TabScannerViewModel : ViewModelBase
 		if (game == null) return;
 
 		var options = ScanOptions.FromSettings(Settings);
+		_scanCts = new CancellationTokenSource();
+		var token = _scanCts.Token;
 		IsNotProcessing = false;
 		_problems = [];
 		BuildGroups();
@@ -223,7 +224,11 @@ public partial class TabScannerViewModel : ViewModelBase
 
 		try
 		{
-			_problems = await Task.Run(() => Scanner.Scan(game, options, progress));
+			_problems = await Task.Run(() => Scanner.Scan(game, options, progress, token), token);
+		}
+		catch (OperationCanceledException)
+		{
+			_problems = [];
 		}
 		catch (Exception e)
 		{
@@ -235,8 +240,13 @@ public partial class TabScannerViewModel : ViewModelBase
 			];
 		}
 
+		var cancelled = token.IsCancellationRequested;
+		_scanCts.Dispose();
+		_scanCts = null;
+
 		BuildGroups();
-		ResultsInfo = _problems.Count == 0 ? "No problems found." : $"{_problems.Count} results";
+		ResultsInfo = cancelled ? "Scan cancelled."
+			: _problems.Count == 0 ? "No problems found." : $"{_problems.Count} results";
 		StatusText = string.Empty;
 		Progress = 100;
 		IsNotProcessing = true;

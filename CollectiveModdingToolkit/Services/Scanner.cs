@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
 
@@ -146,7 +147,8 @@ public static class Scanner
 		};
 	}
 
-	public static List<ProblemInfo> Scan(Game game, ScanOptions options, IProgress<Progress>? progress = null)
+	public static List<ProblemInfo> Scan(Game game, ScanOptions options, IProgress<Progress>? progress = null,
+		CancellationToken token = default)
 	{
 		List<ProblemInfo> problems = [];
 
@@ -154,7 +156,11 @@ public static class Scanner
 
 		try
 		{
-			ScanFiles(game, options, problems, progress);
+			ScanFiles(game, options, problems, progress, token);
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
 		}
 		catch (Exception e)
 		{
@@ -170,12 +176,12 @@ public static class Scanner
 	}
 
 	private static void ScanFiles(Game game, ScanOptions options, List<ProblemInfo> problems,
-		IProgress<Progress>? progress)
+		IProgress<Progress>? progress, CancellationToken token)
 	{
 		if (options.RaceSubgraphs)
 		{
 			progress?.Report(new Progress("Counting race subgraph records...", 1));
-			ScanRaceSubgraphs(game, problems);
+			ScanRaceSubgraphs(game, problems, token);
 		}
 
 		if (!options.NeedsFileWalk) return;
@@ -199,7 +205,7 @@ public static class Scanner
 		string[] skipSuffixes = [.. manager.SkipFileSuffixes];
 
 		progress?.Report(new Progress("Building mod file index...", 1));
-		var files = BuildIndex(game, manager, skipDirectories, skipSuffixes);
+		var files = BuildIndex(game, manager, skipDirectories, skipSuffixes, token);
 		string[] topFolders =
 		[
 			.. files.Values
@@ -216,6 +222,7 @@ public static class Scanner
 
 		foreach (var entry in files.Values.OrderBy(e => e.Relative, StringComparer.OrdinalIgnoreCase))
 		{
+			token.ThrowIfCancellationRequested();
 			var parts = entry.Relative.Split('\\');
 			var fileName = parts[^1];
 			var dirs = parts[..^1];
@@ -393,7 +400,7 @@ public static class Scanner
 	///     Merges the Data folder and every mod's files, later layers winning.
 	/// </summary>
 	private static Dictionary<string, Entry> BuildIndex(Game game, IModManager manager, HashSet<string> skipDirectories,
-		string[] skipSuffixes)
+		string[] skipSuffixes, CancellationToken token)
 	{
 		Dictionary<string, Entry> files = new(StringComparer.OrdinalIgnoreCase);
 
@@ -416,6 +423,7 @@ public static class Scanner
 			pending.Push(root);
 			while (pending.Count > 0)
 			{
+				token.ThrowIfCancellationRequested();
 				var folder = pending.Pop();
 				IEnumerable<string> children;
 				try
@@ -504,7 +512,7 @@ public static class Scanner
 			solutionType));
 	}
 
-	private static void ScanRaceSubgraphs(Game game, List<ProblemInfo> problems)
+	private static void ScanRaceSubgraphs(Game game, List<ProblemInfo> problems, CancellationToken token)
 	{
 		// TODO: Determine whether overrides matter and ignore them if not.
 
@@ -514,12 +522,13 @@ public static class Scanner
 
 		foreach (var name in game.ModulesEnabled)
 		{
+			token.ThrowIfCancellationRequested();
 			if (!game.ModulesWinning.TryGetValue(name, out var module)) continue;
 
 			int count;
 			try
 			{
-				count = Count(module.Origin?.SourcePath ?? module.PathFull, pattern);
+				count = Count(module.Origin?.SourcePath ?? module.PathFull, pattern, token);
 			}
 			catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 			{
@@ -551,7 +560,7 @@ public static class Scanner
 	}
 
 	/// <summary>Counts non-overlapping occurrences of <paramref name="pattern" /> in a file, without loading it all.</summary>
-	private static int Count(string path, byte[] pattern)
+	private static int Count(string path, byte[] pattern, CancellationToken token)
 	{
 		using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 81920);
 		var buffer = new byte[1 << 20];
@@ -561,6 +570,7 @@ public static class Scanner
 		int read;
 		while ((read = stream.Read(buffer, filled, buffer.Length - filled)) > 0)
 		{
+			token.ThrowIfCancellationRequested();
 			var length = filled + read;
 			ReadOnlySpan<byte> span = buffer.AsSpan(0, length);
 			var start = 0;

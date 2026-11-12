@@ -37,8 +37,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 	<Grid RowDefinitions="30,*,Auto,150">
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="200"
-			                  MinWidth="150" />
+			<ColumnDefinition Width="220"
+			                  MinWidth="170" />
 			<ColumnDefinition Width="Auto" />
 			<ColumnDefinition Width="*"
 			                  MinWidth="150" />
@@ -156,7 +156,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					<Button Content="Scan"
 					        Classes="Small Primary"
 					        Width="80"
+					        IsVisible="{Binding IsNotProcessing}"
 					        Command="{Binding StartScanCommand}" />
+					<Button Content="Cancel"
+					        Classes="Small Danger"
+					        Width="80"
+					        IsVisible="{Binding !IsNotProcessing}"
+					        Command="{Binding CancelScanCommand}" />
 				</StackPanel>
 				<TextBlock Text="☢ Potential Issues ☢"
 				           Margin="5,0"
