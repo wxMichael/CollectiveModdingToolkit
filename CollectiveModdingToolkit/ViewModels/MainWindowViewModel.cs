@@ -39,6 +39,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 		F4SE = new F4SEViewModel(Session, shell);
 		Archives = new ArchivesViewModel(Session, shell, dialogs);
 		Scanner = new TabScannerViewModel(Session, shell, clipboard, dialogs);
+		Downgrader = new DowngraderViewModel(Session, shell, dialogs);
 		Tools = new ToolsViewModel(shell, clipboard);
 		Settings = new SettingsViewModel(shell);
 		About = new AboutViewModel(shell, clipboard);
@@ -50,9 +51,12 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public F4SEViewModel F4SE { get; }
 	public ArchivesViewModel Archives { get; }
 	public TabScannerViewModel Scanner { get; }
+	public DowngraderViewModel Downgrader { get; }
 	public ToolsViewModel Tools { get; }
 	public SettingsViewModel Settings { get; }
 	public AboutViewModel About { get; }
+
+	public bool IsBusy => Downgrader.IsBusy || !Archives.IsNotProcessing;
 
 	public static ErrorReporter Errors => ErrorReporter.Current;
 

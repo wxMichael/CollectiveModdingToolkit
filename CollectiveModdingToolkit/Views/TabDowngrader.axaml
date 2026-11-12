@@ -23,19 +23,139 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
              mc:Ignorable="d"
              d:DesignWidth="800"
              d:DesignHeight="500"
              x:Class="CollectiveModdingToolkit.Views.TabDowngrader"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:DowngraderViewModel">
 
 	<Design.DataContext>
-		<vm:MainWindowViewModel />
+		<vm:DowngraderViewModel />
 	</Design.DataContext>
 
-	<TextBlock DockPanel.Dock="Top"
-	           HorizontalAlignment="Center"
-	           VerticalAlignment="Center">
-		Downgrader is a work-in-progress and not currently available.
-	</TextBlock>
+	<UserControl.Resources>
+		<DataTemplate x:Key="FileRowTemplate"
+		              x:DataType="vm:FileRow">
+			<Grid ColumnDefinitions="Auto,Auto"
+			      ToolTip.Tip="{Binding FullPath}">
+				<TextBlock Grid.Column="0"
+				           Width="180"
+				           TextAlignment="Right"
+				           Classes="Readable"
+				           Text="{Binding Name, StringFormat='{}{0}:'}" />
+				<TextBlock Grid.Column="1"
+				           Margin="8,0,0,0"
+				           MinWidth="90"
+				           Classes="Readable"
+				           Classes.Blue="{Binding IsOldGen}"
+				           Classes.Purple="{Binding IsNextGen}"
+				           Classes.Warning="{Binding IsAnniversary}"
+				           Classes.Bad="{Binding IsBad}"
+				           Classes.Neutral="{Binding IsMissing}"
+				           Text="{Binding EditionText}" />
+			</Grid>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<Grid RowDefinitions="Auto,*,Auto"
+	      ColumnDefinitions="*,Auto">
+
+		<!-- Current versions -->
+		<StackPanel Grid.Row="0"
+		            Grid.Column="0"
+		            Orientation="Vertical">
+			<ctrl:GroupBox Header="Current Game">
+				<ItemsControl ItemsSource="{Binding GameRows}"
+				              ItemTemplate="{StaticResource FileRowTemplate}" />
+			</ctrl:GroupBox>
+			<ctrl:GroupBox Header="Current Creation Kit">
+				<ItemsControl ItemsSource="{Binding CreationKitRows}"
+				              ItemTemplate="{StaticResource FileRowTemplate}" />
+			</ctrl:GroupBox>
+		</StackPanel>
+
+		<!-- Choices and actions -->
+		<StackPanel Grid.Row="0"
+		            Grid.Column="1"
+		            Orientation="Vertical"
+		            MinWidth="170">
+
+			<ctrl:GroupBox Header="Desired Version">
+				<StackPanel IsEnabled="{Binding !IsBusy}">
+					<RadioButton GroupName="DesiredEdition"
+					             Content="Old-Gen"
+					             IsChecked="{Binding IsDesiredOldGen}" />
+					<RadioButton GroupName="DesiredEdition"
+					             Content="Next-Gen"
+					             IsChecked="{Binding IsDesiredNextGen}" />
+					<RadioButton GroupName="DesiredEdition"
+					             Content="Anniversary"
+					             IsChecked="{Binding IsDesiredAnniversary}" />
+				</StackPanel>
+			</ctrl:GroupBox>
+
+			<ctrl:GroupBox Header="Options">
+				<StackPanel IsEnabled="{Binding !IsBusy}">
+					<CheckBox Content="Keep Backups"
+					          IsChecked="{Binding Settings.KeepBackups, Mode=TwoWay}"
+					          ToolTip.Tip="Backups are created prior to patching, and will be used instead of patches if present.&#x0a;Simple Downgrader's backups will also be used.&#x0a;&#x0a;Backups allow quicker switching between versions.&#x0a;Uncheck this to delete backups after patching." />
+					<CheckBox Content="Delete Patches"
+					          IsChecked="{Binding Settings.DeleteDeltas, Mode=TwoWay}"
+					          ToolTip.Tip="Delta patches are downloaded as-needed and used to patch from one version to another.&#x0a;If backups are present, they will be used instead.&#x0a;&#x0a;These patch files are only needed during the patching process.&#x0a;Check this to delete them afterwards." />
+				</StackPanel>
+			</ctrl:GroupBox>
+
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10"
+			            Margin="5,10,5,0">
+				<Button Content="Patch All"
+				        Classes="Primary"
+				        MinWidth="90"
+				        Command="{Binding PatchAllCommand}" />
+				<Button Content="Cancel"
+				        MinWidth="70"
+				        IsVisible="{Binding IsBusy}"
+				        Command="{Binding CancelCommand}" />
+				<Button Content="About"
+				        MinWidth="70"
+				        IsVisible="{Binding !IsBusy}"
+				        Command="{Binding ShowAboutCommand}" />
+			</StackPanel>
+		</StackPanel>
+
+		<!-- Log -->
+		<Border Grid.Row="1"
+		        Grid.Column="0"
+		        Grid.ColumnSpan="2"
+		        Margin="0,8,0,0"
+		        BorderThickness="1"
+		        CornerRadius="3"
+		        BorderBrush="{DynamicResource StrokeMidBrush}"
+		        Background="{DynamicResource BgSunkenBrush}">
+			<ScrollViewer x:Name="LogScroll"
+			              HorizontalScrollBarVisibility="Disabled">
+				<ItemsControl Margin="6,4"
+				              ItemsSource="{Binding Messages}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="vm:LogLine">
+							<TextBlock TextWrapping="Wrap"
+							           Classes="Readable Small"
+							           Classes.Good="{Binding IsGood}"
+							           Classes.Bad="{Binding IsBad}"
+							           Text="{Binding Text}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</Border>
+
+		<ProgressBar Grid.Row="2"
+		             Grid.Column="0"
+		             Grid.ColumnSpan="2"
+		             Margin="0,8,0,0"
+		             Minimum="0"
+		             Maximum="100"
+		             Value="{Binding Progress}" />
+	</Grid>
 </UserControl>

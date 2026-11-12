@@ -60,6 +60,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\CollectiveModdingToolkit.Delta\CollectiveModdingToolkit.Delta.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Update="Views\TabScanner.axaml.cs">
 			<DependentUpon>TabScanner.axaml</DependentUpon>
 		</Compile>

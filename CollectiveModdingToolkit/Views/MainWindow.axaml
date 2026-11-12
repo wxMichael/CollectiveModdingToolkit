@@ -74,7 +74,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				<v:TabScanner DataContext="{Binding Scanner}" />
 			</TabItem>
 			<TabItem Header="Downgrader">
-				<v:TabDowngrader />
+				<v:TabDowngrader DataContext="{Binding Downgrader}" />
 			</TabItem>
 			<TabItem Header="Tools">
 				<v:TabTools DataContext="{Binding Tools}" />

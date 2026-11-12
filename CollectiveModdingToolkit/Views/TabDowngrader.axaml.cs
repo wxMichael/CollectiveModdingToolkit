@@ -18,11 +18,32 @@
  *
  */
 
+using System.Collections.Specialized;
 using Avalonia.Controls;
+using Avalonia.Threading;
+using CollectiveModdingToolkit.ViewModels;
 
 namespace CollectiveModdingToolkit.Views;
 
 public partial class TabDowngrader : UserControl
 {
-	public TabDowngrader() => InitializeComponent();
+	private INotifyCollectionChanged? _messages;
+
+	public TabDowngrader()
+	{
+		InitializeComponent();
+		DataContextChanged += (_, _) =>
+		{
+			if (_messages != null) _messages.CollectionChanged -= ScrollToNewestMessage;
+
+			_messages = (DataContext as DowngraderViewModel)?.Messages;
+			if (_messages != null) _messages.CollectionChanged += ScrollToNewestMessage;
+		};
+	}
+
+	private void ScrollToNewestMessage(object? sender, NotifyCollectionChangedEventArgs e)
+	{
+		if (e.Action == NotifyCollectionChangedAction.Add)
+			Dispatcher.UIThread.Post(() => LogScroll.ScrollToEnd(), DispatcherPriority.Background);
+	}
 }

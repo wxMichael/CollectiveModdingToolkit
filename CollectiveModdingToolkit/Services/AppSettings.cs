@@ -67,11 +67,11 @@ public sealed partial class AppSettings : ObservableObject
 
 	/// <summary>Downgrader: keep backups of the files being replaced.</summary>
 	[ObservableProperty]
-	private partial bool KeepBackups { get; set; } = true;
+	public partial bool KeepBackups { get; set; } = true;
 
 	/// <summary>Downgrader: delete downloaded delta patches after use.</summary>
 	[ObservableProperty]
-	private partial bool DeleteDeltas { get; set; } = true;
+	public partial bool DeleteDeltas { get; set; } = true;
 
 	// Scanner options. Each is saved as "scanner<Name>".
 	[ObservableProperty] public partial bool ScanOverviewIssues { get; set; } = true;

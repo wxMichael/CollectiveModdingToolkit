@@ -32,10 +32,19 @@ public partial class MainWindow : Window
 	{
 		InitializeComponent();
 		KeyDown += MainWindow_KeyDown;
+		Closing += MainWindow_Closing;
 		Opened += async (_, _) =>
 		{
 			if (DataContext is MainWindowViewModel viewModel) await viewModel.InitializeAsync();
 		};
+	}
+
+	private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (DataContext is not MainWindowViewModel { IsBusy: true } viewModel) return;
+
+		e.Cancel = true;
+		viewModel.Downgrader.ExplainBusy();
 	}
 
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
