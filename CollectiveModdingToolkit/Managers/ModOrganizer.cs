@@ -39,6 +39,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 {
 	private const string MO2RegistryPath = @"Software\Mod Organizer Team\Mod Organizer";
 	private const string SupportedGameName = "Fallout 4";
+	private const string DefaultProfileName = "Default";
 
 	private static readonly IniParserConfiguration IniParserConfig = new()
 	{
@@ -130,7 +131,8 @@ internal class ModOrganizer : ObservableObject, IModManager
 
 	/// <summary>
 	///     Finds the ModOrganizer.ini of the running instance, the same way MO2 does: a portable.txt next to the exe
-	///     forces the portable instance; otherwise the registry's current global instance, falling back to portable.
+	///     forces the portable instance; otherwise the registry's current global instance, or the portable instance
+	///     when no global instance is set.
 	/// </summary>
 	/// <returns>The ini path, or null after reporting why it couldn't be found.</returns>
 	private string? FindIniPath()
@@ -150,17 +152,21 @@ internal class ModOrganizer : ObservableObject, IModManager
 		using (var key = Registry.CurrentUser.OpenSubKey(MO2RegistryPath))
 			instance = key?.GetValue("CurrentInstance") as string;
 
-		if (!string.IsNullOrEmpty(instance))
+		if (string.IsNullOrEmpty(instance))
 		{
-			var instanceIni = Path.Combine(Computer.AppDataLocal, "ModOrganizer", instance, "ModOrganizer.ini");
-			if (File.Exists(instanceIni)) return instanceIni;
+			if (File.Exists(portableIni)) return portableIni;
+
+			ErrorReporter.Current.Critical(message:
+				$"Unable to find ModOrganizer.ini for this Mod Organizer instance:\n{AppFolder.FullName}");
+			return null;
 		}
 
-		if (File.Exists(portableIni)) return portableIni;
+		// MO2 never falls back to the portable instance when a global one is named.
+		var instanceIni = Path.Combine(Computer.AppDataLocal, "ModOrganizer", instance, "ModOrganizer.ini");
+		if (File.Exists(instanceIni)) return instanceIni;
 
-		ErrorReporter.Current.Critical(message: string.IsNullOrEmpty(instance)
-			? $"Unable to find ModOrganizer.ini for this Mod Organizer instance:\n{AppFolder.FullName}"
-			: $"Unable to find ModOrganizer.ini for the Mod Organizer instance \"{instance}\".");
+		ErrorReporter.Current.Critical(message:
+			$"Unable to find ModOrganizer.ini for the Mod Organizer instance \"{instance}\":\n{instanceIni}");
 		return null;
 	}
 
@@ -196,15 +202,10 @@ internal class ModOrganizer : ObservableObject, IModManager
 		}
 
 		//selected_profile=@ByteArray(Default)
+		// MO2 uses its default profile when none is selected.
 		var selectedProfile = general["selected_profile"];
-		Profile = selectedProfile == null ? null : FormatByteArray(selectedProfile);
-		if (string.IsNullOrWhiteSpace(Profile))
-		{
-			Profile = null;
-			ErrorReporter.Current.Critical(message:
-				$"No profile is selected in ModOrganizer.ini. Open Mod Organizer, pick a profile, and try again.\n\n{iniPath}");
-			return false;
-		}
+		Profile = selectedProfile == null ? DefaultProfileName : FormatByteArray(selectedProfile);
+		if (string.IsNullOrWhiteSpace(Profile)) Profile = DefaultProfileName;
 
 		//gamePath=@ByteArray(C:\\Program Files(x86)\\Steam\\steamapps\\common\\Fallout 4)
 		var gamePath = general["gamePath"];
@@ -286,7 +287,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 		}
 	}
 
-	/// <summary>Converts a QSettings value to a bool the way QVariant does: "", "0", and "false" are false.</summary>
+	/// <summary>Converts a QSettings value to a bool the way QVariant does: "", "0" and "false" are false.</summary>
 	private static bool ParseBool(string? value, bool fallback)
 	{
 		if (value == null) return fallback;
