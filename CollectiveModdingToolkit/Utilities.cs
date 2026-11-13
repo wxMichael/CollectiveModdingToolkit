@@ -29,8 +29,18 @@ namespace CollectiveModdingToolkit;
 
 internal static class Utilities
 {
-	internal static string GetFileHash(string filePath, bool skipBA2Header = false) =>
-		$"{Crc32.HashToUInt32(File.ReadAllBytes(filePath).AsSpan(skipBA2Header ? 12 : 0)):X8}";
+	/// <summary>CRC32 of a file as 8 hex digits, streamed so large executables aren't loaded into memory.</summary>
+	/// <param name="skipBA2Header">Skip the 12-byte BA2 header, so the hash ignores the archive version.</param>
+	internal static string GetFileHash(string filePath, bool skipBA2Header = false)
+	{
+		using var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16,
+			FileOptions.SequentialScan);
+		if (skipBA2Header) file.Position = Math.Min(12, file.Length);
+
+		Crc32 crc = new();
+		crc.Append(file);
+		return $"{crc.GetCurrentHashAsUInt32():X8}";
+	}
 
 	internal static string? GetFileVersion(string filePath, bool skipPrivate = false)
 	{
