@@ -169,7 +169,7 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 		if (version != _inspectVersion) return;
 
 		// Next-Gen and Anniversary share steam_api64.dll, so the executable says which one it is.
-		var exe = states.FirstOrDefault(s => s.File.Name == "Fallout4.exe")?.Edition;
+		var exe = states.FirstOrDefault(s => s.File.Name.Equals("Fallout4.exe", StringComparison.OrdinalIgnoreCase))?.Edition;
 		var shared = exe is Edition.NextGen or Edition.Anniversary ? exe.Value : Edition.NextGenAnniversary;
 
 		GameRows.Clear();

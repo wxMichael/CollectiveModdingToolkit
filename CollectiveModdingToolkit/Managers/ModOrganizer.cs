@@ -273,7 +273,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 	{
 		// TODO: Encoding
 		foreach (var line in File.ReadLines(_modListTxtPath!, Encoding.UTF8).Reverse())
-			if (line.StartsWith('+') && !line.EndsWith("_separator"))
+			if (line.StartsWith('+') && !line.EndsWith("_separator", StringComparison.OrdinalIgnoreCase))
 			{
 				var modFolder = line[1..];
 				var modFolderPath = Path.Combine(_modDirectory, modFolder);

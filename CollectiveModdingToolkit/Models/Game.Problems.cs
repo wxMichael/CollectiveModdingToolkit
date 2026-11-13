@@ -128,7 +128,7 @@ public partial class Game
 	{
 		if (GameVersion != Models.GameVersion.Unknown) return;
 
-		var exe = Binaries.FirstOrDefault(b => b.Name == Binary.MainExeName);
+		var exe = Binaries.FirstOrDefault(b => b.Name.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase));
 		AddProblem(
 			ProblemType.UnknownGameVersion,
 			Severity.Medium,
@@ -145,7 +145,7 @@ public partial class Game
 	{
 		foreach (var binary in Binaries)
 		{
-			if (binary.IsGood || binary.Name == Binary.MainExeName) continue;
+			if (binary.IsGood || binary.Name.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase)) continue;
 
 			var optionalTool = BinariesCK.Contains(binary);
 			var isF4SE = binary.Name.StartsWith("f4se_", StringComparison.OrdinalIgnoreCase);
@@ -207,7 +207,7 @@ public partial class Game
 		if (!Directory.Exists(DataPath)) return;
 
 		// Address Library ships one file per game version, e.g. version-1-11-240-0.bin
-		var exe = Binaries.FirstOrDefault(b => b.Name == Binary.MainExeName);
+		var exe = Binaries.FirstOrDefault(b => b.Name.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase));
 		if (exe?.Version == null || !Version.TryParse(exe.Version, out var version)) return;
 
 		var fileName =
@@ -240,7 +240,7 @@ public partial class Game
 
 		foreach (var name in ArchivesUnreadable)
 		{
-			if (!ArchivesWinning.TryGetValue(name, out var archive)) continue;
+			if (!ArchivesWinning.TryGetValue(ArchiveKey(name), out var archive)) continue;
 
 			AddProblem(ProblemType.InvalidArchive, Severity.Critical,
 				"This archive could not be read. The cause is a permissions problem, an unexpected format, or corruption.",
@@ -250,7 +250,7 @@ public partial class Game
 
 		foreach (var name in ArchivesUnknown)
 		{
-			if (!ArchivesWinning.TryGetValue(name, out var archive)) continue;
+			if (!ArchivesWinning.TryGetValue(ArchiveKey(name), out var archive)) continue;
 
 			var detail = archive.ArchiveVersion is 1 or 7 or 8
 				? $"format {archive.ArchiveFormat ?? "unknown"}"

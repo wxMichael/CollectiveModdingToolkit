@@ -165,32 +165,35 @@ public partial class Game : ObservableObject
 	public string F4SEPath { get; } = string.Empty;
 	public string Language { get; private set; } = "en";
 
-	public SortedSet<string> ArchivesINI { get; } = [];
-	public SortedSet<string> ArchivesEnabled { get; } = [];
-	public SortedSet<string> ArchivesGeneral { get; } = [];
-	public SortedSet<string> ArchivesTexture { get; } = [];
-	public SortedSet<string> ArchivesOG { get; } = [];
-	public SortedSet<string> ArchivesNG { get; } = [];
-	public SortedSet<string> ArchivesUnreadable { get; } = [];
-	public SortedSet<string> ArchivesUnknown { get; } = [];
+	public SortedSet<string> ArchivesINI { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesEnabled { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesGeneral { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesTexture { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesOG { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesNG { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesUnreadable { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ArchivesUnknown { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	private List<Module> Modules { get; } = [];
 	public Dictionary<string, Module> ModulesWinning { get; } = new(StringComparer.OrdinalIgnoreCase);
 	private List<Archive> Archives { get; } = [];
 	public AvaloniaDictionary<string, Archive> ArchivesWinning { get; } = new();
 
+	/// <summary>Keys are lower-cased file names, so lookups ignore case. Use <see cref="ArchiveKey" />.</summary>
+	public static string ArchiveKey(string name) => name.ToLowerInvariant();
+
 	// List<DLL> Dlls { get; }
-	public Dictionary<string, DLL> DllsWinning { get; } = new();
+	public Dictionary<string, DLL> DllsWinning { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	public SortedSet<string> ModulesCCC { get; } = new(StringComparer.OrdinalIgnoreCase);
 	public SortedSet<string> ModulesEnabled { get; } = new(StringComparer.OrdinalIgnoreCase);
-	public SortedSet<string> Modules095 { get; } = [];
-	public SortedSet<string> Modules100 { get; } = [];
-	public SortedSet<string> ModulesFull { get; } = [];
-	public SortedSet<string> ModulesLight { get; } = [];
-	public SortedSet<string> ModulesUnreadable { get; } = [];
-	public SortedSet<string> ModulesUnknown { get; } = [];
-	public SortedSet<string> DLLsUnreadable { get; } = [];
+	public SortedSet<string> Modules095 { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> Modules100 { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ModulesFull { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ModulesLight { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ModulesUnreadable { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> ModulesUnknown { get; } = new(StringComparer.OrdinalIgnoreCase);
+	public SortedSet<string> DLLsUnreadable { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	// TODO: remove .DownGrade and just have IsDG?
 	public bool IsOG => GameVersion is Models.GameVersion.DownGrade or Models.GameVersion.OldGen;
@@ -348,7 +351,7 @@ public partial class Game : ObservableObject
 			var origin = Manager.Resolve(fullPath);
 			Binary binary = new(fileName, fileExt, fullPath, relativePath, origin: origin);
 			binary.SetOrigin(origin);
-			if (fileName == Binary.MainExeName)
+			if (fileName.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase))
 			{
 				ExeVersion = F4SERuntime.Pack(binary.Version);
 				GameVersion = binary.GameVersion;
@@ -367,7 +370,8 @@ public partial class Game : ObservableObject
 			}
 
 			Binaries.Add(binary);
-			if (binary.Name.Contains("CreationKit") || binary.Name.Contains("Archive2"))
+			if (binary.Name.Contains("CreationKit", StringComparison.OrdinalIgnoreCase) ||
+			    binary.Name.Contains("Archive2", StringComparison.OrdinalIgnoreCase))
 				BinariesCK.Add(binary);
 			else
 				BinariesGame.Add(binary);
@@ -595,10 +599,10 @@ public partial class Game : ObservableObject
 				archive = new Archive(archiveName, archivePath);
 				archive.SetOrigin(Manager.Resolve(archivePath));
 				Archives.Add(archive);
-				ArchivesWinning.TryAdd(archiveName, archive);
+				ArchivesWinning.TryAdd(ArchiveKey(archiveName), archive);
 			}
 
-			if (ArchivesWinning.TryGetValue(archiveName, out archive))
+			if (ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive))
 			{
 				archive.IsEnabled = true;
 				ArchivesEnabled.Add(archiveName);
@@ -616,12 +620,12 @@ public partial class Game : ObservableObject
 		{
 			const string texturesPatch = "Fallout4 - TexturesPatch.ba2";
 			var texturesPatchPath = Path.Combine(DataPath, texturesPatch);
-			if (!ArchivesWinning.TryGetValue(texturesPatch, out var patch) && FileExistsInGame(texturesPatchPath))
+			if (!ArchivesWinning.TryGetValue(ArchiveKey(texturesPatch), out var patch) && FileExistsInGame(texturesPatchPath))
 			{
 				patch = new Archive(texturesPatch, texturesPatchPath);
 				patch.SetOrigin(Manager.Resolve(texturesPatchPath));
 				Archives.Add(patch);
-				ArchivesWinning.TryAdd(texturesPatch, patch);
+				ArchivesWinning.TryAdd(ArchiveKey(texturesPatch), patch);
 			}
 
 			if (patch != null)
@@ -653,10 +657,10 @@ public partial class Game : ObservableObject
 					archive = new Archive(archiveName, archivePath);
 					archive.SetOrigin(Manager.Resolve(archivePath));
 					Archives.Add(archive);
-					ArchivesWinning.TryAdd(archiveName, archive);
+					ArchivesWinning.TryAdd(ArchiveKey(archiveName), archive);
 				}
 
-				if (ArchivesWinning.TryGetValue(archiveName, out archive))
+				if (ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive))
 				{
 					archive.IsEnabled = true;
 					ArchivesEnabled.Add(archiveName);
@@ -675,36 +679,36 @@ public partial class Game : ObservableObject
 		ArchivesUnknown.Clear();
 
 		if (GameVersion == Models.GameVersion.OldGen &&
-		    ArchivesWinning.TryGetValue("Fallout4 - Startup.ba2", out var startupArchive))
+		    ArchivesWinning.TryGetValue(ArchiveKey("Fallout4 - Startup.ba2"), out var startupArchive))
 		{
 			var hash = Utilities.GetFileHash(startupArchive.RealPath, true);
 			if (hash == "A5808F5F") GameVersion = Models.GameVersion.DownGrade;
 		}
 
-		foreach (var (archiveName, archive) in ArchivesWinning)
+		foreach (var archive in ArchivesWinning.Values)
 		{
 			if (archive.IsEnabled != true) continue;
 
 			//archive.ReadHeader();
 			if (archive.IsReadable != true)
 			{
-				ArchivesUnreadable.Add(archiveName);
+				ArchivesUnreadable.Add(archive.Name);
 				continue;
 			}
 
 			if (archive.ArchiveVersion == 1)
-				ArchivesOG.Add(archiveName);
+				ArchivesOG.Add(archive.Name);
 			else if (archive.ArchiveVersion is 7 or 8)
-				ArchivesNG.Add(archiveName);
+				ArchivesNG.Add(archive.Name);
 			else
-				ArchivesUnknown.Add(archiveName);
+				ArchivesUnknown.Add(archive.Name);
 
 			if (archive.ArchiveFormat == "GNRL")
-				ArchivesGeneral.Add(archiveName);
+				ArchivesGeneral.Add(archive.Name);
 			else if (archive.ArchiveFormat == "DX10")
-				ArchivesTexture.Add(archiveName);
+				ArchivesTexture.Add(archive.Name);
 			else
-				ArchivesUnknown.Add(archiveName);
+				ArchivesUnknown.Add(archive.Name);
 		}
 	}
 }

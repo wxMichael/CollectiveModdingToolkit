@@ -37,7 +37,7 @@ public class Binary : ObservableObject, IFile
 	///     CRC32 is used for files without usable version info.<br />
 	///     Keys are paths relative to the game folder.
 	/// </summary>
-	internal static readonly Dictionary<string, Dictionary<string, string>> BaseFiles = new()
+	internal static readonly Dictionary<string, Dictionary<string, string>> BaseFiles = new(System.StringComparer.OrdinalIgnoreCase)
 	{
 		["Fallout4.exe"] = new Dictionary<string, string>
 		{
