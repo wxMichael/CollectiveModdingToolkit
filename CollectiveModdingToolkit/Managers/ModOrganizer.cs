@@ -27,10 +27,6 @@ using System.Text;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using IniParser;
-using IniParser.Exceptions;
-using IniParser.Model.Configuration;
-using IniParser.Parser;
 using Microsoft.Win32;
 
 namespace CollectiveModdingToolkit.Managers;
@@ -40,17 +36,6 @@ internal class ModOrganizer : ObservableObject, IModManager
 	private const string MO2RegistryPath = @"Software\Mod Organizer Team\Mod Organizer";
 	private const string SupportedGameName = "Fallout 4";
 	private const string DefaultProfileName = "Default";
-
-	private static readonly IniParserConfiguration IniParserConfig = new()
-	{
-		AllowCreateSectionsOnFly = true,
-		AllowDuplicateKeys = true,
-		AllowDuplicateSections = true,
-		AllowKeysWithoutSection = true,
-		AssigmentSpacer = string.Empty,
-		CaseInsensitive = true,
-		SkipInvalidLines = true,
-	};
 
 	private readonly List<string> _stagePaths = [];
 
@@ -175,25 +160,20 @@ internal class ModOrganizer : ObservableObject, IModManager
 		var iniPath = FindIniPath();
 		if (iniPath == null) return false;
 
-		FileIniDataParser parser = new(new IniDataParser(IniParserConfig));
-
-		IniParser.Model.IniData iniData;
+		QSettingsIni ini;
 		try
 		{
-			// TODO: Other encodings?
-			iniData = parser.ReadFile(iniPath, Encoding.UTF8);
+			ini = QSettingsIni.Read(iniPath);
 		}
-		catch (Exception e) when (e is ParsingException or IOException or UnauthorizedAccessException)
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
 			Log.Error($"Unable to read {iniPath}", e);
 			ErrorReporter.Current.Critical(message: $"Unable to read ModOrganizer.ini:\n{iniPath}\n\n{e.Message}");
 			return false;
 		}
 
-		var general = iniData["General"];
-
 		//gameName=Fallout 4
-		var gameName = general["gameName"]?.Trim();
+		var gameName = ini.GetString("General", "gameName")?.Trim();
 		if (!string.IsNullOrEmpty(gameName) && gameName != SupportedGameName)
 		{
 			ErrorReporter.Current.Critical(message:
@@ -203,19 +183,15 @@ internal class ModOrganizer : ObservableObject, IModManager
 
 		//selected_profile=@ByteArray(Default)
 		// MO2 uses its default profile when none is selected.
-		var selectedProfile = general["selected_profile"];
-		Profile = selectedProfile == null ? DefaultProfileName : FormatByteArray(selectedProfile);
+		Profile = ini.GetString("General", "selected_profile");
 		if (string.IsNullOrWhiteSpace(Profile)) Profile = DefaultProfileName;
 
-		//gamePath=@ByteArray(C:\\Program Files(x86)\\Steam\\steamapps\\common\\Fallout 4)
-		var gamePath = general["gamePath"];
-		GamePath = gamePath == null ? null : FormatByteArray(gamePath);
-
-		var settings = iniData["Settings"];
+		//gamePath=@ByteArray(C:\\Program Files (x86)\\Steam\\steamapps\\common\\Fallout 4)
+		GamePath = ini.GetString("General", "gamePath");
 
 		//base_directory=C:/Modding/MO2 Instances/FO4
 		// Defaults to the folder holding ModOrganizer.ini: the MO2 folder when portable, the instance folder otherwise.
-		var baseDirectory = settings["base_directory"]?.Trim();
+		var baseDirectory = ini.GetString("Settings", "base_directory");
 		if (string.IsNullOrEmpty(baseDirectory)) baseDirectory = Path.GetDirectoryName(iniPath)!;
 
 		if (!Directory.Exists(baseDirectory))
@@ -224,25 +200,24 @@ internal class ModOrganizer : ObservableObject, IModManager
 			return false;
 		}
 
-		_modDirectory = (settings["mod_directory"] ?? "%BASE_DIR%/mods").Replace("%BASE_DIR%", baseDirectory);
-		_overwriteDirectory =
-			(settings["overwrite_directory"] ?? "%BASE_DIR%/overwrite").Replace("%BASE_DIR%", baseDirectory);
-		_profilesDirectory =
-			(settings["profiles_directory"] ?? "%BASE_DIR%/profiles").Replace("%BASE_DIR%", baseDirectory);
+		_modDirectory = GetPath(ini, "mod_directory", "mods", baseDirectory);
+		_overwriteDirectory = GetPath(ini, "overwrite_directory", "overwrite", baseDirectory);
+		_profilesDirectory = GetPath(ini, "profiles_directory", "profiles", baseDirectory);
 
 		var profileDirectory = Path.Combine(_profilesDirectory, Profile);
 
 		// MO2's "Use profile-specific Game INI Files" is stored per profile as LocalSettings in the profile's
 		// settings.ini. The instance-wide profile_local_inis (on by default) only applies when the profile hasn't
 		// set it. When it's off, the profile uses the INIs in Documents instead of its own copy.
-		var profileLocalInis = ParseBool(
-			ReadProfileSetting(profileDirectory, "LocalSettings") ?? settings["profile_local_inis"], true);
+		var defaultLocalInis = ini.GetBool("Settings", "profile_local_inis", true);
+		var profileLocalInis = ReadProfileSettings(profileDirectory)?.GetBool("General", "LocalSettings",
+			defaultLocalInis) ?? defaultLocalInis;
 		GameIniFolderPath = profileLocalInis ? profileDirectory : Computer.DocumentsFallout4;
 		PluginsTxtPath = Path.Combine(profileDirectory, "plugins.txt");
 
-		// Comma separated. A missing key means MO2's defaults; an empty value means nothing is skipped.
-		SkipFileSuffixes = ParseList(settings["skip_file_suffixes"], ".mohidden");
-		SkipDirectories = ParseList(settings["skip_directories"], ".git");
+		// A missing key means MO2's defaults; an empty list means nothing is skipped.
+		SkipFileSuffixes = GetList(ini, "skip_file_suffixes", ".mohidden");
+		SkipDirectories = GetList(ini, "skip_directories", ".git");
 
 		var modListTxtPath = Path.Combine(profileDirectory, "modlist.txt");
 		if (!File.Exists(modListTxtPath))
@@ -269,47 +244,32 @@ internal class ModOrganizer : ObservableObject, IModManager
 		_stagePaths.Add(_overwriteDirectory);
 	}
 
-	/// <summary>Reads a [General] value from a profile's settings.ini, which MO2 creates with the profile.</summary>
-	/// <returns>The value, or null if the file or key is missing or unreadable.</returns>
-	private static string? ReadProfileSetting(string profileDirectory, string key)
+	/// <summary>Reads a profile's settings.ini, which MO2 creates with the profile.</summary>
+	/// <returns>The settings, or null if the file is missing or unreadable.</returns>
+	private static QSettingsIni? ReadProfileSettings(string profileDirectory)
 	{
 		var path = Path.Combine(profileDirectory, "settings.ini");
 		if (!File.Exists(path)) return null;
 
 		try
 		{
-			return new FileIniDataParser(new IniDataParser(IniParserConfig)).ReadFile(path, Encoding.UTF8)["General"][key];
+			return QSettingsIni.Read(path);
 		}
-		catch (Exception e) when (e is ParsingException or IOException or UnauthorizedAccessException)
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
 			Log.Warning($"Unable to read {path}: {e.Message}");
 			return null;
 		}
 	}
 
-	/// <summary>Converts a QSettings value to a bool the way QVariant does: "", "0" and "false" are false.</summary>
-	private static bool ParseBool(string? value, bool fallback)
-	{
-		if (value == null) return fallback;
+	/// <summary>A configurable MO2 folder, defaulting to %BASE_DIR%/<paramref name="defaultName" />.</summary>
+	private static string GetPath(QSettingsIni ini, string key, string defaultName, string baseDirectory) =>
+		(ini.GetString("Settings", key) ?? $"%BASE_DIR%/{defaultName}").Replace("%BASE_DIR%", baseDirectory);
 
-		value = value.Trim();
-		return value.Length != 0 && value != "0" && !value.Equals("false", StringComparison.OrdinalIgnoreCase);
-	}
-
-	private static string[] ParseList(string? value, string fallback)
-	{
-		return
-		[
-			.. (value ?? fallback).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-			.Select(s => s.ToLowerInvariant()),
-		];
-	}
-
-	private static string FormatByteArray(string path)
-	{
-		path = path.Trim('"');
-		if (path.StartsWith("@ByteArray(") && path.EndsWith(')')) path = path[11..^1];
-
-		return path.Replace(@"\\", @"\");
-	}
+	private static string[] GetList(QSettingsIni ini, string key, string fallback) =>
+	[
+		.. (ini.GetStringList("Settings", key) ?? [fallback])
+		.Select(s => s.Trim().ToLowerInvariant())
+		.Where(s => s.Length != 0),
+	];
 }
