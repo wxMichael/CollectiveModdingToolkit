@@ -61,7 +61,6 @@ public partial class Computer : ObservableObject
 	public static readonly string AppDataLocal =
 		Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-	public static readonly string AppDataRoaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 	public static readonly string Documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 	public static readonly string DocumentsFallout4 = Path.Combine(Documents, "My Games", "Fallout4");
 

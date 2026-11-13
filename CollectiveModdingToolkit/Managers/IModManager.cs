@@ -54,15 +54,6 @@ public interface IModManager
 
 	/// <summary>Lowercase folder names the manager ignores anywhere in a mod (MO2: <c>skip_directories</c>).</summary>
 	IReadOnlyList<string> SkipDirectories { get; }
-	//List<Module> Modules { get; }
-	//Dictionary<string, Module> ModulesWinning { get; }
-	//List<Archive> Archives { get; }
-	//AvaloniaDictionary<string, Archive> ArchivesWinning { get; }
-	//List<DLL> Dlls { get; }
-	//Dictionary<string, DLL> DllsWinning { get; }
-
-	//bool ReadSettings();
-
 
 	/// <summary>
 	///     Determines whether a file in the game folder comes from a managed mod or from the game folder itself.

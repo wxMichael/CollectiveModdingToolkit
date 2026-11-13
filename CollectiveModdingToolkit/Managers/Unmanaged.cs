@@ -28,8 +28,6 @@ namespace CollectiveModdingToolkit.Managers;
 
 internal class Unmanaged : ObservableObject, IModManager
 {
-	//public bool ReadSettings() => throw new NotImplementedException();
-
 	// Without a manager the game is always the registry install, which is also where Game looks; cached for this instance.
 	private string? _gamePath;
 	public string AppName { get; } = "Not Found";
