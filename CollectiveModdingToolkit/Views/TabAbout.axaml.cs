@@ -52,4 +52,7 @@ public partial class TabAbout : UserControl
 	}
 
 	private void Button_Click_ShowCopied(object? sender, RoutedEventArgs e) => OpenFlyout(sender);
+
+	private void Button_Click_ShowLicenses(object? sender, RoutedEventArgs e) =>
+		LicensesWindow.Open(TopLevel.GetTopLevel(this) as Window);
 }

@@ -55,8 +55,5 @@ public partial class AboutWindow : Window
 			aboutWindow.Show();
 	}
 
-	private void Button_Click_Close(object? sender, RoutedEventArgs e)
-	{
-		Close();
-	}
+	private void Button_Click_Close(object? sender, RoutedEventArgs e) => Close();
 }

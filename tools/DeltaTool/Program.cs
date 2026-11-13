@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -154,8 +155,6 @@ internal static class Program
 		return bad == 0 ? 0 : 1;
 	}
 
-	private sealed record Job(Edition From, Edition To, TrackedFile File, string FromPath, string ToPath);
-
 	private static int Create(string versionsDir, string outDir, Dictionary<string, string> options)
 	{
 		var force = options.ContainsKey("force");
@@ -209,12 +208,11 @@ internal static class Program
 		var newData = File.ReadAllBytes(job.ToPath);
 
 		if (!force && File.Exists(patchPath))
-		{
 			try
 			{
 				var existing = DeltaFormat.ReadInfo(File.ReadAllBytes(patchPath));
-				if (existing.OldCrc == System.IO.Hashing.Crc32.HashToUInt32(oldData)
-				    && existing.NewCrc == System.IO.Hashing.Crc32.HashToUInt32(newData))
+				if (existing.OldCrc == Crc32.HashToUInt32(oldData)
+				    && existing.NewCrc == Crc32.HashToUInt32(newData))
 				{
 					Console.WriteLine($"keep   {name}");
 					return;
@@ -224,7 +222,6 @@ internal static class Program
 			{
 				// Damaged or from an older format: remake it.
 			}
-		}
 
 		var clock = Stopwatch.StartNew();
 		var patch = DeltaCreator.Create(oldData, newData);
@@ -252,7 +249,7 @@ internal static class Program
 		}
 
 		File.WriteAllText(Path.Combine(outDir, "manifest.json"),
-			JsonSerializer.Serialize(new { format = (int)1, patches = entries },
+			JsonSerializer.Serialize(new { format = 1, patches = entries },
 				new JsonSerializerOptions { WriteIndented = true }));
 	}
 
@@ -309,4 +306,6 @@ internal static class Program
 		>= 1 << 10 => $"{bytes / 1024.0:F1} KB",
 		_ => $"{bytes} B",
 	};
+
+	private sealed record Job(Edition From, Edition To, TrackedFile File, string FromPath, string ToPath);
 }

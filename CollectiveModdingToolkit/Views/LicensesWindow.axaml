@@ -1,0 +1,102 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="using:CollectiveModdingToolkit.Models"
+        mc:Ignorable="d"
+        d:DesignWidth="560"
+        d:DesignHeight="620"
+        x:Class="CollectiveModdingToolkit.Views.LicensesWindow"
+        Title="Third-Party Licenses"
+        Icon="/Assets/Images/icon-cm-64.png"
+        Width="560"
+        Height="620"
+        MinWidth="360"
+        MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+	<Window.Styles>
+		<Style Selector="TextBlock">
+			<Setter Property="FontFamily" Value="{StaticResource Readable}" />
+		</Style>
+		<Style Selector="Button.Link">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="FontFamily" Value="{StaticResource Readable}" />
+			<Setter Property="HorizontalAlignment" Value="Right" />
+			<Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+				<Setter Property="TextBlock.TextDecorations" Value="Underline" />
+			</Style>
+			<Style Selector="^:pointerover, ^:pressed">
+				<Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
+				<Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+					<Setter Property="Background" Value="Transparent" />
+				</Style>
+			</Style>
+		</Style>
+	</Window.Styles>
+
+	<DockPanel Margin="10,10,10,5">
+		<TextBlock DockPanel.Dock="Bottom"
+		           Margin="0,5,0,0"
+		           Classes="Readable Smallest"
+		           HorizontalAlignment="Center">
+			<Italic>Escape will also close windows.</Italic>
+		</TextBlock>
+
+		<Button DockPanel.Dock="Bottom"
+		        HorizontalAlignment="Stretch"
+		        Content="Close"
+		        Click="Button_Click_Close" />
+
+		<TextBlock DockPanel.Dock="Top"
+		           Classes="Readable"
+		           Margin="0,0,0,8"
+		           TextWrapping="Wrap"
+		           Text="This program includes the following third-party software. Select a license to read it." />
+
+		<ScrollViewer Margin="0,0,0,8">
+			<ItemsControl x:Name="LicenseList">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="models:LicenseNotice">
+						<StackPanel Orientation="Horizontal"
+						            Spacing="6">
+
+							<TextBlock Classes="Readable"
+							           VerticalAlignment="Center"
+							           Text="{Binding Name}" />
+
+							<Button Content="{Binding License}"
+							        Classes="Link"
+							        Click="Button_Click_ShowLicense" />
+
+						</StackPanel>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</DockPanel>
+</Window>

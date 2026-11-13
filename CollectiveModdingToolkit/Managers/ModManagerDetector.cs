@@ -19,10 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using CollectiveModdingToolkit.Models;
-using NtQueryInformationProcessWrapper = CollectiveModdingToolkit.Models.NtQueryInformationProcessWrapper;
 
 namespace CollectiveModdingToolkit.Managers;
 

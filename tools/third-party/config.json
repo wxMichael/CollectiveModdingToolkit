@@ -1,0 +1,72 @@
+{
+	"_readme": "Inputs to tools/GenerateThirdPartyNotices.cs. NuGet packages are discovered automatically from the restored project; this file only holds what cannot be discovered.",
+
+	"static": [
+		{
+			"name": "bsdiff",
+			"license": "BSD 2-clause",
+			"details": [
+				"Copyright 2003-2005 Colin Percival",
+				"https://www.daemonology.net/bsdiff/  (bsdiff 4.3)",
+				"Used in: the delta patch generator, a C# port of bsdiff's matching algorithm and",
+				"its suffix-array construction (qsufsort, after Larsson and Sadakane's \"Faster Suffix Sorting\")."
+			],
+			"textFile": "tools/third-party/bsdiff-LICENSE.txt"
+		},
+		{
+			"name": "Zstandard",
+			"license": "BSD 3-clause",
+			"details": [
+				"https://github.com/facebook/zstd",
+				"ZstdSharp.Port is a port of Zstandard, so its license applies as well."
+			],
+			"textFile": "tools/third-party/zstd-LICENSE.txt"
+		},
+		{
+			"name": "Cascadia Code",
+			"license": "SIL Open Font License 1.1",
+			"details": [
+				"CascadiaMono.ttf, CascadiaMonoItalic.ttf",
+				"https://github.com/microsoft/cascadia-code"
+			],
+			"textFile": "CollectiveModdingToolkit/Assets/Fonts/LICENSE"
+		}
+	],
+
+	"overrides": {
+		"_readme": "Keyed by NuGet package id; a trailing * matches a prefix, the longest match wins. Fields: repo (GitHub URL, when the package metadata has none or only a redirect link), ref (commit/tag/branch; default is the commit from the package metadata), licensePath (path of the license file in the repo), name (display name of the group), skipBundledNotices (do not include the THIRD-PARTY-NOTICES file shipped inside the package), note (why).",
+
+		"SkiaSharp*": {
+			"repo": "https://github.com/mono/SkiaSharp",
+			"name": "SkiaSharp and HarfBuzzSharp",
+			"note": "The package metadata only links to a go.microsoft.com redirect."
+		},
+		"HarfBuzzSharp*": {
+			"repo": "https://github.com/mono/SkiaSharp",
+			"name": "SkiaSharp and HarfBuzzSharp",
+			"note": "Same repository as SkiaSharp."
+		},
+		"Svg.Custom": {
+			"licensePath": "src/Svg.Custom/LICENSE.TXT",
+			"name": "Svg.Custom",
+			"note": "Derived from SVG.NET and under the Microsoft Public License, unlike the rest of Svg.Skia."
+		},
+		"Microsoft.NETCore.App.Runtime.*": {
+			"name": ".NET"
+		},
+		"System.IO.Hashing": {
+			"name": ".NET",
+			"skipBundledNotices": true,
+			"note": "Its bundled notices repeat the runtime pack's."
+		},
+		"CommunityToolkit.Mvvm": {
+			"name": ".NET Community Toolkit (CommunityToolkit.Mvvm)",
+			"skipBundledNotices": true,
+			"note": "Its ThirdPartyNotices.txt covers code in other packages of that repository, not this one."
+		},
+		"ini-parser-netstandard": {
+			"ref": "master",
+			"note": "No commit in the package metadata."
+		}
+	}
+}

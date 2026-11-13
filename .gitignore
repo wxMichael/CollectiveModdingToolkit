@@ -44,3 +44,6 @@ desktop.ini
 # Runtime-created files
 *.xdelta
 cm-toolkit.log
+
+# Third-party license fetch cache (tools/GenerateThirdPartyNotices.cs)
+tools/third-party/.cache/

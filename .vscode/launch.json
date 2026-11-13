@@ -8,6 +8,26 @@
 			"projectPath": "C:\\Users\\Michael\\source\\repos\\CollectiveModdingToolkit\\CollectiveModdingToolkit\\CollectiveModdingToolkit.csproj",
 			"launchProfileName": "CollectiveModdingToolkit",
 			"launchConfigurationId": "CollectiveModdingToolkit"
+		},
+		{
+			"name": "Notices: Generate THIRD-PARTY-NOTICES.txt",
+			"type": "coreclr",
+			"request": "launch",
+			"program": "dotnet",
+			"args": ["run", "--file", "${workspaceFolder}/tools/GenerateThirdPartyNotices.cs"],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"stopAtEntry": false
+		},
+		{
+			"name": "Notices: Check THIRD-PARTY-NOTICES.txt is current",
+			"type": "coreclr",
+			"request": "launch",
+			"program": "dotnet",
+			"args": ["run", "--file", "${workspaceFolder}/tools/GenerateThirdPartyNotices.cs", "--", "--check"],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"stopAtEntry": false
 		}
 	]
 }

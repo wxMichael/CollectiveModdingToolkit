@@ -247,6 +247,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					        IsEnabled="False" />
 				</StackPanel>
 			</Grid>
+
+			<Button Content="Third-Party Licenses"
+			        Margin="0,20,0,0"
+			        HorizontalAlignment="Center"
+			        FontFamily="{StaticResource Readable}"
+			        Foreground="{DynamicResource TextBrush}"
+			        Click="Button_Click_ShowLicenses" />
 		</StackPanel>
 	</Grid>
 </UserControl>

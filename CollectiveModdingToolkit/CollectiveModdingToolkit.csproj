@@ -31,8 +31,12 @@
 
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
-		<!--<Content Include="Assets\Images\icon-64.ico" />
-		<Content Include="Assets\Images\icon-cm-64.ico" />-->
+		<AvaloniaResource Include="..\THIRD-PARTY-NOTICES.txt" Link="Assets\THIRD-PARTY-NOTICES.txt" />
+		<None Include="..\THIRD-PARTY-NOTICES.txt"
+			  Link="THIRD-PARTY-NOTICES.txt"
+			  CopyToOutputDirectory="PreserveNewest"
+			  CopyToPublishDirectory="PreserveNewest"
+			  ExcludeFromSingleFile="true" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -68,6 +72,19 @@
 			<DependentUpon>TabScanner.axaml</DependentUpon>
 		</Compile>
 	</ItemGroup>
+
+	<!-- THIRD-PARTY-NOTICES.txt is generated from the packages in use. Warn (offline, no network) when it has gone stale. -->
+	<Target Name="CheckThirdPartyNotices" BeforeTargets="BeforeBuild" Condition="'$(Configuration)' == 'Release'">
+		<Exec Command="dotnet run --file &quot;$(MSBuildThisFileDirectory)..\tools\GenerateThirdPartyNotices.cs&quot; -- --check"
+			  IgnoreExitCode="true"
+			  IgnoreStandardErrorWarningFormat="true"
+			  StandardOutputImportance="low"
+			  StandardErrorImportance="low">
+			<Output TaskParameter="ExitCode" PropertyName="NoticesCheckExitCode" />
+		</Exec>
+		<Warning Condition="'$(NoticesCheckExitCode)' != '0'"
+				 Text="THIRD-PARTY-NOTICES.txt is out of date with the packages in use. Regenerate it: dotnet run tools/GenerateThirdPartyNotices.cs" />
+	</Target>
 
 	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
 		<Exec Command="taskkill /f /fi &quot;imagename eq $(TargetName).exe&quot;" />

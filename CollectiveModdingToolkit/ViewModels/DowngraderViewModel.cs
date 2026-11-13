@@ -105,7 +105,8 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 	public partial bool IsBusy { get; private set; }
 
 	/// <summary>Overall progress of the running job, 0 to 100.</summary>
-	[ObservableProperty] public partial double Progress { get; private set; }
+	[ObservableProperty]
+	public partial double Progress { get; private set; }
 
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsDesiredOldGen), nameof(IsDesiredNextGen), nameof(IsDesiredAnniversary))]
@@ -140,6 +141,8 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 	}
 
 	private bool CanPatch => !IsBusy && Session.Game != null;
+
+	private static string PatchFolder => Path.Combine(AppPaths.DataFolder, "patches");
 
 	private async Task RefreshFilesAsync()
 	{
@@ -181,8 +184,6 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 
 		if (!IsBusy && exe is Edition.OldGen or Edition.NextGen or Edition.Anniversary) DesiredEdition = exe.Value;
 	}
-
-	private static string PatchFolder => Path.Combine(AppPaths.DataFolder, "patches");
 
 	[RelayCommand]
 	private void ShowAbout() => _dialogs.ShowAbout(AboutTitle, AboutText);

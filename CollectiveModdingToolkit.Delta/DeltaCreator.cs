@@ -37,7 +37,7 @@ namespace CollectiveModdingToolkit.Delta;
 ///     </para>
 ///     <para>
 ///         This is a C# port of code from bsdiff, Copyright 2003-2005 Colin Percival, used under its 2-clause BSD license.
-///         The full notice is in THIRD-PARTY-NOTICES.md.
+///         The full notice is in THIRD-PARTY-NOTICES.txt.
 ///     </para>
 /// </summary>
 public static class DeltaCreator
