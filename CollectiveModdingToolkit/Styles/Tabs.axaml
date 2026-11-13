@@ -29,6 +29,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="Margin" Value="2,0,0,0" />
 	</Style>
 
+	<!-- The Update tab is filled with the accent, so its header text needs the contrasting color -->
+	<Style Selector="TabItem.Update /template/ ContentPresenter#PART_HeaderPresenter">
+		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+	</Style>
+
 	<!-- The accent underline is themed via the TabItemLinePipe* keys in Theme/SemiOverrides.axaml -->
 
 	<Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">

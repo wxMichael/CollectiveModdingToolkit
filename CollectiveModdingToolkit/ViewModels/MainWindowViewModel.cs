@@ -35,13 +35,14 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public MainWindowViewModel(IShellService shell, IClipboardService clipboard, IDialogService dialogs)
 	{
 		Session = new GameSession();
+		Update = new UpdateViewModel(shell);
 		Overview = new OverviewViewModel(Session, shell);
 		F4SE = new F4SEViewModel(Session, shell);
 		Archives = new ArchivesViewModel(Session, shell, dialogs);
 		Scanner = new TabScannerViewModel(Session, shell, clipboard, dialogs);
 		Downgrader = new DowngraderViewModel(Session, shell, dialogs);
 		Tools = new ToolsViewModel(shell, clipboard);
-		Settings = new SettingsViewModel(shell);
+		Settings = new SettingsViewModel(shell, Update);
 		About = new AboutViewModel(shell, clipboard);
 	}
 
@@ -55,6 +56,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public ToolsViewModel Tools { get; }
 	public SettingsViewModel Settings { get; }
 	public AboutViewModel About { get; }
+	public UpdateViewModel Update { get; }
 
 	public bool IsBusy => Downgrader.IsBusy || !Archives.IsNotProcessing;
 
@@ -62,8 +64,15 @@ public sealed class MainWindowViewModel : ViewModelBase
 
 	public static string WindowTitle => AppInfo.WindowTitle;
 
-	/// <summary>Loads the game and hardware info in the background. Call once the window is showing.</summary>
-	public Task InitializeAsync() =>
-		// The XAML previewer instantiates this via Design.DataContext; skip game scanning and hardware probing there.
-		Design.IsDesignMode ? Task.CompletedTask : Session.LoadAsync();
+	/// <summary>
+	///     Loads the game and hardware info and checks for updates in the background. Call once the window is showing.
+	/// </summary>
+	public Task InitializeAsync()
+	{
+		// The XAML previewer instantiates this via Design.DataContext; skip game scanning, hardware probing, and
+		// update checks there.
+		if (Design.IsDesignMode) return Task.CompletedTask;
+
+		return Task.WhenAll(Session.LoadAsync(), Update.CheckOnLaunchAsync());
+	}
 }

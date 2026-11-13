@@ -71,5 +71,33 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				        Command="{Binding ShowSettingsFileCommand}" />
 			</StackPanel>
 		</ctrl:GroupBox>
+
+		<ctrl:GroupBox Header="Update Check">
+			<StackPanel Orientation="Vertical"
+			            Spacing="5"
+			            Width="340">
+				<CheckBox Content="Check on launch"
+				          FontWeight="Normal"
+				          IsChecked="{Binding Settings.CheckForUpdates, Mode=TwoWay}"
+				          ToolTip.Tip="Check Nexus Mods for a new version when the toolkit starts (at most once every 12 hours)." />
+				<Button Content="Check Now"
+				        Command="{Binding Update.CheckNowCommand}" />
+				<TextBlock Classes="Small"
+				           FontWeight="Normal"
+				           TextWrapping="Wrap"
+				           Text="Checking..."
+				           IsVisible="{Binding Update.IsChecking}" />
+				<TextBlock Classes="Small"
+				           FontWeight="Normal"
+				           TextWrapping="Wrap"
+				           Text="{Binding Update.StatusMessage}"
+				           IsVisible="{Binding Update.StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+				<TextBlock Classes="Small Bad"
+				           FontWeight="Normal"
+				           TextWrapping="Wrap"
+				           Text="{Binding Update.ErrorMessage}"
+				           IsVisible="{Binding Update.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+			</StackPanel>
+		</ctrl:GroupBox>
 	</StackPanel>
 </UserControl>

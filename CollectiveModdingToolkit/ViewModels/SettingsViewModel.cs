@@ -23,14 +23,16 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
-public sealed partial class SettingsViewModel(IShellService shell) : ViewModelBase
+public sealed partial class SettingsViewModel(IShellService shell, UpdateViewModel update) : ViewModelBase
 {
 	/// <summary>Design-time only.</summary>
-	public SettingsViewModel() : this(new ShellService())
+	public SettingsViewModel() : this(new ShellService(), new UpdateViewModel())
 	{
 	}
 
 	public static AppSettings Settings => AppSettings.Current;
+
+	public UpdateViewModel Update { get; } = update;
 
 	[RelayCommand]
 	private void ShowLogFile() => shell.Reveal(AppPaths.LogFile);

@@ -204,7 +204,7 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 		Progress<DowngradeMessage> log = new(m => AddMessage(m.Text, m.Kind));
 		Progress<double> progress = new(p => Progress = p);
 		var desired = DesiredEdition;
-		var options = new DowngradeOptions(Settings.KeepBackups, Settings.DeleteDeltas);
+		var options = new DowngradeOptions(Settings.DowngraderKeepBackups, Settings.DowngraderDeleteDeltas);
 		try
 		{
 			Log.Info($"Downgrader: switching to {Engine.Describe(desired)} in {game.GamePath}");

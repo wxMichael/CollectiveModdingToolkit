@@ -21,24 +21,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CollectiveModdingToolkit.Services;
-
-public enum UpdateSource
-{
-	/// <summary>GitHub and Nexus Mods.</summary>
-	Both,
-
-	/// <summary>GitHub releases, which come first.</summary>
-	GitHub,
-
-	/// <summary>Nexus Mods, which may be delayed to allow more testing.</summary>
-	Nexus,
-	Never,
-}
 
 /// <summary>
 ///     User settings, saved to <c>settings.json</c> in the app data folder whenever one changes.
@@ -63,15 +51,25 @@ public sealed partial class AppSettings : ObservableObject
 
 	[ObservableProperty] public partial LogLevel LogLevel { get; set; } = LogLevel.Info;
 
-	[ObservableProperty] private partial UpdateSource UpdateSource { get; set; } = UpdateSource.GitHub;
+	/// <summary>Check Nexus Mods for a newer version when the app starts.</summary>
+	[ObservableProperty]
+	public partial bool CheckForUpdates { get; set; } = true;
+
+	/// <summary>When the last successful update check finished, to limit automatic checks.</summary>
+	[ObservableProperty]
+	public partial DateTimeOffset? LastUpdateCheck { get; set; }
+
+	/// <summary>The newest version found by the last successful update check.</summary>
+	[ObservableProperty]
+	public partial string? LatestVersion { get; set; }
 
 	/// <summary>Downgrader: keep backups of the files being replaced.</summary>
 	[ObservableProperty]
-	public partial bool KeepBackups { get; set; } = true;
+	public partial bool DowngraderKeepBackups { get; set; } = true;
 
 	/// <summary>Downgrader: delete downloaded delta patches after use.</summary>
 	[ObservableProperty]
-	public partial bool DeleteDeltas { get; set; } = true;
+	public partial bool DowngraderDeleteDeltas { get; set; } = true;
 
 	// Scanner options. Each is saved as "scanner<Name>".
 	[ObservableProperty] public partial bool ScanOverviewIssues { get; set; } = true;
@@ -105,11 +103,17 @@ public sealed partial class AppSettings : ObservableObject
 					var root = document.RootElement;
 					if (TryReadEnum(root, "logLevel", out LogLevel level)) settings.LogLevel = level;
 
-					if (TryReadEnum(root, "updateSource", out UpdateSource source)) settings.UpdateSource = source;
+					if (TryReadBool(root, "checkForUpdates", out var checkUpdates))
+						settings.CheckForUpdates = checkUpdates;
 
-					if (TryReadBool(root, "keepBackups", out var keep)) settings.KeepBackups = keep;
+					if (TryReadDate(root, "lastUpdateCheck", out var lastCheck)) settings.LastUpdateCheck = lastCheck;
 
-					if (TryReadBool(root, "deleteDeltas", out var delete)) settings.DeleteDeltas = delete;
+					if (TryReadString(root, "latestVersion", out var latest)) settings.LatestVersion = latest;
+
+					if (TryReadBool(root, "downgraderKeepBackups", out var keep)) settings.DowngraderKeepBackups = keep;
+
+					if (TryReadBool(root, "downgraderDeleteDeltas", out var delete))
+						settings.DowngraderDeleteDeltas = delete;
 
 					if (TryReadBool(root, "scannerOverviewIssues", out var scanOverview))
 						settings.ScanOverviewIssues = scanOverview;
@@ -154,12 +158,14 @@ public sealed partial class AppSettings : ObservableObject
 		{
 			Directory.CreateDirectory(Path.GetDirectoryName(AppPaths.SettingsFile)!);
 			var json = JsonSerializer.Serialize(
-				new Dictionary<string, object>
+				new Dictionary<string, object?>
 				{
 					["logLevel"] = LogLevel.ToString(),
-					["updateSource"] = UpdateSource.ToString(),
-					["keepBackups"] = KeepBackups,
-					["deleteDeltas"] = DeleteDeltas,
+					["checkForUpdates"] = CheckForUpdates,
+					["lastUpdateCheck"] = LastUpdateCheck?.ToString("O"),
+					["latestVersion"] = LatestVersion,
+					["downgraderKeepBackups"] = DowngraderKeepBackups,
+					["downgraderDeleteDeltas"] = DowngraderDeleteDeltas,
 					["scannerOverviewIssues"] = ScanOverviewIssues,
 					["scannerWrongFormat"] = ScanWrongFormat,
 					["scannerLoosePrevis"] = ScanLoosePrevis,
@@ -202,5 +208,27 @@ public sealed partial class AppSettings : ObservableObject
 
 		value = element.GetBoolean();
 		return true;
+	}
+
+	private static bool TryReadString(JsonElement root, string name, out string value)
+	{
+		value = "";
+		if (!root.TryGetProperty(name, out var element) || element.ValueKind != JsonValueKind.String) return false;
+
+		value = element.GetString() ?? "";
+		return value.Length > 0;
+	}
+
+	private static bool TryReadDate(JsonElement root, string name, out DateTimeOffset value)
+	{
+		value = default;
+		if (!root.TryGetProperty(name, out var element) || element.ValueKind != JsonValueKind.String) return false;
+
+		if (DateTimeOffset.TryParse(element.GetString(), CultureInfo.InvariantCulture,
+			    DateTimeStyles.RoundtripKind, out value))
+			return true;
+
+		Log.Warning($"Ignoring invalid value for '{name}': {element.GetString()}");
+		return false;
 	}
 }

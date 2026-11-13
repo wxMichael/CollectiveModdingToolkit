@@ -85,6 +85,12 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			<TabItem Header="About">
 				<v:TabAbout DataContext="{Binding About}" />
 			</TabItem>
+			<TabItem Header="Update"
+			         Classes="Update"
+			         Background="{DynamicResource AccentBrush}"
+			         IsVisible="{Binding Update.IsUpdateAvailable}">
+				<v:TabUpdate DataContext="{Binding Update}" />
+			</TabItem>
 		</TabControl>
 	</dialogHost:DialogHost>
 </Window>

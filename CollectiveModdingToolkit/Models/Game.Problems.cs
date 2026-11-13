@@ -256,7 +256,7 @@ public partial class Game
 				? $"format {archive.ArchiveFormat ?? "unknown"}"
 				: $"version {archive.ArchiveVersion}";
 			AddProblem(ProblemType.InvalidArchive, Severity.Medium,
-				$"This archive has an unsupported {detail}. Fallout 4 archives are General or Texture, version 1, 7 or 8.",
+				$"This archive has an unsupported {detail}. Fallout 4 archives are General or Texture, version 1, 7, or 8.",
 				archive.Origin?.SourcePath ?? archive.PathFull, archive.Mod,
 				"It may be for another game, or corrupted. Re-download the mod it belongs to.");
 		}
