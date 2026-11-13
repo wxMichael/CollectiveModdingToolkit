@@ -1,0 +1,19 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+      - run: dotnet build CollectiveModdingToolkit.sln -c Release
+      - run: dotnet test CollectiveModdingToolkit.Tests -c Release
+      - name: Check third-party notices are current
+        run: dotnet run --file tools/GenerateThirdPartyNotices.cs -- --check
