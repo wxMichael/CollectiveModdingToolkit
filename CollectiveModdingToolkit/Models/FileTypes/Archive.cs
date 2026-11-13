@@ -31,8 +31,19 @@ public enum FailReason : byte
 {
 	Unknown,
 	FileNotFound,
+	NotBA2,
+	UnknownVersion,
+	InUse,
+	AccessDenied,
 	ReadFailed,
 	WriteFailed,
+}
+
+public enum PatchOutcome : byte
+{
+	Patched,
+	AlreadyPatched,
+	Failed,
 }
 
 public partial class Archive : ObservableObject, IFile
@@ -91,10 +102,35 @@ public partial class Archive : ObservableObject, IFile
 
 	public FileOrigin? Origin { get; private set; }
 
-	/// <summary>
-	///     Patching runs on a background thread, but these properties are bound to the UI, so notifications raised
-	///     off the UI thread are posted over to it.
-	/// </summary>
+	/// <summary>Why the last header read failed, or null if it succeeded.</summary>
+	private FailReason? _readFailReason;
+
+	/// <summary>A user-facing explanation of a failed patch.</summary>
+	public static string Describe(FailReason reason) => reason switch
+	{
+		FailReason.FileNotFound => "File not found.",
+		FailReason.NotBA2 => "Not a BA2 archive (no BTDX header).",
+		FailReason.UnknownVersion => "Unknown archive version. Only v1, v7, and v8 can be patched.",
+		FailReason.InUse => "The file is in-use. Close the game, Creation Kit, or other apps and try again.",
+		FailReason.AccessDenied => "Access denied. The file may be read-only or need administrator rights.",
+		FailReason.ReadFailed => "Unable to read the file.",
+		FailReason.WriteFailed => "Unable to write to the file.",
+		_ => "Cause unknown.",
+	};
+
+	/// <summary>Sorts an I/O failure into in-use, access denied, or <paramref name="fallback" />.</summary>
+	private static FailReason Classify(Exception e, FailReason fallback)
+	{
+		const int sharingViolation = 32;
+		const int lockViolation = 33;
+		return e switch
+		{
+			UnauthorizedAccessException => FailReason.AccessDenied,
+			IOException when (e.HResult & 0xFFFF) is sharingViolation or lockViolation => FailReason.InUse,
+			_ => fallback,
+		};
+	}
+
 	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
 	{
 		if (Dispatcher.UIThread.CheckAccess())
@@ -109,7 +145,7 @@ public partial class Archive : ObservableObject, IFile
 		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
 		Priority = origin?.Priority ?? 0;
 
-		// The constructor read PathFull; if the real file lives elsewhere (mod folder), read that instead.
+		// The constructor read PathFull; if the real file is elsewhere (mod folder), read that instead.
 		if (origin != null && !string.Equals(origin.SourcePath, PathFull, StringComparison.OrdinalIgnoreCase))
 			ReadHeader();
 	}
@@ -117,21 +153,26 @@ public partial class Archive : ObservableObject, IFile
 	[MemberNotNull(nameof(IsReadable))]
 	private void ReadHeader()
 	{
+		_readFailReason = null;
 		var header = new byte[12];
 		int bytesRead;
 		try
 		{
 			using var file = File.OpenRead(RealPath);
-			bytesRead = file.Read(header, 0, header.Length);
+			bytesRead = file.ReadAtLeast(header, header.Length, false);
 		}
-		catch (IOException)
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
+			_readFailReason = e is FileNotFoundException or DirectoryNotFoundException
+				? FailReason.FileNotFound
+				: Classify(e, FailReason.ReadFailed);
 			IsReadable = false;
 			return;
 		}
 
 		if (bytesRead != header.Length || !header.AsSpan(0, 4).SequenceEqual(Magic.BTDX))
 		{
+			_readFailReason = FailReason.NotBA2;
 			IsReadable = false;
 			return;
 		}
@@ -139,14 +180,10 @@ public partial class Archive : ObservableObject, IFile
 		ArchiveVersion = header[4];
 		IsOG = ArchiveVersion == 1;
 		IsNG = ArchiveVersion is 8 or 7;
-		//if (ArchiveVersion is not 1 and not 7 and not 8)
-		//	IsUnknown = true;
 
 		if (header.AsSpan(8, 4).SequenceEqual(Magic.GNRL))
 			ArchiveFormat = "GNRL";
 		else if (header.AsSpan(8, 4).SequenceEqual(Magic.DX10)) ArchiveFormat = "DX10";
-		//else
-		//	IsUnknown = true;
 
 		IsReadable = true;
 	}
@@ -165,32 +202,28 @@ public partial class Archive : ObservableObject, IFile
 		return file.ReadByte();
 	}
 
-	internal void SetVersion(byte version)
+	/// <summary>
+	///     Sets the header version to v1 (OG) or v8 (NG). An archive already usable by the target (v1 for v1; v7 or v8
+	///     for v8) is left untouched. Only v1, v7, and v8 archives are changed.
+	/// </summary>
+	internal PatchOutcome SetVersion(byte version)
 	{
-		PatchSuccessful = false;
-		PatchFailed = true;
+		PatchSuccessful = null;
+		PatchFailed = null;
 		PatchFailReason = null;
 
-		if (!File.Exists(RealPath))
-		{
-			PatchFailReason = FailReason.FileNotFound;
-			return;
-		}
+		if (!File.Exists(RealPath)) return Fail(FailReason.FileNotFound);
 
 		ReadHeader();
+		if (_readFailReason is { } readFailReason) return Fail(readFailReason);
+		if (ArchiveVersion is not (1 or 7 or 8)) return Fail(FailReason.UnknownVersion);
 
-		if (!IsReadable.Value)
-		{
-			PatchFailReason = FailReason.ReadFailed;
-			return;
-		}
-
-
-		if (version == ArchiveVersion)
+		var alreadyPatched = version == 1 ? ArchiveVersion == 1 : ArchiveVersion is 7 or 8;
+		if (alreadyPatched)
 		{
 			PatchSuccessful = true;
 			PatchFailed = false;
-			return;
+			return PatchOutcome.AlreadyPatched;
 		}
 
 		try
@@ -204,8 +237,7 @@ public partial class Archive : ObservableObject, IFile
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
-			PatchFailReason = FailReason.WriteFailed;
-			return;
+			return Fail(Classify(e, FailReason.WriteFailed));
 		}
 
 		ArchiveVersion = version;
@@ -213,5 +245,14 @@ public partial class Archive : ObservableObject, IFile
 		IsNG = ArchiveVersion is 8 or 7;
 		PatchSuccessful = true;
 		PatchFailed = false;
+		return PatchOutcome.Patched;
+	}
+
+	private PatchOutcome Fail(FailReason reason)
+	{
+		PatchSuccessful = false;
+		PatchFailed = true;
+		PatchFailReason = reason;
+		return PatchOutcome.Failed;
 	}
 }

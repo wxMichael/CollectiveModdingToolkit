@@ -78,6 +78,18 @@ public partial class ArchivesViewModel : GameViewModelBase
 
 	[ObservableProperty] public partial string ArchiveFilter { get; set; } = string.Empty;
 
+	/// <summary>The result of the last Patch All, e.g. "3 patched, 120 already v1, 1 failed", or null.</summary>
+	[ObservableProperty]
+	public partial string? PatchSummary { get; private set; }
+
+	/// <summary>"Name: reason" for each archive that failed in the last Patch All.</summary>
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(HasPatchFailures))]
+	[NotifyCanExecuteChangedFor(nameof(ShowPatchFailuresCommand))]
+	public partial IReadOnlyList<string> PatchFailures { get; private set; } = [];
+
+	public bool HasPatchFailures => PatchFailures.Count > 0;
+
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(PatchArchivesCommand))]
 	public partial bool IsNotProcessing { get; set; } = true;
@@ -161,23 +173,46 @@ public partial class ArchivesViewModel : GameViewModelBase
 		_dialogs.ShowAbout(AboutTitle, AboutText);
 	}
 
+	[RelayCommand(CanExecute = nameof(HasPatchFailures))]
+	private void ShowPatchFailures()
+	{
+		_dialogs.ShowFileList("Patch Failures", "These archives could not be patched:", PatchFailures);
+	}
+
 	[RelayCommand(CanExecute = nameof(IsNotProcessing))]
 	private async Task PatchArchives()
 	{
 		IsNotProcessing = false;
+		PatchSummary = null;
+		PatchFailures = [];
 		// Snapshot on the UI thread; the filter or a refresh may change the list while patching runs.
 		var archives = DisplayedArchives.ToList();
 		var version = DesiredArchiveVersion;
+		List<(Archive Archive, PatchOutcome Outcome)> results;
 		try
 		{
-			await Task.Run(() =>
-			{
-				foreach (var archive in archives) archive.SetVersion(version);
-			});
+			results = await Task.Run(() => archives.Select(archive => (archive, archive.SetVersion(version))).ToList());
 		}
 		finally
 		{
 			IsNotProcessing = true;
 		}
+
+		var patched = results.Count(r => r.Outcome == PatchOutcome.Patched);
+		var already = results.Count(r => r.Outcome == PatchOutcome.AlreadyPatched);
+		List<string> failures =
+		[
+			.. results.Where(r => r.Outcome == PatchOutcome.Failed).Select(r =>
+				$"{r.Archive.Name}: {Archive.Describe(r.Archive.PatchFailReason ?? FailReason.Unknown)}"),
+		];
+
+		var target = version == 1 ? "v1" : "v7/v8";
+		PatchSummary = $"{patched} patched, {already} already {target}, {failures.Count} failed";
+		PatchFailures = failures;
+		Log.Info($"Archive Patcher (to v{version}): {PatchSummary}.");
+		foreach (var failure in failures) Log.Info($"Archive Patcher failed: {failure}");
+
+		// The Overview's OG/NG counts come from the loaded game; reload it so they match the files.
+		if (patched > 0) await Session.RefreshAsync();
 	}
 }

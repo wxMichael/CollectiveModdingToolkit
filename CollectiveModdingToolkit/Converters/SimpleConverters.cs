@@ -59,15 +59,7 @@ public sealed class PatchFailConverter : IValueConverter
 	{
 		if (value == null) return BindingOperations.DoNothing;
 
-		var failReason = (FailReason)value;
-
-		return failReason switch
-		{
-			FailReason.FileNotFound => "Patching Failed: File not found.",
-			FailReason.ReadFailed => "Patching Failed: Unable to read file.",
-			FailReason.WriteFailed => "Patching Failed: Unable write to file.",
-			_ => "Patching Failed: Cause unknown.",
-		};
+		return $"Patching failed: {Archive.Describe((FailReason)value)}";
 	}
 
 	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
