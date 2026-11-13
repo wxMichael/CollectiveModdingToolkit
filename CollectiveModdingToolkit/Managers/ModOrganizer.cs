@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -37,17 +38,42 @@ internal class ModOrganizer : ObservableObject, IModManager
 	private const string SupportedGameName = "Fallout 4";
 	private const string DefaultProfileName = "Default";
 
+	/// <summary>
+	///     The instance MO2 was told to use on its command line, or null if none. An empty string means the portable instance.
+	/// </summary>
+	private readonly string? _launchInstance;
+
+	private readonly DateTime? _launchTimeUtc;
+
 	private readonly List<string> _stagePaths = [];
+	private string _modDirectory = string.Empty;
 
 	private string? _modListTxtPath;
-	private string _modDirectory = string.Empty;
 	private string _overwriteDirectory = string.Empty;
 	private string _profilesDirectory = string.Empty;
 
 	/// <param name="exePath">Full path of the running ModOrganizer.exe.</param>
-	public ModOrganizer(string exePath)
+	/// <param name="process">The running MO2 process, used to read the instance it was launched with.</param>
+	public ModOrganizer(string exePath, Process? process = null)
 	{
 		AppPath = exePath;
+		if (process != null)
+		{
+			if (NtQueryInformationProcessWrapper.GetCommandLineArguments(process.Handle) is { } arguments)
+				_launchInstance = GetInstanceArgument(arguments);
+			else
+				Log.Warning("Unable to read Mod Organizer's command line");
+
+			try
+			{
+				_launchTimeUtc = process.StartTime.ToUniversalTime();
+			}
+			catch (Exception e) when (e is Win32Exception or InvalidOperationException)
+			{
+				Log.Warning($"Unable to read when Mod Organizer started: {e.Message}");
+			}
+		}
+
 		AppFolder = Directory.GetParent(AppPath)!;
 		AppVersionString = Utilities.GetFileVersion(AppPath, true);
 		AppVersion = AppVersionString == null ? null : new Version(AppVersionString);
@@ -116,8 +142,8 @@ internal class ModOrganizer : ObservableObject, IModManager
 
 	/// <summary>
 	///     Finds the ModOrganizer.ini of the running instance, the same way MO2 does: a portable.txt next to the exe
-	///     forces the portable instance; otherwise the registry's current global instance, or the portable instance
-	///     when no global instance is set.
+	///     forces the portable instance; otherwise the instance from MO2's command line, then the registry's current
+	///     global instance, or the portable instance when no global instance is set.
 	/// </summary>
 	/// <returns>The ini path, or null after reporting why it couldn't be found.</returns>
 	private string? FindIniPath()
@@ -134,8 +160,21 @@ internal class ModOrganizer : ObservableObject, IModManager
 		}
 
 		string? instance;
+		DateTime? registryWritten;
 		using (var key = Registry.CurrentUser.OpenSubKey(MO2RegistryPath))
+		{
 			instance = key?.GetValue("CurrentInstance") as string;
+			registryWritten = key == null ? null : RegistryKeyInfo.GetLastWriteTimeUtc(key);
+		}
+
+		// MO2 uses an instance from its command line instead of the registry's, but forgets it when it restarts
+		// itself. Picking another instance writes the registry, so once the registry has been written since MO2
+		// started, the registry is right. A restart to apply settings writes nothing and can't be detected.
+		if (_launchInstance != null && !(registryWritten > _launchTimeUtc))
+		{
+			Log.Info($"Using the Mod Organizer instance from its command line: \"{_launchInstance}\"");
+			instance = _launchInstance;
+		}
 
 		if (string.IsNullOrEmpty(instance))
 		{
@@ -242,6 +281,81 @@ internal class ModOrganizer : ObservableObject, IModManager
 			}
 
 		_stagePaths.Add(_overwriteDirectory);
+	}
+
+	/// <summary>
+	///     Finds the instance in MO2's command line the way MO2 does (boost::program_options).
+	///     "-i Name", "-iName", "--instance Name", or "--instance=Name", where a following option means no value was given.
+	///     A "moshortcut://Instance:Executable" first argument overrides "-i".
+	/// </summary>
+	/// <param name="arguments">The command line, starting with the program.</param>
+	/// <returns>The instance, an empty string for the portable instance, or null if none was given.</returns>
+	internal static string? GetInstanceArgument(IReadOnlyList<string> arguments)
+	{
+		const string shortcutPrefix = "moshortcut://";
+
+		string? instance = null;
+		string? firstPositional = null;
+		var onlyPositionals = false;
+
+		for (var i = 1; i < arguments.Count; i++)
+		{
+			var argument = arguments[i];
+
+			if (onlyPositionals || argument.Length < 2 || argument[0] != '-')
+			{
+				firstPositional ??= argument;
+				continue;
+			}
+
+			if (argument == "--")
+			{
+				onlyPositionals = true;
+			}
+			else if (argument.StartsWith("--"))
+			{
+				var equals = argument.IndexOf('=');
+				var name = equals < 0 ? argument[2..] : argument[2..equals];
+				if (name == "instance")
+				{
+					if (equals >= 0) instance = argument[(equals + 1)..];
+					else if (TakeValue(arguments, ref i) is { } value) instance = value;
+				}
+				else if (name == "profile" && equals < 0)
+				{
+					i++; // The profile's value is the next argument.
+				}
+			}
+			else if (argument[1] == 'i')
+			{
+				if (argument.Length > 2) instance = argument[2..];
+				else if (TakeValue(arguments, ref i) is { } value) instance = value;
+			}
+			else if (argument == "-p")
+			{
+				i++;
+			}
+		}
+
+		if (firstPositional != null && firstPositional.StartsWith(shortcutPrefix))
+		{
+			var separator = firstPositional.IndexOf(':', shortcutPrefix.Length);
+			if (separator >= 0) return firstPositional[shortcutPrefix.Length..separator];
+		}
+
+		return instance;
+
+		// The optional value of -i/--instance may also be the next argument, unless that's another option.
+		static string? TakeValue(IReadOnlyList<string> arguments, ref int i)
+		{
+			if (i + 1 >= arguments.Count) return null;
+
+			var next = arguments[i + 1];
+			if (next.Length > 1 && next[0] == '-') return null;
+
+			i++;
+			return next;
+		}
 	}
 
 	/// <summary>Reads a profile's settings.ini, which MO2 creates with the profile.</summary>

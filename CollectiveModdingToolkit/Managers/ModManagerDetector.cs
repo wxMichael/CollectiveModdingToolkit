@@ -80,7 +80,7 @@ public static class ModManagerDetector
 					break;
 				}
 
-				if (exePath != null && FromExePath(exePath) is { } manager) return manager;
+				if (exePath != null && FromExePath(exePath, parent) is { } manager) return manager;
 				break;
 			}
 
@@ -90,10 +90,10 @@ public static class ModManagerDetector
 		return new Unmanaged();
 	}
 
-	private static IModManager? FromExePath(string exePath) =>
+	private static IModManager? FromExePath(string exePath, Process? process = null) =>
 		Path.GetFileNameWithoutExtension(exePath).ToLowerInvariant() switch
 		{
-			"modorganizer" => new ModOrganizer(exePath),
+			"modorganizer" => new ModOrganizer(exePath, process),
 			"vortex" => new Vortex(exePath),
 			_ => null,
 		};
