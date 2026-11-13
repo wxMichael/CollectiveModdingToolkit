@@ -149,6 +149,7 @@ public partial class Game
 
 			var optionalTool = BinariesCK.Contains(binary);
 			var isF4SE = binary.Name.StartsWith("f4se_", StringComparison.OrdinalIgnoreCase);
+			var isBaseGameFile = !isF4SE;
 
 			if (binary.GameVersion == Models.GameVersion.NotFound)
 			{
@@ -166,12 +167,24 @@ public partial class Game
 				continue;
 			}
 
-			var what = binary.GameVersion switch
+			string what;
+			var supportedByDowngrader = false;
+			switch (binary.GameVersion)
 			{
-				Models.GameVersion.Unknown => "an unrecognized version",
-				Models.GameVersion.Obsolete => "an outdated version",
-				_ => $"for {binary.GameVersion}",
-			};
+				case Models.GameVersion.Unknown:
+					what = "an unrecognized version";
+					break;
+
+				case Models.GameVersion.Obsolete:
+					what = "an outdated version";
+					break;
+
+				default:
+					what = $"for {binary.GameVersion}";
+					supportedByDowngrader = isBaseGameFile;
+					break;
+			}
+
 			AddProblem(
 				ProblemType.WrongVersion,
 				optionalTool ? Severity.Low : Severity.Medium,
@@ -179,8 +192,10 @@ public partial class Game
 				binary.Origin?.SourcePath ?? binary.PathFull,
 				binary.Mod,
 				isF4SE
-					? $"Install the F4SE build that matches your game ({GameVersion})."
-					: "Update or replace it so it matches your game version.",
+					? $"Install the F4SE version for {GameVersion} or use the Downgrader."
+					: supportedByDowngrader
+						? "Use the Downgrader to switch versions."
+						: "Update your game or verify its files.",
 				url: isF4SE ? UrlF4SE : null);
 		}
 	}
