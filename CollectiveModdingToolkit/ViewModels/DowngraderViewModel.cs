@@ -83,7 +83,7 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 	{
 		_dialogs = dialogs;
 		_source = source ?? new HttpPatchSource();
-		session.PropertyChanged += (_, e) =>
+		session.PropertyChanged += (sender, e) =>
 		{
 			if (e.PropertyName != nameof(GameSession.Game)) return;
 
