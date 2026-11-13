@@ -41,24 +41,10 @@ internal sealed partial class Vortex : ObservableObject, IModManager
 	private readonly Dictionary<string, DeployedFile> _deployed = new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<string> _stagePaths = [];
 
-	/// <summary>(IDE/Debug-only) Fake the app being launched by Vortex.</summary>
-	public Vortex()
+	/// <param name="exePath">Full path of the running Vortex.exe.</param>
+	public Vortex(string exePath)
 	{
-#if !DEBUG
-		throw new NotImplementedException();
-#else
-		AppPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Vortex",
-			"Vortex.exe");
-		AppVersionString = Utilities.GetFileVersion(AppPath, true);
-		AppVersion = AppVersionString == null ? null : new Version(AppVersionString);
-		Refresh();
-#endif
-	}
-
-	public Vortex(ProcessModule? processModule)
-	{
-		ArgumentNullException.ThrowIfNull(processModule);
-		AppPath = processModule.FileName;
+		AppPath = exePath;
 		AppVersionString = Utilities.GetFileVersion(AppPath, true);
 		AppVersion = AppVersionString == null ? null : new Version(AppVersionString);
 		Refresh();

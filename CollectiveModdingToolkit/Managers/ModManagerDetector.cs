@@ -19,21 +19,32 @@
  */
 
 using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Services;
 
 namespace CollectiveModdingToolkit.Managers;
 
 /// <summary>Works out which mod manager (if any) launched this app.</summary>
 public static class ModManagerDetector
 {
+	/// <summary>
+	///     Debug builds only: the full path of a ModOrganizer.exe or Vortex.exe to act as if launched by, for running
+	///     from the IDE.
+	/// </summary>
+	private const string DebugManagerVariable = "CMT_DEBUG_MANAGER";
+
 	public static IModManager Detect()
 	{
 #if DEBUG
-		// Set CMT_DEBUG_MANAGER=Vortex (e.g. in launchSettings.json) to simulate Vortex; defaults to MO2.
-		return string.Equals(Environment.GetEnvironmentVariable("CMT_DEBUG_MANAGER"), "Vortex",
-			StringComparison.OrdinalIgnoreCase)
-			? new Vortex()
-			: new ModOrganizer();
-#else
+		if (Environment.GetEnvironmentVariable(DebugManagerVariable) is { Length: > 0 } debugPath &&
+		    FromExePath(debugPath) is { } debugManager)
+			return debugManager;
+#endif
+
 		var processHandle = Computer.CurrentProcess;
 		var bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
 		PROCESS_BASIC_INFORMATION pbi = new();
@@ -56,19 +67,34 @@ public static class ModManagerDetector
 
 			if (parent.ProcessName == "explorer") break;
 
-			switch (parent.ProcessName)
+			if (parent.ProcessName is "ModOrganizer" or "Vortex")
 			{
-				case "ModOrganizer":
-					return new ModOrganizer(parent.MainModule);
-				case "Vortex":
-					return new Vortex(parent.MainModule);
-				default:
-					processHandle = parent.Handle;
+				string? exePath;
+				try
+				{
+					exePath = parent.MainModule?.FileName;
+				}
+				catch (Win32Exception e)
+				{
+					Log.Warning($"Unable to read the path of {parent.ProcessName}: {e.Message}");
 					break;
+				}
+
+				if (exePath != null && FromExePath(exePath) is { } manager) return manager;
+				break;
 			}
+
+			processHandle = parent.Handle;
 		}
 
 		return new Unmanaged();
-#endif
 	}
+
+	private static IModManager? FromExePath(string exePath) =>
+		Path.GetFileNameWithoutExtension(exePath).ToLowerInvariant() switch
+		{
+			"modorganizer" => new ModOrganizer(exePath),
+			"vortex" => new Vortex(exePath),
+			_ => null,
+		};
 }

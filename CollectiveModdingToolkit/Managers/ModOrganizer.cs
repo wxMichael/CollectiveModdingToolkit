@@ -28,7 +28,7 @@ using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using IniParser;
-using IniParser.Model;
+using IniParser.Exceptions;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Microsoft.Win32;
@@ -38,6 +38,7 @@ namespace CollectiveModdingToolkit.Managers;
 internal class ModOrganizer : ObservableObject, IModManager
 {
 	private const string MO2RegistryPath = @"Software\Mod Organizer Team\Mod Organizer";
+	private const string SupportedGameName = "Fallout 4";
 
 	private static readonly IniParserConfiguration IniParserConfig = new()
 	{
@@ -52,98 +53,27 @@ internal class ModOrganizer : ObservableObject, IModManager
 
 	private readonly List<string> _stagePaths = [];
 
-	private IniData? _appIniData;
-
-	private string _baseDirectory = string.Empty;
-
-	private bool? _isPortable;
-	private string _modDirectory = string.Empty;
 	private string? _modListTxtPath;
+	private string _modDirectory = string.Empty;
 	private string _overwriteDirectory = string.Empty;
-
 	private string _profilesDirectory = string.Empty;
-	//private bool _profile_local_inis = true;
-	//private bool _profile_local_saves = false;
-	//private bool _profile_archive_invalidation = false;
-	//private string[] _skip_file_suffixes = [];
-	//private string[] _skip_directories = [];
-	//private string[] _executable_blacklist = [];
-	//private readonly bool _moddingLinked = false;
 
-#pragma warning disable IDE0079 // Remove unnecessary suppression
-#pragma warning disable CS0162 // Unreachable code detected
-	public ModOrganizer()
+	/// <param name="exePath">Full path of the running ModOrganizer.exe.</param>
+	public ModOrganizer(string exePath)
 	{
-#if !DEBUG
-		throw new NotImplementedException();
-#endif
-		AppPath = @"C:\Modding\MO2\ModOrganizer.exe";
-		AppFolder = Directory.GetParent(AppPath) ?? throw new NullReferenceException($"Parent of {AppPath}");
-		AppVersionString = Utilities.GetFileVersion(AppPath, true);
-		AppVersion = AppVersionString == null ? null : new Version(AppVersionString);
-		Refresh();
-	}
-#pragma warning restore CS0162 // Unreachable code detected
-#pragma warning restore IDE0079 // Remove unnecessary suppression
-
-	public ModOrganizer(ProcessModule? processModule)
-	{
-		ArgumentNullException.ThrowIfNull(processModule);
-		AppPath = processModule.FileName;
+		AppPath = exePath;
 		AppFolder = Directory.GetParent(AppPath)!;
 		AppVersionString = Utilities.GetFileVersion(AppPath, true);
 		AppVersion = AppVersionString == null ? null : new Version(AppVersionString);
-		var ver = processModule.FileVersionInfo.FileVersion;
-		if (ver != null && ver.Contains("-ML"))
-			//_moddingLinked = true;
-			AppVersionString = ver;
 
-		Refresh();
+		// ModdingLinked builds add a "-ML" suffix to the version; show the full version for those.
+		var fileVersion = FileVersionInfo.GetVersionInfo(AppPath).FileVersion;
+		if (fileVersion != null && fileVersion.Contains("-ML")) AppVersionString = fileVersion;
+
+		if (ReadSettings()) GetStagePaths();
 	}
 
 	public DirectoryInfo AppFolder { get; }
-
-	private string CurrentInstance
-	{
-		get
-		{
-			// TODO: Handling for ERROR return value.
-			if (field != string.Empty) return field;
-
-			using var key = Registry.CurrentUser.OpenSubKey(MO2RegistryPath);
-			if (key == null)
-			{
-				ErrorReporter.Current.Critical(typeof(NullReferenceException),
-					$"Registry key missing:\n{MO2RegistryPath}");
-				return "ERROR";
-			}
-
-			var value = key.GetValue("CurrentInstance");
-			if (value == null)
-			{
-				ErrorReporter.Current.Critical(typeof(NullReferenceException),
-					$"Registry key missing:\n{MO2RegistryPath}\\CurrentInstance");
-				return "ERROR";
-			}
-
-			field = (string)value;
-			return field;
-		}
-
-		set;
-	} = string.Empty;
-
-	private bool IsPortable
-	{
-		get
-		{
-			if (_isPortable != null) return _isPortable.Value;
-
-			_isPortable = File.Exists(Path.Combine(AppFolder.FullName, "portable.txt")) ||
-			              CurrentInstance == string.Empty;
-			return _isPortable.Value;
-		}
-	}
 
 	public string AppName { get; } = "Mod Organizer";
 	public string AppPath { get; }
@@ -153,7 +83,6 @@ internal class ModOrganizer : ObservableObject, IModManager
 
 	public string? Profile { get; private set; }
 
-	//public string? StagePath { get; private set; }
 	public string GameIniFolderPath { get; private set; } = string.Empty;
 	public string PluginsTxtPath { get; private set; } = string.Empty;
 	public IReadOnlyList<string> StagePaths => _stagePaths;
@@ -199,90 +128,106 @@ internal class ModOrganizer : ObservableObject, IModManager
 		return File.Exists(fullPath) ? new FileOrigin(FileOriginKind.GameFolder, fullPath) : null;
 	}
 
-	private void Refresh()
+	/// <summary>
+	///     Finds the ModOrganizer.ini of the running instance, the same way MO2 does: a portable.txt next to the exe
+	///     forces the portable instance; otherwise the registry's current global instance, falling back to portable.
+	/// </summary>
+	/// <returns>The ini path, or null after reporting why it couldn't be found.</returns>
+	private string? FindIniPath()
 	{
-		GamePath = null;
-		Profile = null;
-		//StagePath = null;
-		GameIniFolderPath = string.Empty;
-		PluginsTxtPath = string.Empty;
-		_stagePaths.Clear();
-		_modListTxtPath = null;
-		_appIniData = null;
-		//_profileIniData = null;
-		CurrentInstance = string.Empty;
-		_isPortable = null;
+		var portableIni = Path.Combine(AppFolder.FullName, "ModOrganizer.ini");
 
-		_baseDirectory = string.Empty;
-		_modDirectory = string.Empty;
-		_overwriteDirectory = string.Empty;
-		_profilesDirectory = string.Empty;
-		SkipFileSuffixes = [".mohidden"];
-		SkipDirectories = [".git"];
-		//_profile_local_inis = true;
-		//_profile_local_saves = false;
-		//_profile_archive_invalidation = false;
-		//_skip_file_suffixes = [];
-		//_skip_directories = [];
-		//_executable_blacklist = [];
+		if (File.Exists(Path.Combine(AppFolder.FullName, "portable.txt")))
+		{
+			if (File.Exists(portableIni)) return portableIni;
 
-		if (!ReadSettings()) return;
+			ErrorReporter.Current.Critical(message:
+				$"Mod Organizer is set up as portable (portable.txt exists) but has no ModOrganizer.ini:\n{AppFolder.FullName}");
+			return null;
+		}
 
-		GetStagePaths();
+		string? instance;
+		using (var key = Registry.CurrentUser.OpenSubKey(MO2RegistryPath))
+			instance = key?.GetValue("CurrentInstance") as string;
+
+		if (!string.IsNullOrEmpty(instance))
+		{
+			var instanceIni = Path.Combine(Computer.AppDataLocal, "ModOrganizer", instance, "ModOrganizer.ini");
+			if (File.Exists(instanceIni)) return instanceIni;
+		}
+
+		if (File.Exists(portableIni)) return portableIni;
+
+		ErrorReporter.Current.Critical(message: string.IsNullOrEmpty(instance)
+			? $"Unable to find ModOrganizer.ini for this Mod Organizer instance:\n{AppFolder.FullName}"
+			: $"Unable to find ModOrganizer.ini for the Mod Organizer instance \"{instance}\".");
+		return null;
 	}
 
 	private bool ReadSettings()
 	{
-		var iniPath = IsPortable
-			? Path.Combine(AppFolder.FullName, "ModOrganizer.ini")
-			: Path.Combine(Computer.AppDataLocal, "ModOrganizer", CurrentInstance, "ModOrganizer.ini");
+		var iniPath = FindIniPath();
+		if (iniPath == null) return false;
 
-		// TODO: filenotfound
 		FileIniDataParser parser = new(new IniDataParser(IniParserConfig));
 
-		// TODO: Other encodings?
-		_appIniData = parser.ReadFile(iniPath, Encoding.UTF8);
-		// TODO: handle null. test if even actually possible?
-		if (_appIniData == null)
+		IniParser.Model.IniData iniData;
+		try
 		{
-			ErrorReporter.Current.Critical(typeof(NullReferenceException), $"Unable to read file:\n{iniPath}");
-			GameIniFolderPath = string.Empty;
-			PluginsTxtPath = string.Empty;
+			// TODO: Other encodings?
+			iniData = parser.ReadFile(iniPath, Encoding.UTF8);
+		}
+		catch (Exception e) when (e is ParsingException or IOException or UnauthorizedAccessException)
+		{
+			Log.Error($"Unable to read {iniPath}", e);
+			ErrorReporter.Current.Critical(message: $"Unable to read ModOrganizer.ini:\n{iniPath}\n\n{e.Message}");
 			return false;
 		}
 
-		var general = _appIniData["General"];
+		var general = iniData["General"];
+
+		//gameName=Fallout 4
+		var gameName = general["gameName"]?.Trim();
+		if (!string.IsNullOrEmpty(gameName) && gameName != SupportedGameName)
+		{
+			ErrorReporter.Current.Critical(message:
+				$"Only {SupportedGameName} is supported, but this Mod Organizer instance is for \"{gameName}\".\n\n{iniPath}");
+			return false;
+		}
+
 		//selected_profile=@ByteArray(Default)
-		Profile = FormatByteArray(general["selected_profile"] ?? "Default");
+		var selectedProfile = general["selected_profile"];
+		Profile = selectedProfile == null ? null : FormatByteArray(selectedProfile);
+		if (string.IsNullOrWhiteSpace(Profile))
+		{
+			Profile = null;
+			ErrorReporter.Current.Critical(message:
+				$"No profile is selected in ModOrganizer.ini. Open Mod Organizer, pick a profile, and try again.\n\n{iniPath}");
+			return false;
+		}
 
 		//gamePath=@ByteArray(C:\\Program Files(x86)\\Steam\\steamapps\\common\\Fallout 4)
 		var gamePath = general["gamePath"];
 		GamePath = gamePath == null ? null : FormatByteArray(gamePath);
 
-		var settings = _appIniData["Settings"];
+		var settings = iniData["Settings"];
 
-		// TODO: Verify AppPath is correct here
 		//base_directory=C:/Modding/MO2 Instances/FO4
+		// Defaults to the folder holding ModOrganizer.ini: the MO2 folder when portable, the instance folder otherwise.
 		var baseDirectory = settings["base_directory"]?.Trim();
-		if (baseDirectory == string.Empty) baseDirectory = null;
+		if (string.IsNullOrEmpty(baseDirectory)) baseDirectory = Path.GetDirectoryName(iniPath)!;
 
-		_baseDirectory = baseDirectory ??
-		                 (IsPortable ? AppPath : Path.Combine(Computer.AppDataLocal, "ModOrganizer", CurrentInstance));
-
-		if (!Directory.Exists(_baseDirectory))
+		if (!Directory.Exists(baseDirectory))
 		{
-			ErrorReporter.Current.Critical(typeof(DirectoryNotFoundException), _baseDirectory);
-			GameIniFolderPath = string.Empty;
-			PluginsTxtPath = string.Empty;
+			ErrorReporter.Current.Critical(typeof(DirectoryNotFoundException), baseDirectory);
 			return false;
 		}
 
-		_modDirectory = (settings["mod_directory"] ?? "%BASE_DIR%/mods").Replace("%BASE_DIR%", _baseDirectory);
+		_modDirectory = (settings["mod_directory"] ?? "%BASE_DIR%/mods").Replace("%BASE_DIR%", baseDirectory);
 		_overwriteDirectory =
-			(settings["overwrite_directory"] ?? "%BASE_DIR%/overwrite").Replace("%BASE_DIR%", _baseDirectory);
+			(settings["overwrite_directory"] ?? "%BASE_DIR%/overwrite").Replace("%BASE_DIR%", baseDirectory);
 		_profilesDirectory =
-			(settings["profiles_directory"] ?? "%BASE_DIR%/profiles").Replace("%BASE_DIR%", _baseDirectory);
-
+			(settings["profiles_directory"] ?? "%BASE_DIR%/profiles").Replace("%BASE_DIR%", baseDirectory);
 
 		// MO2's "Use profile-specific Game INI Files" (profile_local_inis, on by default).
 		// When it's off, every profile shares the INIs in Documents instead of having its own copy.
@@ -303,91 +248,12 @@ internal class ModOrganizer : ObservableObject, IModManager
 		}
 
 		_modListTxtPath = modListTxtPath;
-
-
-		////profile_local_inis=true
-		//try
-		//{
-		//	_profile_local_inis = Convert.ToBoolean(settings["profile_local_inis"] ?? bool.TrueString);
-		//}
-		//catch (FormatException)
-		//{
-		//	_profile_local_inis = true;
-		//}
-
-		////profile_local_saves=false
-		//try
-		//{
-		//	_profile_local_saves = Convert.ToBoolean(settings["profile_local_saves"] ?? bool.FalseString);
-		//}
-		//catch (FormatException)
-		//{
-		//	_profile_local_saves = false;
-		//}
-
-		////profile_archive_invalidation=false
-		//try
-		//{
-		//	_profile_archive_invalidation = Convert.ToBoolean(settings["profile_archive_invalidation"] ?? bool.FalseString);
-		//}
-		//catch (FormatException)
-		//{
-		//	_profile_archive_invalidation = false;
-		//}
-
-		////skip_file_suffixes=.mohidden
-		//// Delimited with comma-space
-		//_skip_file_suffixes = (settings["skip_file_suffixes"] ?? ".mohidden").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-		////skip_directories=.git
-		//// Delimited with comma-space
-		//_skip_directories = (settings["skip_directories"] ?? ".git").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-		////executable_blacklist="Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe"
-		//// Delimited with semicolon and quoted if more than one item.
-		//string default_exes = "Chrome.exe;Firefox.exe;TSVNCache.exe;TGitCache.exe;Steam.exe;GameOverlayUI.exe;Discord.exe;GalaxyClient.exe;Spotify.exe;Brave.exe";
-		//_executable_blacklist = (settings["executable_blacklist"] ?? default_exes).Trim('"').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-		//filter_regex=false
-		//regex_case_sensitive=false
-		//regex_extended=false
-		//force_enable_core_files=true
-		//archive_parsing_experimental=false
-
 		return true;
 	}
 
-	//[Settings]
-	//base_directory=C:/Modding/MO2 Instances/FO4
-	//profile_local_inis=true
-	//profile_local_saves=true
-	//profile_archive_invalidation=true
-	//filter_regex=false
-	//regex_case_sensitive=false
-	//regex_extended=false
-	//force_enable_core_files=true
-	//archive_parsing_experimental=false
-	//executable_blacklist="Firefox.exe;Steam.exe;GameOverlayUI.exe;Discord.exe"
-	//skip_file_suffixes=.mohidden
-	//skip_directories=.git
-
-	//[customExecutables]
-	//size=21
-	//1\arguments=
-	//1\binary=C:/Users/Michael/RiderProjects/AvaloniaApplication1/AvaloniaApplication1/bin/Release/net8.0-windows/AvaloniaApplication1.exe
-	//1\hide=false
-	//1\ownicon=false
-	//1\steamAppID=
-	//1\title=Ava Release
-	//1\toolbar=false
-	//1\workingDirectory=
-
 	private void GetStagePaths()
 	{
-		// TODO: Make slashes consistent?
-		//Console.WriteLine(_modListTxtPath);
 		// TODO: Encoding
-		//StagePaths.Clear();
 		foreach (var line in File.ReadLines(_modListTxtPath!, Encoding.UTF8).Reverse())
 			if (line.StartsWith('+') && !line.EndsWith("_separator"))
 			{
@@ -416,21 +282,3 @@ internal class ModOrganizer : ObservableObject, IModManager
 		return path.Replace(@"\\", @"\");
 	}
 }
-
-// Defaults:
-//public IniParserConfiguration()
-//{
-//	CommentString = ";";
-//	SectionStartChar = '[';
-//	SectionEndChar = ']';
-//	KeyValueAssigmentChar = '=';
-//	AssigmentSpacer = " ";
-//	NewLineStr = Environment.NewLine;
-//	ConcatenateDuplicateKeys = false;
-//	AllowKeysWithoutSection = true;
-//	AllowDuplicateKeys = false;
-//	AllowDuplicateSections = false;
-//	AllowCreateSectionsOnFly = true;
-//	ThrowExceptionsOnError = true;
-//	SkipInvalidLines = false;
-//}
