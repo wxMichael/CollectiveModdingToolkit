@@ -349,13 +349,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		               Grid.Column="1"
 		               Header="Archives (BA2)">
 
-			<!--<DockPanel Margin="0,0,0,5">
-
-				<Button DockPanel.Dock="Bottom"
-						Content="Archive Patcher"
-						Click="Button_Click_OpenArchivePatcher" />-->
-
-			<StackPanel DockPanel.Dock="Top">
+			<StackPanel>
 				<Grid Classes="Table"
 				      ColumnDefinitions="Auto,Auto,*"
 				      RowDefinitions="Auto,Auto,Auto,Auto">
@@ -470,7 +464,6 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Classes.Bad="{Binding Game.HasArchivesUnknown}" />
 				</Grid>
 			</StackPanel>
-			<!--</DockPanel>-->
 		</ctrl:GroupBox>
 
 		<!-- Modules -->

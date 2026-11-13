@@ -91,23 +91,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	</UserControl.Styles>
 
 	<UniformGrid Rows="1"
-	             Columns="3">
-
-		<!-- Toolkit Utilities -->
-		<ctrl:GroupBox Classes="CenteredHeader"
-		               Header="Toolkit Utilities">
-			<StackPanel Classes="ToolBox">
-
-				<Button Content="Tool 1"
-				        IsEnabled="False" />
-				<!-- 		Click="Button_Click_OpenDowngradeManager" /> -->
-
-				<Button Content="Tool 2"
-				        IsEnabled="False" />
-				<!-- 		Click="Button_Click_OpenArchivePatcher" /> -->
-
-			</StackPanel>
-		</ctrl:GroupBox>
+	             Columns="2">
 
 		<!-- Other CM Authors' Tools -->
 		<ctrl:GroupBox Classes="CenteredHeader"
