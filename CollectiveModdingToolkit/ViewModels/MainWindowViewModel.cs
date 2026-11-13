@@ -58,7 +58,13 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public AboutViewModel About { get; }
 	public UpdateViewModel Update { get; }
 
-	public bool IsBusy => Downgrader.IsBusy || !Archives.IsNotProcessing;
+	/// <summary>Why the window can't close right now, or null if nothing is running.</summary>
+	public string? BusyMessage =>
+		Downgrader.IsBusy
+			? "The Downgrader is patching game files. Wait for it to finish or press Cancel on the Downgrader tab before closing."
+			: !Archives.IsNotProcessing
+				? "The Archive Patcher is patching archives. Wait for it to finish before closing."
+				: null;
 
 	public static ErrorReporter Errors => ErrorReporter.Current;
 

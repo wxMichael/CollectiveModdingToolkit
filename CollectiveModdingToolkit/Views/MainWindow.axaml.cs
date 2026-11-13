@@ -41,10 +41,11 @@ public partial class MainWindow : Window
 
 	private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
 	{
-		if (DataContext is not MainWindowViewModel { IsBusy: true } viewModel) return;
+		if (DataContext is not MainWindowViewModel { BusyMessage: { } message } viewModel) return;
 
 		e.Cancel = true;
-		viewModel.Downgrader.ExplainBusy();
+		if (viewModel.Downgrader.IsBusy) viewModel.Downgrader.ExplainBusy();
+		AboutWindow.Open(this, "Please Wait", message);
 	}
 
 	private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
