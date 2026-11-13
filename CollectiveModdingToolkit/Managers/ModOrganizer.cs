@@ -229,18 +229,21 @@ internal class ModOrganizer : ObservableObject, IModManager
 		_profilesDirectory =
 			(settings["profiles_directory"] ?? "%BASE_DIR%/profiles").Replace("%BASE_DIR%", baseDirectory);
 
-		// MO2's "Use profile-specific Game INI Files" (profile_local_inis, on by default).
-		// When it's off, every profile shares the INIs in Documents instead of having its own copy.
-		var profileLocalInis = !string.Equals(settings["profile_local_inis"]?.Trim(), "false",
-			StringComparison.OrdinalIgnoreCase);
-		GameIniFolderPath = profileLocalInis ? Path.Combine(_profilesDirectory, Profile) : Computer.DocumentsFallout4;
-		PluginsTxtPath = Path.Combine(_profilesDirectory, Profile, "plugins.txt");
+		var profileDirectory = Path.Combine(_profilesDirectory, Profile);
+
+		// MO2's "Use profile-specific Game INI Files" is stored per profile as LocalSettings in the profile's
+		// settings.ini. The instance-wide profile_local_inis (on by default) only applies when the profile hasn't
+		// set it. When it's off, the profile uses the INIs in Documents instead of its own copy.
+		var profileLocalInis = ParseBool(
+			ReadProfileSetting(profileDirectory, "LocalSettings") ?? settings["profile_local_inis"], true);
+		GameIniFolderPath = profileLocalInis ? profileDirectory : Computer.DocumentsFallout4;
+		PluginsTxtPath = Path.Combine(profileDirectory, "plugins.txt");
 
 		// Comma separated. A missing key means MO2's defaults; an empty value means nothing is skipped.
 		SkipFileSuffixes = ParseList(settings["skip_file_suffixes"], ".mohidden");
 		SkipDirectories = ParseList(settings["skip_directories"], ".git");
 
-		var modListTxtPath = Path.Combine(_profilesDirectory, Profile, "modlist.txt");
+		var modListTxtPath = Path.Combine(profileDirectory, "modlist.txt");
 		if (!File.Exists(modListTxtPath))
 		{
 			ErrorReporter.Current.Critical(typeof(FileNotFoundException), modListTxtPath);
@@ -263,6 +266,33 @@ internal class ModOrganizer : ObservableObject, IModManager
 			}
 
 		_stagePaths.Add(_overwriteDirectory);
+	}
+
+	/// <summary>Reads a [General] value from a profile's settings.ini, which MO2 creates with the profile.</summary>
+	/// <returns>The value, or null if the file or key is missing or unreadable.</returns>
+	private static string? ReadProfileSetting(string profileDirectory, string key)
+	{
+		var path = Path.Combine(profileDirectory, "settings.ini");
+		if (!File.Exists(path)) return null;
+
+		try
+		{
+			return new FileIniDataParser(new IniDataParser(IniParserConfig)).ReadFile(path, Encoding.UTF8)["General"][key];
+		}
+		catch (Exception e) when (e is ParsingException or IOException or UnauthorizedAccessException)
+		{
+			Log.Warning($"Unable to read {path}: {e.Message}");
+			return null;
+		}
+	}
+
+	/// <summary>Converts a QSettings value to a bool the way QVariant does: "", "0", and "false" are false.</summary>
+	private static bool ParseBool(string? value, bool fallback)
+	{
+		if (value == null) return fallback;
+
+		value = value.Trim();
+		return value.Length != 0 && value != "0" && !value.Equals("false", StringComparison.OrdinalIgnoreCase);
 	}
 
 	private static string[] ParseList(string? value, string fallback)
