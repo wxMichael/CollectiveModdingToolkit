@@ -148,7 +148,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 			<TextBlock Grid.Row="1"
 			           Grid.Column="1"
-			           Text="{Binding Game.GamePath}"
+			           Text="{Binding Game.GamePath, FallbackValue=''}"
 			           ToolTip.Tip="Click to open folder"
 			           Cursor="Hand"
 			           PointerReleased="GamePath_PointerReleased" />
@@ -160,7 +160,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 			<TextBlock Grid.Row="2"
 			           Grid.Column="1"
-			           Text="{Binding Game.GameVersion}"
+			           Text="{Binding Game.GameVersion, FallbackValue=''}"
 			           Classes="Good" />
 
 			<!-- PC Specs -->
@@ -168,30 +168,33 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			           Grid.Column="0"
 			           Text="PC Specs:" />
 
-			<Grid Grid.Row="3"
-			      Grid.Column="1"
-			      RowDefinitions="Auto,Auto"
-			      ColumnDefinitions="*,*">
+			<Panel Grid.Row="3"
+			       Grid.Column="1"
+			       DataContext="{Binding Computer}">
+				<Grid x:DataType="models:Computer"
+				      RowDefinitions="Auto,Auto"
+				      ColumnDefinitions="*,*">
 
-				<TextBlock Grid.Row="0"
-				           Grid.Column="0">
-					<Run Text="{Binding Computer.OS}" />
-					<Run Text="{Binding Computer.Bits, StringFormat='{}{0}-bit'}" />
-				</TextBlock>
+					<TextBlock Grid.Row="0"
+					           Grid.Column="0">
+						<Run Text="{Binding OS}" />
+						<Run Text="{Binding Bits, StringFormat='{}{0}-bit'}" />
+					</TextBlock>
 
-				<TextBlock Grid.Row="1"
-				           Grid.Column="0"
-				           Text="{Binding Computer.RAM, StringFormat='{}{0} GB RAM', Mode=OneWay}" />
+					<TextBlock Grid.Row="1"
+					           Grid.Column="0"
+					           Text="{Binding RAM, StringFormat='{}{0} GB RAM', Mode=OneWay}" />
 
-				<TextBlock Grid.Row="0"
-				           Grid.Column="1"
-				           Text="{Binding Computer.CPU}" />
+					<TextBlock Grid.Row="0"
+					           Grid.Column="1"
+					           Text="{Binding CPU}" />
 
-				<TextBlock Grid.Row="1"
-				           Grid.Column="1"
-				           Text="{Binding Computer.GpuText}"
-				           ToolTip.Tip="{Binding Computer.GpuDetails}" />
-			</Grid>
+					<TextBlock Grid.Row="1"
+					           Grid.Column="1"
+					           Text="{Binding GpuText}"
+					           ToolTip.Tip="{Binding GpuDetails}" />
+				</Grid>
+			</Panel>
 
 			<!-- Refresh -->
 			<Button Name="RefreshButton"
@@ -203,13 +206,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		</Grid>
 
 		<!-- Game Binaries -->
-		<ctrl:GroupBox Grid.Row="1"
+		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Grid.Row="1"
 		               Grid.Column="0"
 		               Header="Game (EXE/DLL)">
 
-			<StackPanel>
+			<StackPanel x:DataType="models:Game">
 				<DataGrid Name="GameBinariesList"
-				          ItemsSource="{Binding Game.BinariesGame}"
+				          ItemsSource="{Binding BinariesGame}"
 				          AutoGenerateColumns="False"
 				          IsReadOnly="True"
 				          CanUserResizeColumns="False"
@@ -264,7 +268,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</DataGrid>
 
 				<Grid ColumnDefinitions="*,Auto"
-				      IsVisible="{Binding Game.AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
+				      IsVisible="{Binding AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<TextBlock Grid.Column="0"
 					           Text="Address Library:"
 					           HorizontalAlignment="Right"
@@ -273,21 +277,23 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           MinWidth="95"
 					           Padding="5,0,0,0"
 					           Classes="Small"
-					           Text="{Binding Game.AddressLibraryText}"
-					           ctrl:Status.Level="{Binding Game.AddressLibraryStatus}"
-					           ToolTip.Tip="{Binding Game.AddressLibraryTip}" />
+					           Text="{Binding AddressLibraryText}"
+					           ctrl:Status.Level="{Binding AddressLibraryStatus}"
+					           ToolTip.Tip="{Binding AddressLibraryTip}" />
 				</Grid>
 			</StackPanel>
 		</ctrl:GroupBox>
 
 		<!-- Creation Kit Binaries -->
-		<ctrl:GroupBox Grid.Row="2"
+		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Grid.Row="2"
 		               Grid.Column="0"
 		               Header="Creation Kit (EXE/DLL)">
 
 			<DataGrid DockPanel.Dock="Top"
 			          Name="CKBinariesList"
-			          ItemsSource="{Binding Game.BinariesCK}"
+			          x:DataType="models:Game"
+			          ItemsSource="{Binding BinariesCK}"
 			          AutoGenerateColumns="False"
 			          IsReadOnly="True"
 			          CanUserResizeColumns="False"
@@ -344,11 +350,12 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		</ctrl:GroupBox>
 
 		<!-- Archives -->
-		<ctrl:GroupBox Grid.Row="1"
+		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Grid.Row="1"
 		               Grid.Column="1"
 		               Header="Archives (BA2)">
 
-			<StackPanel>
+			<StackPanel x:DataType="models:Game">
 				<Grid Classes="Table"
 				      ColumnDefinitions="Auto,Auto,*"
 				      RowDefinitions="Auto,Auto,Auto,Auto">
@@ -374,44 +381,44 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="General:" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
-					           ctrl:Status.Level="{Binding Game.ArchivesGeneralStatus}" />
+					           Text="{Binding ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding ArchivesGeneralStatus}" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="2"
-					           Text="{Binding Game.MaxArchivesGeneral, StringFormat=' / {0}'}" />
+					           Text="{Binding MaxArchivesGeneral, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="1"
 					           Grid.Column="0"
 					           Text="Texture:" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesTexture.Count, StringFormat='{}{0,4}'}"
-					           ctrl:Status.Level="{Binding Game.ArchivesTextureStatus}" />
+					           Text="{Binding ArchivesTexture.Count, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding ArchivesTextureStatus}" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="2"
-					           Text="{Binding Game.MaxArchivesTexture, StringFormat=' / {0}'}" />
+					           Text="{Binding MaxArchivesTexture, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="2"
 					           Grid.Column="0"
 					           Text="Total:" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding Game.TotalArchives, StringFormat='{}{0,4}'}"
-					           ctrl:Status.Level="{Binding Game.TotalArchivesStatus}" />
+					           Text="{Binding TotalArchives, StringFormat='{}{0,4}'}"
+					           ctrl:Status.Level="{Binding TotalArchivesStatus}" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="2"
-					           Text="{Binding Game.TotalArchivesMax, StringFormat=' / {0}'}" />
+					           Text="{Binding TotalArchivesMax, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="3"
 					           Grid.Column="0"
 					           Text="Unreadable:"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+					           Classes.Bad="{Binding HasArchivesUnreadable}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasArchivesUnreadable}" />
+					           Classes.Bad="{Binding HasArchivesUnreadable}" />
 				</Grid>
 				<Grid Classes="Table"
 				      ColumnDefinitions="Auto,Auto,*"
@@ -442,35 +449,36 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="(OG) v1   :" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesOG.Count, StringFormat='{}{0,4}'}" />
+					           Text="{Binding ArchivesOG.Count, StringFormat='{}{0,4}'}" />
 
 					<TextBlock Grid.Row="2"
 					           Grid.Column="0"
 					           Text="(NG) v7/8 :" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+					           Text="{Binding ArchivesNG.Count, StringFormat='{}{0,4}'}" />
 
 					<TextBlock Grid.Row="3"
 					           Grid.Column="0"
 					           Text="v????:"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+					           Classes.Bad="{Binding HasArchivesUnknown}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding Game.ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasArchivesUnknown}" />
+					           Classes.Bad="{Binding HasArchivesUnknown}" />
 				</Grid>
 			</StackPanel>
 		</ctrl:GroupBox>
 
 		<!-- Modules -->
-		<ctrl:GroupBox Grid.Row="2"
+		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Grid.Row="2"
 		               Grid.Column="1"
 		               Header="Modules (ESM/ESL/ESP)">
 
-			<StackPanel>
+			<StackPanel x:DataType="models:Game">
 				<Grid Classes="Table"
 				      ColumnDefinitions="Auto,Auto,*"
 				      RowDefinitions="Auto,Auto,Auto,Auto">
@@ -494,44 +502,44 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="Full:" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="1"
-					           Text="{Binding Game.ModulesFull.Count, StringFormat='{}{0,5}'}"
-					           ctrl:Status.Level="{Binding Game.ModulesFullStatus}" />
+					           Text="{Binding ModulesFull.Count, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding ModulesFullStatus}" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="2"
-					           Text="{Binding Game.MaxModulesFull, StringFormat=' /  {0}'}" />
+					           Text="{Binding MaxModulesFull, StringFormat=' /  {0}'}" />
 
 					<TextBlock Grid.Row="1"
 					           Grid.Column="0"
 					           Text="Light:" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding Game.ModulesLight.Count, StringFormat='{}{0,5}'}"
-					           ctrl:Status.Level="{Binding Game.ModulesLightStatus}" />
+					           Text="{Binding ModulesLight.Count, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding ModulesLightStatus}" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="2"
-					           Text="{Binding Game.MaxModulesLight, StringFormat=' / {0}'}" />
+					           Text="{Binding MaxModulesLight, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="2"
 					           Grid.Column="0"
 					           Text="Total:" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding Game.TotalModules, StringFormat='{}{0,5}'}"
-					           ctrl:Status.Level="{Binding Game.TotalModulesStatus}" />
+					           Text="{Binding TotalModules, StringFormat='{}{0,5}'}"
+					           ctrl:Status.Level="{Binding TotalModulesStatus}" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="2"
-					           Text="{Binding Game.TotalModulesMax, StringFormat=' / {0}'}" />
+					           Text="{Binding TotalModulesMax, StringFormat=' / {0}'}" />
 
 					<TextBlock Grid.Row="3"
 					           Grid.Column="0"
 					           Text="Unreadable:"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+					           Classes.Bad="{Binding HasModulesUnreadable}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding Game.ModulesUnreadable.Count, StringFormat='{}{0,5}'}"
+					           Text="{Binding ModulesUnreadable.Count, StringFormat='{}{0,5}'}"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasModulesUnreadable}" />
+					           Classes.Bad="{Binding HasModulesUnreadable}" />
 				</Grid>
 				<Grid Classes="Table"
 				      ColumnDefinitions="Auto,Auto,*"
@@ -572,46 +580,48 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="HEDR v1.00:" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding Game.Modules100.Count, StringFormat='{}{0,5}'}" />
+					           Text="{Binding Modules100.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="2"
 					           Grid.Column="0"
 					           Text="HEDR v0.95:" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding Game.Modules095.Count, StringFormat='{}{0,5}'}" />
+					           Text="{Binding Modules095.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="3"
 					           Grid.Column="0"
 					           Text="HEDR v????:"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasModulesUnknown}" />
+					           Classes.Bad="{Binding HasModulesUnknown}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding Game.ModulesUnknown.Count, StringFormat='{}{0,5}'}"
+					           Text="{Binding ModulesUnknown.Count, StringFormat='{}{0,5}'}"
 					           Classes="Neutral"
-					           Classes.Bad="{Binding Game.HasModulesUnknown}" />
+					           Classes.Bad="{Binding HasModulesUnknown}" />
 				</Grid>
 			</StackPanel>
 		</ctrl:GroupBox>
 
 		<!-- Issues found while gathering the info above -->
-		<ctrl:GroupBox Grid.Row="1"
+		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Grid.Row="1"
 		               Grid.RowSpan="2"
 		               Grid.Column="2"
 		               Header="Issues">
 
-			<Grid RowDefinitions="Auto,*">
+			<Grid RowDefinitions="Auto,*"
+			      x:DataType="models:Game">
 				<TextBlock Grid.Row="0"
 				           Classes="Good"
 				           Margin="5"
 				           Text="No issues found."
-				           IsVisible="{Binding !Game.HasProblems}" />
+				           IsVisible="{Binding !HasProblems}" />
 
 				<ScrollViewer Grid.Row="1"
 				              HorizontalScrollBarVisibility="Disabled"
 				              VerticalScrollBarVisibility="Auto">
-					<ItemsControl ItemsSource="{Binding Game.Problems}">
+					<ItemsControl ItemsSource="{Binding Problems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="models:ProblemInfo">
 								<StackPanel Margin="5,0,5,8"
@@ -642,13 +652,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 										        Padding="6,0"
 										        ToolTip.Tip="Show in Explorer"
 										        IsVisible="{Binding HasPath}"
-										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).RevealProblemCommand}"
+										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).RevealProblemCommand, FallbackValue={x:Null}}"
 										        CommandParameter="{Binding}" />
 										<Button Content="Open Page"
 										        Padding="6,0"
 										        ToolTip.Tip="{Binding Url}"
 										        IsVisible="{Binding Url, Converter={x:Static ObjectConverters.IsNotNull}}"
-										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).OpenProblemUrlCommand}"
+										        Command="{Binding $parent[UserControl].((vm:OverviewViewModel)DataContext).OpenProblemUrlCommand, FallbackValue={x:Null}}"
 										        CommandParameter="{Binding}" />
 									</StackPanel>
 								</StackPanel>

@@ -235,7 +235,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							        Margin="2"
 							        VerticalAlignment="Center"
 							        ToolTip.Tip="Show in Explorer"
-							        Command="{Binding $parent[DataGrid].((vm:ArchivesViewModel)DataContext).RevealFileCommand}"
+							        Command="{Binding $parent[DataGrid].((vm:ArchivesViewModel)DataContext).RevealFileCommand, FallbackValue={x:Null}}"
 							        CommandParameter="{Binding}" />
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>

@@ -49,8 +49,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		           Classes="Readable Caution"
 		           TextWrapping="Wrap"
 		           Margin="5"
-		           Text="{Binding Game.F4SEMessage}"
-		           IsVisible="{Binding Game.F4SEMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+		           Text="{Binding Game.F4SEMessage, FallbackValue=''}"
+		           IsVisible="{Binding Game.F4SEMessage, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
 		<StackPanel DockPanel.Dock="Right"
 		            Orientation="Vertical"
 		            Margin="10,0,0,0">
@@ -77,7 +77,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		</StackPanel>
 		<DataGrid Name="F4SEList"
 		          DockPanel.Dock="Right"
-		          ItemsSource="{Binding Game.Dlls}"
+		          ItemsSource="{Binding Game.Dlls, FallbackValue={x:Null}}"
 		          RowHeight="24"
 		          AutoGenerateColumns="False"
 		          IsReadOnly="True"
@@ -179,7 +179,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							        Margin="2"
 							        VerticalAlignment="Center"
 							        ToolTip.Tip="Show in Explorer"
-							        Command="{Binding $parent[DataGrid].((vm:F4SEViewModel)DataContext).RevealFileCommand}"
+							        Command="{Binding $parent[DataGrid].((vm:F4SEViewModel)DataContext).RevealFileCommand, FallbackValue={x:Null}}"
 							        CommandParameter="{Binding}" />
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
