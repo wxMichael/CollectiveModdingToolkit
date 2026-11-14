@@ -33,17 +33,10 @@
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
 		<AvaloniaResource Include="..\THIRD-PARTY-NOTICES.txt" Link="Assets\THIRD-PARTY-NOTICES.txt" />
-		<None Include="..\THIRD-PARTY-NOTICES.txt"
-			  Link="THIRD-PARTY-NOTICES.txt"
-			  CopyToOutputDirectory="PreserveNewest"
-			  CopyToPublishDirectory="PreserveNewest"
-			  ExcludeFromSingleFile="true" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<TrimmerRootAssembly Include="Avalonia" />
-		<TrimmerRootAssembly Include="Avalonia.Markup.Xaml.Loader" />
-		<TrimmerRootAssembly Include="Avalonia.DesignerSupport" />
 		<TrimmerRootAssembly Include="Semi.Avalonia" />
 		<TrimmerRootAssembly Include="CommunityToolkit.Mvvm" />
 	</ItemGroup>
@@ -66,12 +59,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CollectiveModdingToolkit.Delta\CollectiveModdingToolkit.Delta.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Update="Views\TabScanner.axaml.cs">
-			<DependentUpon>TabScanner.axaml</DependentUpon>
-		</Compile>
 	</ItemGroup>
 
 	<!-- THIRD-PARTY-NOTICES.txt is generated from the packages in use. Warn (offline, no network) when it has gone stale. -->

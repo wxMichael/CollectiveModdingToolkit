@@ -37,7 +37,9 @@ internal sealed class QSettingsIni
 	private readonly Dictionary<string, Dictionary<string, string>> _sections =
 		new(StringComparer.OrdinalIgnoreCase);
 
-	private QSettingsIni() { }
+	private QSettingsIni()
+	{
+	}
 
 	/// <exception cref="IOException" />
 	/// <exception cref="UnauthorizedAccessException" />

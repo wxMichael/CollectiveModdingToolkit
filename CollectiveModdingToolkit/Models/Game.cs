@@ -179,9 +179,6 @@ public partial class Game : ObservableObject
 	private List<Archive> Archives { get; } = [];
 	public AvaloniaDictionary<string, Archive> ArchivesWinning { get; } = new();
 
-	/// <summary>Keys are lower-cased file names, so lookups ignore case. Use <see cref="ArchiveKey" />.</summary>
-	public static string ArchiveKey(string name) => name.ToLowerInvariant();
-
 	// List<DLL> Dlls { get; }
 	public Dictionary<string, DLL> DllsWinning { get; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -233,6 +230,9 @@ public partial class Game : ObservableObject
 
 	private IniData? Config { get; set; }
 	private IniData? Prefs { get; set; }
+
+	/// <summary>Keys are lower-cased file names, so lookups ignore case. Use <see cref="ArchiveKey" />.</summary>
+	public static string ArchiveKey(string name) => name.ToLowerInvariant();
 
 	// TODO: Detect steam library folders to find game
 	// TODO: Prompt user to choose between all non-manager game install detections or manual entry
@@ -620,7 +620,8 @@ public partial class Game : ObservableObject
 		{
 			const string texturesPatch = "Fallout4 - TexturesPatch.ba2";
 			var texturesPatchPath = Path.Combine(DataPath, texturesPatch);
-			if (!ArchivesWinning.TryGetValue(ArchiveKey(texturesPatch), out var patch) && FileExistsInGame(texturesPatchPath))
+			if (!ArchivesWinning.TryGetValue(ArchiveKey(texturesPatch), out var patch) &&
+			    FileExistsInGame(texturesPatchPath))
 			{
 				patch = new Archive(texturesPatch, texturesPatchPath);
 				patch.SetOrigin(Manager.Resolve(texturesPatchPath));

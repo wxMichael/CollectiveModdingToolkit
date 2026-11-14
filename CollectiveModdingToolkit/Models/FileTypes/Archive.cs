@@ -48,6 +48,9 @@ public enum PatchOutcome : byte
 
 public partial class Archive : ObservableObject, IFile
 {
+	/// <summary>Why the last header read failed, or null if it succeeded.</summary>
+	private FailReason? _readFailReason;
+
 	// TODO: check if counted against limits (+ba2) when !IsReadable
 	internal Archive(
 		string name,
@@ -101,9 +104,6 @@ public partial class Archive : ObservableObject, IFile
 	public string? Mod { get; private set; }
 
 	public FileOrigin? Origin { get; private set; }
-
-	/// <summary>Why the last header read failed, or null if it succeeded.</summary>
-	private FailReason? _readFailReason;
 
 	/// <summary>A user-facing explanation of a failed patch.</summary>
 	public static string Describe(FailReason reason) => reason switch
