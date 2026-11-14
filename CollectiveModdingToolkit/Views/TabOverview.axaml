@@ -207,26 +207,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		               Grid.Column="0"
 		               Header="Game (EXE/DLL)">
 
-			<DockPanel>
-				<!-- Address Library (version file for the installed game) -->
-				<Grid DockPanel.Dock="Bottom"
-				      ColumnDefinitions="*,Auto"
-				      Margin="0,2,0,0"
-				      IsVisible="{Binding Game.AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
-					<TextBlock Grid.Column="0"
-					           Text="Address Library:"
-					           HorizontalAlignment="Right"
-					           Classes="Small" />
-					<TextBlock Grid.Column="1"
-					           MinWidth="95"
-					           Margin="5,0,0,0"
-					           Classes="Small"
-					           Text="{Binding Game.AddressLibraryText}"
-					           ctrl:Status.Level="{Binding Game.AddressLibraryStatus}"
-					           ToolTip.Tip="{Binding Game.AddressLibraryTip}" />
-				</Grid>
-				<DataGrid DockPanel.Dock="Top"
-				          Name="GameBinariesList"
+			<StackPanel>
+				<DataGrid Name="GameBinariesList"
 				          ItemsSource="{Binding Game.BinariesGame}"
 				          AutoGenerateColumns="False"
 				          IsReadOnly="True"
@@ -280,7 +262,22 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 						</DataGridTemplateColumn>
 					</DataGrid.Columns>
 				</DataGrid>
-			</DockPanel>
+
+				<Grid ColumnDefinitions="*,Auto"
+				      IsVisible="{Binding Game.AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
+					<TextBlock Grid.Column="0"
+					           Text="Address Library:"
+					           HorizontalAlignment="Right"
+					           Classes="Small" />
+					<TextBlock Grid.Column="1"
+					           MinWidth="95"
+					           Padding="5,0,0,0"
+					           Classes="Small"
+					           Text="{Binding Game.AddressLibraryText}"
+					           ctrl:Status.Level="{Binding Game.AddressLibraryStatus}"
+					           ToolTip.Tip="{Binding Game.AddressLibraryTip}" />
+				</Grid>
+			</StackPanel>
 		</ctrl:GroupBox>
 
 		<!-- Creation Kit Binaries -->
@@ -327,13 +324,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 										<TextBlock Text="{Binding GameVersion}"
 										           VerticalAlignment="Center"
 										           HorizontalAlignment="Left"
-										           Margin="5,0,0,0"
+										           Margin="5,0,5,0"
 										           Classes="Small Short"
 										           ctrl:Status.Level="{Binding Level}" />
 										<TextBlock Text="{Binding FullVersion}"
 										           VerticalAlignment="Center"
 										           HorizontalAlignment="Left"
-										           Margin="5,0,0,0"
+										           Margin="5,0,5,0"
 										           Classes="Small Full"
 										           ctrl:Status.Level="{Binding Level}" />
 									</Panel>
