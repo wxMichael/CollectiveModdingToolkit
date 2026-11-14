@@ -78,7 +78,7 @@ jobs:
           dotnet run --file tools/GenerateThirdPartyNotices.cs -- --check
 
       - name: Publish
-        run: dotnet publish CollectiveModdingToolkit/CollectiveModdingToolkit.csproj -c Release --sc -o publish
+        run: dotnet publish CollectiveModdingToolkit/CollectiveModdingToolkit.csproj -c Release -o publish
 
       - name: Zip
         shell: pwsh

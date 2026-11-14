@@ -52,6 +52,12 @@ internal static class GpuDetector
 	private const string DisplayAdapterClassKey =
 		@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}";
 
+	// Calls DXGI through raw vtable function pointers rather than COM interop, which Native AOT doesn't support.
+	// Slot numbers count IUnknown (QueryInterface 0, AddRef 1, Release 2) and then each base interface in order.
+	private const int ReleaseSlot = 2;
+	private const int FactoryEnumAdapters1Slot = 12;
+	private const int AdapterGetDesc1Slot = 10;
+
 	/// <summary>
 	///     All graphics adapters found, with the most capable (most dedicated memory) first. Empty if none could be
 	///     found.
@@ -66,7 +72,7 @@ internal static class GpuDetector
 			adapters = EnumerateDxgi();
 		}
 		catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException or COMException
-			                          or InvalidCastException or MarshalDirectiveException)
+			                          or MarshalDirectiveException)
 		{
 			// e.g. under Wine. The registry still has the adapters.
 			Log.Warning($"DXGI is unavailable, using the registry to find the GPU: {e.Message}");
@@ -87,50 +93,59 @@ internal static class GpuDetector
 		return [.. adapters.OrderByDescending(a => a.DedicatedMemory)];
 	}
 
-	private static List<Adapter> EnumerateDxgi()
+	private static unsafe List<Adapter> EnumerateDxgi()
 	{
-		Guid factoryId = new("770aae78-f26f-4dba-a829-253c83d1b387");
-		var hr = CreateDXGIFactory1(ref factoryId, out var factoryPointer);
+		var factoryId = new Guid("770aae78-f26f-4dba-a829-253c83d1b387");
+		nint factory;
+		var hr = CreateDXGIFactory1(&factoryId, &factory);
 		if (hr < 0) throw new COMException("CreateDXGIFactory1 failed.", hr);
-
-		var factory = (IDXGIFactory1)Marshal.GetObjectForIUnknown(factoryPointer);
-		Marshal.Release(factoryPointer);
 
 		List<Adapter> adapters = [];
 		try
 		{
 			for (uint index = 0;; index++)
 			{
+				nint adapter;
 				// Fails with DXGI_ERROR_NOT_FOUND once there are no more adapters.
-				if (factory.EnumAdapters1(index, out var adapterPointer) < 0) break;
+				if (((delegate* unmanaged[Stdcall]<nint, uint, nint*, int>)VTable(factory, FactoryEnumAdapters1Slot))(
+					    factory, index, &adapter) < 0) break;
 
-				var adapter = (IDXGIAdapter1)Marshal.GetObjectForIUnknown(adapterPointer);
-				Marshal.Release(adapterPointer);
 				try
 				{
-					if (adapter.GetDesc1(out var description) < 0) continue;
+					DXGI_ADAPTER_DESC1 description;
+					if (((delegate* unmanaged[Stdcall]<nint, DXGI_ADAPTER_DESC1*, int>)VTable(adapter,
+						    AdapterGetDesc1Slot))(adapter, &description) < 0) continue;
 
 					// "Microsoft Basic Render Driver" and WARP are software, not a GPU the user could be playing on.
 					if ((description.Flags & DxgiAdapterFlagSoftware) != 0 ||
 					    description.VendorId == VendorMicrosoft) continue;
 
-					Adapter found = new(description.Description.Trim(), (long)description.DedicatedVideoMemory);
+					Adapter found = new(new string(description.Description).TrimEnd('\0').Trim(),
+						(long)description.DedicatedVideoMemory);
 					// Some systems list one card more than once (e.g. an indirect display driver adds a copy). Show it once.
 					if (!adapters.Any(a => a.Name == found.Name && a.DedicatedMemory == found.DedicatedMemory))
 						adapters.Add(found);
 				}
 				finally
 				{
-					Marshal.ReleaseComObject(adapter);
+					Release(adapter);
 				}
 			}
 		}
 		finally
 		{
-			Marshal.ReleaseComObject(factory);
+			Release(factory);
 		}
 
 		return adapters;
+	}
+
+	private static unsafe nint VTable(nint comObject, int slot) => (*(nint**)comObject)[slot];
+
+	// ReSharper disable once RedundantUnsafeContext
+	private static unsafe void Release(nint comObject)
+	{
+		((delegate* unmanaged[Stdcall]<nint, uint>)VTable(comObject, ReleaseSlot))(comObject);
 	}
 
 	/// <summary>Adapter name to video memory in bytes (0 if the driver doesn't say), from the display driver registry entries.</summary>
@@ -182,93 +197,14 @@ internal static class GpuDetector
 	}
 
 	[DllImport("dxgi.dll", EntryPoint = "CreateDXGIFactory1", ExactSpelling = true)]
-	private static extern int CreateDXGIFactory1(ref Guid riid, out nint factory);
+	private static extern int CreateDXGIFactory1(Guid* riid, nint* factory);
 
 	internal readonly record struct Adapter(string Name, long DedicatedMemory);
 
-	// Only the methods this needs are declared with real signatures. The rest are placeholders that keep the vtable slots
-	// in the right order (IUnknown's three methods are implied).
-	[ComImport]
-	[Guid("770aae78-f26f-4dba-a829-253c83d1b387")]
-	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	private interface IDXGIFactory1
-	{
-		// IDXGIObject
-		[PreserveSig]
-		int SetPrivateData();
-
-		[PreserveSig]
-		int SetPrivateDataInterface();
-
-		[PreserveSig]
-		int GetPrivateData();
-
-		[PreserveSig]
-		int GetParent();
-
-		// IDXGIFactory
-		[PreserveSig]
-		int EnumAdapters();
-
-		[PreserveSig]
-		int MakeWindowAssociation();
-
-		[PreserveSig]
-		int GetWindowAssociation();
-
-		[PreserveSig]
-		int CreateSwapChain();
-
-		[PreserveSig]
-		int CreateSoftwareAdapter();
-
-		// IDXGIFactory1
-		[PreserveSig]
-		int EnumAdapters1(uint index, out nint adapter);
-
-		[PreserveSig]
-		int IsCurrent();
-	}
-
-	[ComImport]
-	[Guid("29038f61-3839-4626-91fd-086879011a05")]
-	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-	private interface IDXGIAdapter1
-	{
-		// IDXGIObject
-		[PreserveSig]
-		int SetPrivateData();
-
-		[PreserveSig]
-		int SetPrivateDataInterface();
-
-		[PreserveSig]
-		int GetPrivateData();
-
-		[PreserveSig]
-		int GetParent();
-
-		// IDXGIAdapter
-		[PreserveSig]
-		int EnumOutputs();
-
-		[PreserveSig]
-		int GetDesc();
-
-		[PreserveSig]
-		int CheckInterfaceSupport();
-
-		// IDXGIAdapter1
-		[PreserveSig]
-		int GetDesc1(out DXGI_ADAPTER_DESC1 description);
-	}
-
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+	[StructLayout(LayoutKind.Sequential)]
 	private struct DXGI_ADAPTER_DESC1
 	{
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-		public string Description;
-
+		public fixed char Description[128];
 		public uint VendorId;
 		public uint DeviceId;
 		public uint SubSysId;

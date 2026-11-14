@@ -10,11 +10,12 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 
-		<PublishTrimmed>False</PublishTrimmed>
-		<TrimMode>partial</TrimMode>
+		<PublishAot>True</PublishAot>
+		<TrimMode>full</TrimMode>
+		<StripSymbols>true</StripSymbols>
+		<InvariantGlobalization>false</InvariantGlobalization>
 		<CETCompat>false</CETCompat>
 		<PublishSelfContained>True</PublishSelfContained>
-		<PublishSingleFile>True</PublishSingleFile>
 
 		<ApplicationIcon>Assets\Images\icon-cm-64.ico</ApplicationIcon>
 

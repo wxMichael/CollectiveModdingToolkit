@@ -26,6 +26,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CollectiveModdingToolkit.Managers;
@@ -36,8 +37,6 @@ namespace CollectiveModdingToolkit.Managers;
 /// </summary>
 internal sealed partial class Vortex : ObservableObject, IModManager
 {
-	private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
-
 	private readonly Dictionary<string, DeployedFile> _deployed = new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<string> _stagePaths = [];
 
@@ -124,11 +123,11 @@ internal sealed partial class Vortex : ObservableObject, IModManager
 
 	private void LoadManifest(string manifestPath)
 	{
-		Manifest? manifest;
+		VortexManifest? manifest;
 		try
 		{
 			using var stream = File.OpenRead(manifestPath);
-			manifest = JsonSerializer.Deserialize<Manifest>(stream, JsonOptions);
+			manifest = JsonSerializer.Deserialize(stream, AppJsonContext.Default.VortexManifest);
 		}
 		catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException)
 		{
@@ -168,8 +167,4 @@ internal sealed partial class Vortex : ObservableObject, IModManager
 	}
 
 	private readonly record struct DeployedFile(string StagingPath, string Source, string RelativePath);
-
-	private sealed record Manifest(string? StagingPath, string? TargetPath, List<ManifestFile>? Files);
-
-	private sealed record ManifestFile(string? RelPath, string? Source);
 }

@@ -54,10 +54,11 @@ public static class UpdateChecker
 	/// <exception cref="UpdateCheckException">The check failed; the message explains why.</exception>
 	public static async Task<string> GetLatestVersionAsync(CancellationToken cancellationToken = default)
 	{
-		var body = new { query = Query, variables = new { gameId = GameId, modId = ModId } };
+		var body = new GraphQlRequest(Query, new GraphQlVariables(GameId, ModId));
 		try
 		{
-			using var response = await Client.PostAsJsonAsync(GraphQlUrl, body, cancellationToken);
+			using var response = await Client.PostAsJsonAsync(GraphQlUrl, body, AppJsonContext.Default.GraphQlRequest,
+				cancellationToken);
 			if (response.StatusCode == HttpStatusCode.TooManyRequests)
 				throw new UpdateCheckException("Nexus Mods is limiting requests right now. Try again later.");
 

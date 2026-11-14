@@ -19,10 +19,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -37,11 +37,11 @@ namespace CollectiveModdingToolkit.Services;
 /// </remarks>
 public sealed partial class AppSettings : ObservableObject
 {
-	private static readonly JsonSerializerOptions JsonOptions = new()
+	private static readonly JsonWriterOptions WriterOptions = new()
 	{
 		IndentCharacter = '\t',
 		IndentSize = 1,
-		WriteIndented = true,
+		Indented = true,
 	};
 
 	/// <summary>True while values are being loaded, so loading doesn't trigger saves.</summary>
@@ -157,22 +157,34 @@ public sealed partial class AppSettings : ObservableObject
 		try
 		{
 			Directory.CreateDirectory(Path.GetDirectoryName(AppPaths.SettingsFile)!);
-			var json = JsonSerializer.Serialize(
-				new Dictionary<string, object?>
-				{
-					["logLevel"] = LogLevel.ToString(),
-					["checkForUpdates"] = CheckForUpdates,
-					["lastUpdateCheck"] = LastUpdateCheck?.ToString("O"),
-					["latestVersion"] = LatestVersion,
-					["downgraderKeepBackups"] = DowngraderKeepBackups,
-					["downgraderDeleteDeltas"] = DowngraderDeleteDeltas,
-					["scannerOverviewIssues"] = ScanOverviewIssues,
-					["scannerWrongFormat"] = ScanWrongFormat,
-					["scannerLoosePrevis"] = ScanLoosePrevis,
-					["scannerJunkFiles"] = ScanJunkFiles,
-					["scannerProblemOverrides"] = ScanProblemOverrides,
-					["scannerRaceSubgraphs"] = ScanRaceSubgraphs,
-				}, JsonOptions);
+			using var buffer = new MemoryStream();
+			using (var writer = new Utf8JsonWriter(buffer, WriterOptions))
+			{
+				writer.WriteStartObject();
+				writer.WriteString("logLevel", LogLevel.ToString());
+				writer.WriteBoolean("checkForUpdates", CheckForUpdates);
+				if (LastUpdateCheck is { } lastCheck)
+					writer.WriteString("lastUpdateCheck", lastCheck.ToString("O"));
+				else
+					writer.WriteNull("lastUpdateCheck");
+
+				if (LatestVersion is { } latest)
+					writer.WriteString("latestVersion", latest);
+				else
+					writer.WriteNull("latestVersion");
+
+				writer.WriteBoolean("downgraderKeepBackups", DowngraderKeepBackups);
+				writer.WriteBoolean("downgraderDeleteDeltas", DowngraderDeleteDeltas);
+				writer.WriteBoolean("scannerOverviewIssues", ScanOverviewIssues);
+				writer.WriteBoolean("scannerWrongFormat", ScanWrongFormat);
+				writer.WriteBoolean("scannerLoosePrevis", ScanLoosePrevis);
+				writer.WriteBoolean("scannerJunkFiles", ScanJunkFiles);
+				writer.WriteBoolean("scannerProblemOverrides", ScanProblemOverrides);
+				writer.WriteBoolean("scannerRaceSubgraphs", ScanRaceSubgraphs);
+				writer.WriteEndObject();
+			}
+
+			var json = Encoding.UTF8.GetString(buffer.ToArray());
 
 			var temp = AppPaths.SettingsFile + ".tmp";
 			File.WriteAllText(temp, json + Environment.NewLine);
