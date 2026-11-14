@@ -30,6 +30,7 @@ namespace CollectiveModdingToolkit;
 internal static class Utilities
 {
 	/// <summary>CRC32 of a file as 8 hex digits, streamed so large executables aren't loaded into memory.</summary>
+	/// <param name="filePath">Path of the file to hash.</param>
 	/// <param name="skipBA2Header">Skip the 12-byte BA2 header, so the hash ignores the archive version.</param>
 	internal static string GetFileHash(string filePath, bool skipBA2Header = false)
 	{

@@ -100,7 +100,11 @@ public sealed class Downgrader(
 			Path.GetFileNameWithoutExtension(path) + BackupSuffixes[edition] + Path.GetExtension(path));
 
 	/// <summary>Patches every file that isn't already <paramref name="desired" />.</summary>
+	/// <param name="desired">The edition to bring the files to.</param>
+	/// <param name="options">Options controlling the downgrade.</param>
+	/// <param name="log">Receives per-file status messages.</param>
 	/// <param name="progress">Overall progress, 0 to 100.</param>
+	/// <param name="cancel">Token to cancel the operation.</param>
 	public async Task<DowngradeResult> RunAsync(
 		Edition desired,
 		DowngradeOptions options,
