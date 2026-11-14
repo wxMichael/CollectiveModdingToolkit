@@ -86,7 +86,8 @@ public partial class ArchivesViewModel : GameViewModelBase
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(HasPatchFailures))]
 	[NotifyCanExecuteChangedFor(nameof(ShowPatchFailuresCommand))]
-	public partial IReadOnlyList<string> PatchFailures { get; private set; } = [];
+	// ReSharper disable once MemberCanBeMadeStatic.Local
+	private partial List<string> PatchFailures { get; set; } = [];
 
 	public bool HasPatchFailures => PatchFailures.Count > 0;
 
@@ -96,7 +97,8 @@ public partial class ArchivesViewModel : GameViewModelBase
 
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsDesiredV1), nameof(IsDesiredV8))]
-	public partial byte DesiredArchiveVersion { get; set; } = 1;
+	// ReSharper disable once MemberCanBeMadeStatic.Local
+	private partial byte DesiredArchiveVersion { get; set; } = 1;
 
 	// One bool per radio button; unchecking the other button arrives as false and is ignored.
 	public bool IsDesiredV1
@@ -117,10 +119,7 @@ public partial class ArchivesViewModel : GameViewModelBase
 		}
 	}
 
-	partial void OnArchiveFilterChanged(string value)
-	{
-		UpdateDisplayedArchives();
-	}
+	partial void OnArchiveFilterChanged(string value) => UpdateDisplayedArchives();
 
 	/// <summary>Follows the current game's archive list, which is replaced wholesale on refresh.</summary>
 	private void WatchGame()
@@ -133,10 +132,7 @@ public partial class ArchivesViewModel : GameViewModelBase
 		UpdateDisplayedArchives();
 	}
 
-	private void HandleArchivesChanged(object? sender, NotifyCollectionChangedEventArgs e)
-	{
-		UpdateDisplayedArchives();
-	}
+	private void HandleArchivesChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateDisplayedArchives();
 
 	/// <summary>
 	///     Brings <see cref="DisplayedArchives" /> in line with the game and filter by removing, inserting and moving
@@ -168,16 +164,11 @@ public partial class ArchivesViewModel : GameViewModelBase
 	}
 
 	[RelayCommand]
-	private void ShowAbout()
-	{
-		_dialogs.ShowAbout(AboutTitle, AboutText);
-	}
+	private void ShowAbout() => _dialogs.ShowAbout(AboutTitle, AboutText);
 
 	[RelayCommand(CanExecute = nameof(HasPatchFailures))]
-	private void ShowPatchFailures()
-	{
+	private void ShowPatchFailures() =>
 		_dialogs.ShowFileList("Patch Failures", "These archives could not be patched:", PatchFailures);
-	}
 
 	[RelayCommand(CanExecute = nameof(IsNotProcessing))]
 	private async Task PatchArchives()

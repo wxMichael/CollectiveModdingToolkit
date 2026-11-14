@@ -31,7 +31,7 @@ namespace CollectiveModdingToolkit.Delta;
 public sealed class HttpPatchSource : IPatchSource
 {
 	/// <summary>The GitHub release the generated patches are uploaded to.</summary>
-	public const string DefaultBaseUrl =
+	private const string DefaultBaseUrl =
 		"https://github.com/wxMichael/CollectiveModdingToolkit/releases/download/delta-patches/";
 
 	/// <summary>How long a connection or a stalled transfer may sit idle before giving up.</summary>

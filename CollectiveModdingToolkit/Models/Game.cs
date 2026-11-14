@@ -516,12 +516,18 @@ public partial class Game : ObservableObject
 				continue;
 			}
 
-			if (module.HEDRVersion.Equals(1))
-				Modules100.Add(moduleName);
-			else if (module.HEDRVersion.Equals(0.95))
-				Modules095.Add(moduleName);
-			else
-				ModulesUnknown.Add(moduleName);
+			switch (module.HEDRVersion)
+			{
+				case 1:
+					Modules100.Add(moduleName);
+					break;
+				case 0.95:
+					Modules095.Add(moduleName);
+					break;
+				default:
+					ModulesUnknown.Add(moduleName);
+					break;
+			}
 
 			if (module.IsLight == true)
 				ModulesLight.Add(moduleName);
@@ -661,11 +667,9 @@ public partial class Game : ObservableObject
 					ArchivesWinning.TryAdd(ArchiveKey(archiveName), archive);
 				}
 
-				if (ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive))
-				{
-					archive.IsEnabled = true;
-					ArchivesEnabled.Add(archiveName);
-				}
+				if (!ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive)) continue;
+				archive.IsEnabled = true;
+				ArchivesEnabled.Add(archiveName);
 			}
 		}
 	}
@@ -697,19 +701,31 @@ public partial class Game : ObservableObject
 				continue;
 			}
 
-			if (archive.ArchiveVersion == 1)
-				ArchivesOG.Add(archive.Name);
-			else if (archive.ArchiveVersion is 7 or 8)
-				ArchivesNG.Add(archive.Name);
-			else
-				ArchivesUnknown.Add(archive.Name);
+			switch (archive.ArchiveVersion)
+			{
+				case 1:
+					ArchivesOG.Add(archive.Name);
+					break;
+				case 7 or 8:
+					ArchivesNG.Add(archive.Name);
+					break;
+				default:
+					ArchivesUnknown.Add(archive.Name);
+					break;
+			}
 
-			if (archive.ArchiveFormat == "GNRL")
-				ArchivesGeneral.Add(archive.Name);
-			else if (archive.ArchiveFormat == "DX10")
-				ArchivesTexture.Add(archive.Name);
-			else
-				ArchivesUnknown.Add(archive.Name);
+			switch (archive.ArchiveFormat)
+			{
+				case "GNRL":
+					ArchivesGeneral.Add(archive.Name);
+					break;
+				case "DX10":
+					ArchivesTexture.Add(archive.Name);
+					break;
+				default:
+					ArchivesUnknown.Add(archive.Name);
+					break;
+			}
 		}
 	}
 }

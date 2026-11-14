@@ -39,8 +39,5 @@ namespace CollectiveModdingToolkit.Controls;
 /// </summary>
 public partial class GroupBox : HeaderedContentControl
 {
-	public GroupBox()
-	{
-		InitializeComponent();
-	}
+	public GroupBox() => InitializeComponent();
 }

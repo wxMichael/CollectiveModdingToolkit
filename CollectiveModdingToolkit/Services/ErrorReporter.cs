@@ -43,10 +43,7 @@ public sealed partial class ErrorReporter : ObservableObject
 	[ObservableProperty] public partial string Message { get; private set; } = string.Empty;
 
 	/// <summary>The dialog host can only show a dialog once it has loaded; errors raised earlier wait for this.</summary>
-	public void MarkHostLoaded()
-	{
-		_hostLoaded.TrySetResult();
-	}
+	public void MarkHostLoaded() => _hostLoaded.TrySetResult();
 
 	/// <summary>Reports a critical error. Only the first one is shown.</summary>
 	public void Critical(Type? type = null, string? message = null)

@@ -22,14 +22,10 @@ using CollectiveModdingToolkit.Services;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
-public sealed class F4SEViewModel : GameViewModelBase
+public sealed class F4SEViewModel(GameSession session, IShellService shell) : GameViewModelBase(session, shell)
 {
 	/// <summary>Design-time only.</summary>
 	public F4SEViewModel() : this(new GameSession(), new ShellService())
-	{
-	}
-
-	public F4SEViewModel(GameSession session, IShellService shell) : base(session, shell)
 	{
 	}
 }

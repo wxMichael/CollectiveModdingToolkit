@@ -108,11 +108,9 @@ internal sealed class QSettingsIni
 
 	private Dictionary<string, string> GetOrAddSection(string name)
 	{
-		if (!_sections.TryGetValue(name, out var section))
-		{
-			section = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			_sections[name] = section;
-		}
+		if (_sections.TryGetValue(name, out var section)) return section;
+		section = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		_sections[name] = section;
 
 		return section;
 	}

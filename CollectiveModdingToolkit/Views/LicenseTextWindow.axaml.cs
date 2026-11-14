@@ -52,8 +52,5 @@ public partial class LicenseTextWindow : Window
 			window.Show();
 	}
 
-	private void Button_Click_Close(object? sender, RoutedEventArgs e)
-	{
-		Close();
-	}
+	private void Button_Click_Close(object? sender, RoutedEventArgs e) => Close();
 }

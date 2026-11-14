@@ -79,7 +79,6 @@ public static class GroupBoxConverters
 				// 10 and later. My copies of Win11 use 0.
 				10 => osVersion.Version.Build switch
 				{
-					var win11 when win11 >= 22000 => 0,
 					_ => 0,
 				},
 				_ => 0,

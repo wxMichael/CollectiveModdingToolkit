@@ -87,12 +87,12 @@ public static class ThemeService
 
 	private static double Luminance(Color c)
 	{
+		return 0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B);
+
 		static double Lin(byte v)
 		{
 			var s = v / 255.0;
 			return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
 		}
-
-		return 0.2126 * Lin(c.R) + 0.7152 * Lin(c.G) + 0.0722 * Lin(c.B);
 	}
 }

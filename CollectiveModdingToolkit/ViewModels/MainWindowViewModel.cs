@@ -73,12 +73,10 @@ public sealed class MainWindowViewModel : ViewModelBase
 	/// <summary>
 	///     Loads the game and hardware info and checks for updates in the background. Call once the window is showing.
 	/// </summary>
-	public Task InitializeAsync()
-	{
+	public Task InitializeAsync() =>
 		// The XAML previewer instantiates this via Design.DataContext; skip game scanning, hardware probing, and
 		// update checks there.
-		if (Design.IsDesignMode) return Task.CompletedTask;
-
-		return Task.WhenAll(Session.LoadAsync(), Update.CheckOnLaunchAsync());
-	}
+		Design.IsDesignMode
+			? Task.CompletedTask
+			: Task.WhenAll(Session.LoadAsync(), Update.CheckOnLaunchAsync());
 }

@@ -72,8 +72,5 @@ public partial class LicensesWindow : Window
 		if ((sender as Control)?.DataContext is LicenseNotice notice) LicenseTextWindow.Open(this, notice);
 	}
 
-	private void Button_Click_Close(object? sender, RoutedEventArgs e)
-	{
-		Close();
-	}
+	private void Button_Click_Close(object? sender, RoutedEventArgs e) => Close();
 }

@@ -71,7 +71,7 @@ internal static class Program
 
 		try
 		{
-			var options = ParseOptions(args.Skip(1).ToArray());
+			var options = ParseOptions([.. args.Skip(1)]);
 			return args[0] switch
 			{
 				"crcs" => Crcs(Require(options, "versions")),

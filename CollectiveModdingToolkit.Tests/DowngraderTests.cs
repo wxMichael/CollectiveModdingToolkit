@@ -89,9 +89,9 @@ public sealed class DowngraderTests : IDisposable
 		var (result, _) = await Run(Edition.OldGen);
 
 		Assert.Equal(new DowngradeResult(1, 0, 0), result);
-		Assert.Equal(_data[Edition.OldGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.OldGen], await File.ReadAllBytesAsync(ExePath));
 		Assert.Equal(_data[Edition.Anniversary],
-			File.ReadAllBytes(Downgrader.BackupPath(ExePath, Edition.Anniversary)));
+			await File.ReadAllBytesAsync(Downgrader.BackupPath(ExePath, Edition.Anniversary)));
 		Assert.Empty(Directory.GetFiles(_game, "*.cmt-new"));
 		Assert.False(
 			File.Exists(Path.Combine(_cache, GameFiles.PatchFileName(Edition.Anniversary, Edition.OldGen, _exe))),
@@ -108,8 +108,9 @@ public sealed class DowngraderTests : IDisposable
 		var (result, _) = await Run(Edition.NextGen);
 
 		Assert.Equal(new DowngradeResult(1, 0, 0), result);
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(ExePath));
-		Assert.Equal(_data[Edition.OldGen], File.ReadAllBytes(Downgrader.BackupPath(ExePath, Edition.OldGen)));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath));
+		Assert.Equal(_data[Edition.OldGen],
+			await File.ReadAllBytesAsync(Downgrader.BackupPath(ExePath, Edition.OldGen)));
 	}
 
 	[Fact]
@@ -119,7 +120,7 @@ public sealed class DowngraderTests : IDisposable
 		var (result, _) = await Run(Edition.OldGen, false);
 
 		Assert.Equal(1, result.Patched);
-		Assert.Equal(_data[Edition.OldGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.OldGen], await File.ReadAllBytesAsync(ExePath));
 		Assert.Equal([ExePath], Directory.GetFiles(_game));
 	}
 
@@ -128,14 +129,15 @@ public sealed class DowngraderTests : IDisposable
 	{
 		// Simple Downgrader style: the Old-Gen file saved under the Next-Gen backup name.
 		Install(Edition.NextGen);
-		File.WriteAllBytes(Downgrader.BackupPath(ExePath, Edition.NextGen), _data[Edition.OldGen]);
+		await File.WriteAllBytesAsync(Downgrader.BackupPath(ExePath, Edition.NextGen), _data[Edition.OldGen]);
 		Directory.Delete(_published, true);
 
 		var (result, _) = await Run(Edition.OldGen);
 
 		Assert.Equal(1, result.Patched);
-		Assert.Equal(_data[Edition.OldGen], File.ReadAllBytes(ExePath));
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(Downgrader.BackupPath(ExePath, Edition.NextGen)));
+		Assert.Equal(_data[Edition.OldGen], await File.ReadAllBytesAsync(ExePath));
+		Assert.Equal(_data[Edition.NextGen],
+			await File.ReadAllBytesAsync(Downgrader.BackupPath(ExePath, Edition.NextGen)));
 	}
 
 	[Fact]
@@ -147,7 +149,7 @@ public sealed class DowngraderTests : IDisposable
 		var (result, log) = await Run(Edition.OldGen);
 
 		Assert.Equal(new DowngradeResult(0, 1, 0), result);
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath));
 		Assert.Equal([ExePath], Directory.GetFiles(_game));
 		Assert.Contains(log, m => m.Kind == MessageKind.Bad);
 	}
@@ -157,14 +159,14 @@ public sealed class DowngraderTests : IDisposable
 	{
 		Install(Edition.NextGen);
 		var patchName = GameFiles.PatchFileName(Edition.NextGen, Edition.OldGen, _exe);
-		var bytes = File.ReadAllBytes(Path.Combine(_published, patchName));
+		var bytes = await File.ReadAllBytesAsync(Path.Combine(_published, patchName));
 		bytes[^5] ^= 0xFF;
-		File.WriteAllBytes(Path.Combine(_published, patchName), bytes);
+		await File.WriteAllBytesAsync(Path.Combine(_published, patchName), bytes);
 
 		var (result, _) = await Run(Edition.OldGen, delete: false);
 
 		Assert.Equal(1, result.Failed);
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath));
 		Assert.False(File.Exists(Path.Combine(_cache, patchName)));
 	}
 
@@ -174,7 +176,7 @@ public sealed class DowngraderTests : IDisposable
 		File.WriteAllBytes(ExePath, [1, 2, 3]);
 		var (unknown, _) = await Run(Edition.OldGen);
 		Assert.Equal(new DowngradeResult(0, 0, 1), unknown);
-		Assert.Equal([1, 2, 3], File.ReadAllBytes(ExePath));
+		Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(ExePath));
 
 		File.Delete(ExePath);
 		Assert.Equal(new DowngradeResult(0, 0, 1), (await Run(Edition.OldGen)).Result);
@@ -192,7 +194,7 @@ public sealed class DowngraderTests : IDisposable
 		var (result, _) = await Run(Edition.OldGen);
 
 		Assert.Equal(1, result.Patched);
-		Assert.Equal(_data[Edition.OldGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.OldGen], await File.ReadAllBytesAsync(ExePath));
 	}
 
 	[Fact]
@@ -205,7 +207,7 @@ public sealed class DowngraderTests : IDisposable
 			Assert.Equal(1, result.Failed);
 		}
 
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath));
 		Assert.Empty(Directory.GetFiles(_game, "*.cmt-new"));
 	}
 
@@ -218,7 +220,7 @@ public sealed class DowngraderTests : IDisposable
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Make().RunAsync(Edition.OldGen,
 			new DowngradeOptions(true, true), new Progress<DowngradeMessage>(), new Progress<double>(), cancel.Token));
-		Assert.Equal(_data[Edition.NextGen], File.ReadAllBytes(ExePath));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath, cancel.Token));
 	}
 
 	private sealed class FolderSource(string folder) : IPatchSource

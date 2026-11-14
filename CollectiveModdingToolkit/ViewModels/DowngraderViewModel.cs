@@ -110,7 +110,8 @@ public sealed partial class DowngraderViewModel : GameViewModelBase
 
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsDesiredOldGen), nameof(IsDesiredNextGen), nameof(IsDesiredAnniversary))]
-	public partial Edition DesiredEdition { get; set; } = Edition.NextGen;
+	// ReSharper disable once MemberCanBeMadeStatic.Local
+	private partial Edition DesiredEdition { get; set; } = Edition.NextGen;
 
 	// One bool per radio button; unchecking the other button arrives as false and is ignored.
 	public bool IsDesiredOldGen

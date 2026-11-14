@@ -117,15 +117,14 @@ public static class Scanner
 	/// <summary>Archives from the game or Creation Kit, which never need a plugin.</summary>
 	private static readonly HashSet<string> ArchiveNameWhitelist =
 	[
-		with([
-			"creationkit - shaders.ba2", "creationkit - textures.ba2",
-			"fallout4 - animations.ba2", "fallout4 - interface.ba2", "fallout4 - materials.ba2",
-			"fallout4 - meshes.ba2",
-			"fallout4 - meshesextra.ba2", "fallout4 - misc.ba2", "fallout4 - nvflex.ba2", "fallout4 - shaders.ba2",
-			"fallout4 - sounds.ba2", "fallout4 - startup.ba2", "fallout4 - texturespatch.ba2", "fallout4 - voices.ba2",
-			.. Enumerable.Range(1, 9).Select(i => $"fallout4 - textures{i}.ba2"),
-			.. Enumerable.Range(1, 16).Select(i => $"dlcultrahighresolution - textures{i:00}.ba2"),
-		], StringComparer.OrdinalIgnoreCase),
+		with(StringComparer.OrdinalIgnoreCase),
+		"creationkit - shaders.ba2", "creationkit - textures.ba2",
+		"fallout4 - animations.ba2", "fallout4 - interface.ba2", "fallout4 - materials.ba2",
+		"fallout4 - meshes.ba2",
+		"fallout4 - meshesextra.ba2", "fallout4 - misc.ba2", "fallout4 - nvflex.ba2", "fallout4 - shaders.ba2",
+		"fallout4 - sounds.ba2", "fallout4 - startup.ba2", "fallout4 - texturespatch.ba2", "fallout4 - voices.ba2",
+		.. Enumerable.Range(1, 9).Select(i => $"fallout4 - textures{i}.ba2"),
+		.. Enumerable.Range(1, 16).Select(i => $"dlcultrahighresolution - textures{i:00}.ba2"),
 	];
 
 	private static string SolutionText(SolutionType type)
@@ -409,9 +408,9 @@ public static class Scanner
 		Walk(game.DataPath, null);
 
 		// MO2: StagePaths is lowest priority first with Overwrite last.
-		if (manager is ModOrganizer)
-			foreach (var stage in manager.StagePaths)
-				Walk(stage, Path.GetFileName(stage.TrimEnd('\\', '/')));
+		if (manager is not ModOrganizer) return files;
+		foreach (var stage in manager.StagePaths)
+			Walk(stage, Path.GetFileName(stage.TrimEnd('\\', '/')));
 
 		return files;
 
@@ -428,7 +427,7 @@ public static class Scanner
 				IEnumerable<string> children;
 				try
 				{
-					children = Directory.EnumerateFileSystemEntries(folder).ToList();
+					children = [.. Directory.EnumerateFileSystemEntries(folder)];
 				}
 				catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 				{
@@ -535,11 +534,9 @@ public static class Scanner
 				continue;
 			}
 
-			if (count > 0)
-			{
-				modules.Add((count, name, module.Origin?.DisplayName));
-				total += count;
-			}
+			if (count <= 0) continue;
+			modules.Add((count, name, module.Origin?.DisplayName));
+			total += count;
 		}
 
 		if (total <= RaceSubgraphThreshold) return;
