@@ -47,7 +47,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          if [ "${{ github.ref_type }}" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
             echo "::error::Tag '$GITHUB_REF_NAME' does not match csproj FileVersion 'v$VERSION'"
             exit 1
           fi
@@ -72,21 +72,25 @@ jobs:
           fi
           cat release-notes.md
 
+      - name: Restore
+        run: dotnet restore CollectiveModdingToolkit.sln
+
       - name: Check third-party notices are current
-        run: |
-          dotnet restore CollectiveModdingToolkit/CollectiveModdingToolkit.csproj
-          dotnet run --file tools/GenerateThirdPartyNotices.cs -- --check
+        run: dotnet run --file tools/GenerateThirdPartyNotices.cs -- --check
+
+      - name: Test
+        run: dotnet test CollectiveModdingToolkit.Tests -c Release --no-restore
 
       - name: Publish
-        run: dotnet publish CollectiveModdingToolkit/CollectiveModdingToolkit.csproj -c Release -o publish
+        run: dotnet publish CollectiveModdingToolkit/CollectiveModdingToolkit.csproj -c Release --no-restore -o publish
 
       - name: Zip
         shell: pwsh
         run: |
           Remove-Item publish/*.pdb, publish/*.config -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force staging/Tools | Out-Null
-          Copy-Item publish staging/Tools/CM-Toolkit -Recurse
-          Compress-Archive -Path staging/Tools -DestinationPath cm-toolkit.zip
+          New-Item -ItemType Directory -Force staging | Out-Null
+          Copy-Item publish staging/CM-Toolkit -Recurse
+          Compress-Archive -Path staging/CM-Toolkit -DestinationPath cm-toolkit.zip
 
       - uses: actions/upload-artifact@v4
         with:
@@ -118,10 +122,12 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
         run: |
-          gh release create "${{ github.ref_name }}" cm-toolkit.zip \
-            --repo "${{ github.repository }}" \
-            --title "Collective Modding Toolkit ${{ github.ref_name }}" \
+          gh release create "$TAG" cm-toolkit.zip \
+            --repo "$REPO" \
+            --title "Collective Modding Toolkit $TAG" \
             --notes-file release-notes.md
 
   nexus:

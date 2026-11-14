@@ -12,7 +12,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 11.0.x
-      - run: dotnet build CollectiveModdingToolkit.sln -c Release
-      - run: dotnet test CollectiveModdingToolkit.Tests -c Release
+      - run: dotnet restore CollectiveModdingToolkit.sln
       - name: Check third-party notices are current
         run: dotnet run --file tools/GenerateThirdPartyNotices.cs -- --check
+      - run: dotnet build CollectiveModdingToolkit.sln -c Release --no-restore
+      - run: dotnet test CollectiveModdingToolkit.Tests -c Release --no-build
