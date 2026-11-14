@@ -20,7 +20,7 @@ This is a rewrite of the [Python version](https://github.com/wxMichael/Collectiv
 
 ## Building
 
-Requirements: Windows, [.NET 9 SDK](https://dotnet.microsoft.com/download).
+Requirements: Windows, [.NET 11 SDK](https://dotnet.microsoft.com/download).
 
 ```
 dotnet build CollectiveModdingToolkit.sln
