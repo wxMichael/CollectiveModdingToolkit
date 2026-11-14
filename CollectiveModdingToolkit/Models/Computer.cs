@@ -177,9 +177,9 @@ public partial class Computer : ObservableObject
 		return (int)Math.Round(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (double)(1L << 30));
 	}
 
-	[DllImport("kernel32.dll")]
+	[LibraryImport("kernel32.dll")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
+	private static partial bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
 
 	[GeneratedRegex(@"(?:\d+(?:th|rd|nd) Gen| ?Processor| ?CPU|\d*[- ]Core|\(TM\)|\(R\))")]
 	private static partial Regex CPURegex();

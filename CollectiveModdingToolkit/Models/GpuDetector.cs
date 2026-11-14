@@ -44,7 +44,7 @@ namespace CollectiveModdingToolkit.Models;
 ///         WMI's <c>AdapterRAM</c> is not an option because it is 32-bit and tops out at 4 GB.
 ///     </para>
 /// </summary>
-internal static class GpuDetector
+internal static partial class GpuDetector
 {
 	private const uint DxgiAdapterFlagSoftware = 2;
 	private const uint VendorMicrosoft = 0x1414;
@@ -196,8 +196,8 @@ internal static class GpuDetector
 		return result;
 	}
 
-	[DllImport("dxgi.dll", EntryPoint = "CreateDXGIFactory1", ExactSpelling = true)]
-	private static extern int CreateDXGIFactory1(Guid* riid, nint* factory);
+	[LibraryImport("dxgi.dll", EntryPoint = "CreateDXGIFactory1")]
+	private static unsafe partial int CreateDXGIFactory1(Guid* riid, nint* factory);
 
 	internal readonly record struct Adapter(string Name, long DedicatedMemory);
 
