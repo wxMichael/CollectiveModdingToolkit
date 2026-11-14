@@ -35,6 +35,7 @@ public static class ModManagerDetector
 	///     Debug builds only: the full path of a ModOrganizer.exe or Vortex.exe to act as if launched by, for running
 	///     from the IDE.
 	/// </summary>
+	// ReSharper disable once UnusedMember.Local
 	private const string DebugManagerVariable = "CMT_DEBUG_MANAGER";
 
 	public static IModManager Detect()
