@@ -33,6 +33,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
 	</Style>
 
+	<!-- Semi defines Danger; declared empty here so the IDE recognizes the class -->
+	<Style Selector="Button.Danger" />
+
 	<!-- Text-style link button, colored with the accent -->
 	<Style Selector="Button.Link">
 		<Setter Property="Background" Value="Transparent" />
