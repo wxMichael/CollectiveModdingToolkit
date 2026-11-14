@@ -35,7 +35,11 @@ public abstract partial class GameViewModelBase : ViewModelBase
 		Session = session;
 		_shell = shell;
 		// Session property names match the forwarders below, so a refresh updates every bound view.
-		session.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName);
+		session.PropertyChanged += (_, e) =>
+		{
+			OnPropertyChanged(e.PropertyName);
+			if (e.PropertyName == nameof(GameSession.Game)) OnPropertyChanged(nameof(IsLoading));
+		};
 	}
 
 	protected GameSession Session { get; }
@@ -43,6 +47,9 @@ public abstract partial class GameViewModelBase : ViewModelBase
 	public Computer? Computer => Session.Computer;
 	public IModManager? ModManager => Session.ModManager;
 	public Game? Game => Session.Game;
+
+	/// <summary>True until the first game load finishes. Tabs show a loading overlay meanwhile.</summary>
+	public bool IsLoading => Session.Game is null;
 
 	[RelayCommand]
 	private void RevealFile(object? item) => _shell.RevealFile(item);

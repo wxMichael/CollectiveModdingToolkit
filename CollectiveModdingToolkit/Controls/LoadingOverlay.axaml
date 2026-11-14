@@ -1,0 +1,45 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<!-- Covers its parent's content with a dimmed layer and a spinner. Place last in a Grid/Panel and bind IsVisible. -->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CollectiveModdingToolkit.Controls.LoadingOverlay">
+
+	<UserControl.Styles>
+		<Style Selector="ProgressBar.Ring /template/ Border#PART_Indicator">
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+	</UserControl.Styles>
+
+	<!-- Opaque to input so the content underneath can't be clicked while loading. -->
+	<Border Background="{DynamicResource BgBrush}"
+	        Opacity="0.85">
+
+		<ProgressBar Classes="Ring"
+		             Theme="{DynamicResource ProgressRing}"
+		             IsIndeterminate="True"
+		             Width="48"
+		             Height="48"
+		             HorizontalAlignment="Center"
+		             VerticalAlignment="Center" />
+
+	</Border>
+</UserControl>

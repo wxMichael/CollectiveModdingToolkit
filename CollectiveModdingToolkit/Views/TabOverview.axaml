@@ -616,7 +616,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				           Classes="Good"
 				           Margin="5"
 				           Text="No issues found."
-				           IsVisible="{Binding !HasProblems}" />
+				           IsVisible="{Binding !HasProblems, FallbackValue=False}" />
 
 				<ScrollViewer Grid.Row="1"
 				              HorizontalScrollBarVisibility="Disabled"
@@ -668,6 +668,12 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				</ScrollViewer>
 			</Grid>
 		</ctrl:GroupBox>
+
+		<ctrl:LoadingOverlay Grid.Row="0"
+		                     Grid.RowSpan="3"
+		                     Grid.Column="0"
+		                     Grid.ColumnSpan="3"
+		                     IsVisible="{Binding IsLoading}" />
 
 	</Grid>
 </UserControl>
