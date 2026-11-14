@@ -55,10 +55,18 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Style.Resources>
 			<x:Double x:Key="DataGridCellMinHeight">28</x:Double>
 		</Style.Resources>
+		<Setter Property="BorderThickness" Value="0" />
 		<Style Selector="^ DataGridCell">
 			<Setter Property="MinHeight" Value="0" />
 		</Style>
 		<Style Selector="^ /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+		<!-- No current-cell / focus outline (these lists aren't interactive) -->
+		<Style Selector="^ DataGridCell:current /template/ Rectangle#CurrencyVisual">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+		<Style Selector="^ DataGridCell:focus /template/ Panel#FocusVisual">
 			<Setter Property="IsVisible" Value="False" />
 		</Style>
 		<Style Selector="^ DataGridRow:selected /template/ Border#BackgroundBorder">

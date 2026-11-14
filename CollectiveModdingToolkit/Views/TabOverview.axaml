@@ -211,7 +211,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				<!-- Address Library (version file for the installed game) -->
 				<Grid DockPanel.Dock="Bottom"
 				      ColumnDefinitions="*,Auto"
-				      Margin="0,4,0,0"
+				      Margin="0,2,0,0"
 				      IsVisible="{Binding Game.AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<TextBlock Grid.Column="0"
 					           Text="Address Library:"
@@ -233,6 +233,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				          CanUserResizeColumns="False"
 				          CanUserSortColumns="False"
 				          HeadersVisibility="None"
+				          GridLinesVisibility="None"
 				          SelectionMode="Single"
 				          b:NoSelection.IsEnabled="True"
 				          HorizontalScrollBarVisibility="Disabled"
@@ -295,6 +296,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			          CanUserResizeColumns="False"
 			          CanUserSortColumns="False"
 			          HeadersVisibility="None"
+			          GridLinesVisibility="None"
 			          SelectionMode="Single"
 			          b:NoSelection.IsEnabled="True"
 			          HorizontalScrollBarVisibility="Disabled"
