@@ -1,4 +1,4 @@
-﻿/*
+/*
  *
  * Collective Modding Toolkit
  * Copyright (C) 2024, 2025, 2026  wxMichael
