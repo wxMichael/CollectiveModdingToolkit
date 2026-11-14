@@ -220,7 +220,7 @@ public sealed class DowngraderTests : IDisposable
 
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Make().RunAsync(Edition.OldGen,
 			new DowngradeOptions(true, true), new Progress<DowngradeMessage>(), new Progress<double>(), cancel.Token));
-		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath, cancel.Token));
+		Assert.Equal(_data[Edition.NextGen], await File.ReadAllBytesAsync(ExePath, CancellationToken.None));
 	}
 
 	private sealed class FolderSource(string folder) : IPatchSource
