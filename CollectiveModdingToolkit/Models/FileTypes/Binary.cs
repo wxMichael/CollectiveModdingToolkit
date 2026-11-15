@@ -122,7 +122,8 @@ public class Binary : ObservableObject, IFile
 		PathRelative = pathRelative;
 		// Known before reading, so the identified file is the one a mod manager actually provides.
 		Origin = origin;
-		Found = File.Exists(RealPath);
+		Found = File.Exists(this.RealPath);
+		IsReadable = Found;
 		if (Found)
 		{
 			Priority = priority == 0 ? 0 : priority + 1;
@@ -130,14 +131,14 @@ public class Binary : ObservableObject, IFile
 
 			// Match on version first, then CRC32. Only hash the file if the version didn't identify it.
 			var knownVersions = BaseFiles[PathRelative];
-			var versionString = Utilities.GetFileVersion(RealPath);
+			var versionString = Utilities.GetFileVersion(this.RealPath);
 			string? gameVersion = null;
 			string? hash = null;
 			if (versionString != null) knownVersions.TryGetValue(versionString, out gameVersion);
 
 			if (gameVersion == null)
 			{
-				hash = Utilities.GetFileHash(RealPath);
+				hash = Utilities.GetFileHash(this.RealPath);
 				knownVersions.TryGetValue(hash, out gameVersion);
 			}
 
@@ -156,12 +157,6 @@ public class Binary : ObservableObject, IFile
 	public bool IsGood { get; internal set; }
 	public StatusLevel Level => IsGood ? StatusLevel.Good : StatusLevel.Bad;
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
-
-	/// <summary>
-	///     The real file on disk: the manager's source file when a mod replaced it (e.g. Vortex root mods), otherwise the
-	///     game-folder path. Use for reading.
-	/// </summary>
-	internal string RealPath => Origin?.SourcePath ?? PathFull;
 
 	/// <summary>
 	///     The file's version number, or CRC32 if version is missing or unused.
@@ -184,7 +179,7 @@ public class Binary : ObservableObject, IFile
 	public bool WasRead => IsReadable != null;
 
 	[MemberNotNullWhen(true, nameof(Version))]
-	public bool? IsReadable { get; private set; }
+	public bool? IsReadable { get; }
 
 	public int Priority { get; private set; }
 

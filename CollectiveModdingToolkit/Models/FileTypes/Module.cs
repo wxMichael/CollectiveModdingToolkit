@@ -26,7 +26,6 @@ namespace CollectiveModdingToolkit.Models.FileTypes;
 
 public class Module : IFile
 {
-	// TODO: check if counted against limits (+ba2) when !IsReadable
 	internal Module(
 		string name,
 		string pathFull,
@@ -47,12 +46,6 @@ public class Module : IFile
 	public double HEDRVersion { get; private set; }
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
-	/// <summary>
-	///     The real file on disk: the manager's source file for mod files (correct with or without MO2's VFS), otherwise
-	///     the game-folder path. Use for reading and editing.
-	/// </summary>
-	private string RealPath => Origin?.SourcePath ?? PathFull;
-
 	public bool? IsEnabled { get; set; }
 	public string Name { get; }
 	public string Ext { get; }
@@ -61,7 +54,7 @@ public class Module : IFile
 
 	public bool WasRead => IsReadable != null;
 
-	[MemberNotNullWhen(true, nameof(IsLight), nameof(HEDRVersion))]
+	[MemberNotNullWhen(true, nameof(IsLight))]
 	public bool? IsReadable { get; private set; }
 
 	public int Priority { get; private set; }
@@ -87,10 +80,10 @@ public class Module : IFile
 		int bytesRead;
 		try
 		{
-			using var file = File.OpenRead(RealPath);
-			bytesRead = file.Read(header, 0, header.Length);
+			using var file = File.OpenRead(this.RealPath);
+			bytesRead = file.ReadAtLeast(header, header.Length, false);
 		}
-		catch (IOException)
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
 			IsReadable = false;
 			return;

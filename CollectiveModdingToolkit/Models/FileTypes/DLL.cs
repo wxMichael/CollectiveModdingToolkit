@@ -111,12 +111,6 @@ public class DLL : IFile
 
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
-	/// <summary>
-	///     The real file on disk: the manager's source file for mod files (correct with or without MO2's VFS), otherwise
-	///     the game-folder path. Use for reading and editing.
-	/// </summary>
-	private string RealPath => Origin?.SourcePath ?? PathFull;
-
 	/// <summary>Exports an F4SE entry point (<c>F4SEPlugin_Load</c> or <c>F4SEPlugin_Preload</c>).</summary>
 	private bool IsF4SE { get; set; }
 
@@ -190,7 +184,7 @@ public class DLL : IFile
 
 		try
 		{
-			var exports = PeExportTable.Load(RealPath);
+			var exports = PeExportTable.Load(this.RealPath);
 			IsF4SE = exports.Has(ExportLoad) || exports.Has(ExportPreload);
 			SupportsOG = exports.Has(ExportQuery);
 

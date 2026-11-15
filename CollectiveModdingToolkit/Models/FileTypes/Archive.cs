@@ -68,14 +68,11 @@ public partial class Archive : ObservableObject, IFile
 	}
 
 	[ObservableProperty] public partial byte? ArchiveVersion { get; private set; }
-	public string? ArchiveFormat { get; private set; }
-	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
-	/// <summary>
-	///     The real file on disk: the manager's source file for mod archives (correct with or without MO2's VFS),
-	///     otherwise the game-folder path.
-	/// </summary>
-	internal string RealPath => Origin?.SourcePath ?? PathFull;
+	/// <summary>"GNRL" or "DX10". Null if unreadable or the format is unrecognized.</summary>
+	public string? ArchiveFormat { get; private set; }
+
+	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
 	public bool? IsEnabled { get; set; }
 
@@ -94,7 +91,7 @@ public partial class Archive : ObservableObject, IFile
 
 	public bool WasRead => IsReadable != null;
 
-	[MemberNotNullWhen(true, nameof(ArchiveVersion), nameof(ArchiveFormat))]
+	[MemberNotNullWhen(true, nameof(ArchiveVersion))]
 	public bool? IsReadable { get; private set; }
 
 	public int Priority { get; private set; }
@@ -154,11 +151,15 @@ public partial class Archive : ObservableObject, IFile
 	private void ReadHeader()
 	{
 		_readFailReason = null;
+		ArchiveVersion = null;
+		ArchiveFormat = null;
+		IsOG = false;
+		IsNG = false;
 		var header = new byte[12];
 		int bytesRead;
 		try
 		{
-			using var file = File.OpenRead(RealPath);
+			using var file = File.OpenRead(this.RealPath);
 			bytesRead = file.ReadAtLeast(header, header.Length, false);
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -212,7 +213,7 @@ public partial class Archive : ObservableObject, IFile
 		PatchFailed = null;
 		PatchFailReason = null;
 
-		if (!File.Exists(RealPath)) return Fail(FailReason.FileNotFound);
+		if (!File.Exists(this.RealPath)) return Fail(FailReason.FileNotFound);
 
 		ReadHeader();
 		if (_readFailReason is { } readFailReason) return Fail(readFailReason);
@@ -228,7 +229,7 @@ public partial class Archive : ObservableObject, IFile
 
 		try
 		{
-			WriteVersion(RealPath, version);
+			WriteVersion(this.RealPath, version);
 
 			// Vortex: if deployment copied the file instead of hard-linking it, the game-folder copy is separate data and must match.
 			var deployed = Origin?.DeployedPath;
