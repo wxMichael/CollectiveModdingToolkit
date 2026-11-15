@@ -101,18 +101,6 @@ public static class Scanner
 		["mp3"] = ["wav", "xwm"],
 	};
 
-	private static readonly HashSet<string> F4SEScripts =
-	[
-		with(StringComparer.OrdinalIgnoreCase),
-		"actor.pex", "actorbase.pex", "armor.pex", "armoraddon.pex", "cell.pex", "component.pex",
-		"constructibleobject.pex",
-		"defaultobject.pex", "encounterzone.pex", "equipslot.pex", "f4se.pex", "favoritesmanager.pex", "form.pex",
-		"game.pex",
-		"headpart.pex", "input.pex", "instancedata.pex", "location.pex", "math.pex", "matswap.pex", "miscobject.pex",
-		"objectmod.pex", "objectreference.pex", "perk.pex", "scriptobject.pex", "ui.pex", "utility.pex",
-		"watertype.pex", "weapon.pex",
-	];
-
 	// TODO: Check if these have been removed from INIs.
 	/// <summary>Archives from the game or Creation Kit, which never need a plugin.</summary>
 	private static readonly HashSet<string> ArchiveNameWhitelist =
@@ -199,8 +187,8 @@ public static class Scanner
 		}
 
 		var manager = game.Manager;
-		HashSet<string> skipDirectories =
-			[with([.. IgnoreFolders, .. manager.SkipDirectories], StringComparer.OrdinalIgnoreCase)];
+		var skipDirectories = new HashSet<string>([.. IgnoreFolders, .. manager.SkipDirectories],
+			StringComparer.OrdinalIgnoreCase);
 		string[] skipSuffixes = [.. manager.SkipFileSuffixes];
 
 		progress?.Report(new Progress("Building mod file index...", 1));
@@ -215,8 +203,8 @@ public static class Scanner
 				.Order(StringComparer.OrdinalIgnoreCase),
 		];
 
-		HashSet<string> archivesEnabled = [with(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase)];
-		HashSet<string> reportedFolders = [with(StringComparer.OrdinalIgnoreCase)];
+		var archivesEnabled = new HashSet<string>(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase);
+		var reportedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var currentTop = string.Empty;
 
 		foreach (var entry in files.Values.OrderBy(e => e.Relative, StringComparer.OrdinalIgnoreCase))
@@ -277,17 +265,33 @@ public static class Scanner
 			}
 
 			// Only scripts directly in Data\Scripts.
-			if (root == "scripts" && dirs.Length == 1 && options.ProblemOverrides && F4SEScripts.Contains(fileName)
-			    && GetMod(manager, entry) != null)
-			{
-				AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Medium,
-					"This is an override of an F4SE script. This could break F4SE if they aren't the same version or this mod isn't intended to override F4SE files.",
-					null,
-					"Check if this mod is supposed to override F4SE Scripts.\n"
-					+ "If this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\n"
-					+ "Otherwise, this mod or file may need to be deleted.");
-				continue;
-			}
+			if (root == "scripts" && dirs.Length == 1 && options.ProblemOverrides)
+				if (F4SEScripts.TryGetHash(game.GameVersion, fileName, out var f4SEScriptCRC))
+				{
+					var mod = GetMod(manager, entry);
+
+					var scriptCRC = Utilities.GetFileHash(entry.FullPath);
+					if (!scriptCRC.Equals(f4SEScriptCRC, StringComparison.OrdinalIgnoreCase))
+						AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Critical,
+							"This is an override of an F4SE script which does not match your game's version.",
+							null,
+							mod == null || mod.Contains("Fallout 4 Script Extender")
+								? $"Install F4SE for {game.GameVersion}."
+								: "Check if this mod is supposed to override F4SE Scripts.\n"
+								  + "If this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\n"
+								  + "Otherwise, this mod or file may need to be deleted.");
+
+					else if (mod != null && !mod.Contains("Fallout 4 Script Extender"))
+						AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Low,
+							"This is an override of an F4SE script. It matches your game's version so won't "
+							+ "cause issues now, but if this is unintentionally bundled with a mod it may cause "
+							+ "issues if your game or F4SE version ever changes.",
+							null,
+							"If this file isn't expected in this mod, inform the author of the potential mistake");
+
+
+					continue;
+				}
 
 			var dot = fileName.LastIndexOf('.');
 			if (dot < 0) continue;
