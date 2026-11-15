@@ -79,6 +79,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<StaticResource x:Key="HyperlinkButtonPressedForeground" ResourceKey="AccentActiveBrush" />
 
 	<!-- Checked / selected states -->
+	<StaticResource x:Key="CheckBoxPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
 	<StaticResource x:Key="CheckBoxCheckedDefaultBackground" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="CheckBoxCheckedDefaultBorderBrush" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="CheckBoxCheckedPointeroverBackground" ResourceKey="AccentHoverBrush" />
