@@ -56,8 +56,6 @@ public class Module : IFile
 
 	internal void ReadHeader()
 	{
-		if (WasRead) throw new NotSupportedException("Module read twice");
-
 		var header = new byte[34];
 		int bytesRead;
 		try

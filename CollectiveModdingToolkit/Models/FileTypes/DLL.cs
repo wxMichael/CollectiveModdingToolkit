@@ -162,7 +162,10 @@ public class DLL : IFile
 	/// </param>
 	internal void Read(uint? gameExeVersion)
 	{
-		if (WasRead) throw new NotSupportedException("DLL read twice");
+		IsF4SE = false;
+		SupportsOG = false;
+		VersionData = null;
+		OGMark = NGMark = AEMark = CurrentMark = DllMark.Unknown;
 
 		try
 		{
