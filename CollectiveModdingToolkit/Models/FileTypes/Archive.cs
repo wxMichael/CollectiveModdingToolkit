@@ -27,25 +27,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
 
-public enum FailReason : byte
-{
-	Unknown,
-	FileNotFound,
-	NotBA2,
-	UnknownVersion,
-	InUse,
-	AccessDenied,
-	ReadFailed,
-	WriteFailed,
-}
-
-public enum PatchOutcome : byte
-{
-	Patched,
-	AlreadyPatched,
-	Failed,
-}
-
 public partial class Archive : ObservableObject, IFile
 {
 	/// <summary>Why the last header read failed, or null if it succeeded.</summary>
