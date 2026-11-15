@@ -20,9 +20,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GV = CollectiveModdingToolkit.Models.GameVersion;
 
@@ -183,8 +185,8 @@ public class Binary : ObservableObject, IFile
 
 	public int Priority { get; private set; }
 
-	//[MemberNotNullWhen(true, nameof(Mod))]
-	public bool IsManaged => Mod != null;
+	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
+
 	public string? Mod { get; private set; }
 
 	public FileOrigin? Origin { get; private set; }
@@ -202,6 +204,14 @@ public class Binary : ObservableObject, IFile
 		return BaseFiles[relativePath].Values.Any(v =>
 			v == family
 			|| (v == GV.NextGenAnniversary && family is GV.NextGen or GV.Anniversary));
+	}
+
+	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+	{
+		if (Dispatcher.UIThread.CheckAccess())
+			base.OnPropertyChanged(e);
+		else
+			Dispatcher.UIThread.Post(() => base.OnPropertyChanged(e));
 	}
 
 	internal void SetOrigin(FileOrigin? origin)

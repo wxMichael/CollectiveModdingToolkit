@@ -59,8 +59,8 @@ public class Module : IFile
 
 	public int Priority { get; private set; }
 
-	//[MemberNotNullWhen(true, nameof(Mod))]
-	public bool IsManaged => Mod != null;
+	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
+
 	public string? Mod { get; private set; }
 
 	public FileOrigin? Origin { get; private set; }

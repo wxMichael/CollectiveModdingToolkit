@@ -96,8 +96,8 @@ public partial class Archive : ObservableObject, IFile
 
 	public int Priority { get; private set; }
 
-	//[MemberNotNullWhen(true, nameof(Mod))]
-	public bool IsManaged => Mod != null;
+	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
+
 	public string? Mod { get; private set; }
 
 	public FileOrigin? Origin { get; private set; }
@@ -147,14 +147,20 @@ public partial class Archive : ObservableObject, IFile
 			ReadHeader();
 	}
 
+	/// <summary>Sets <see cref="ArchiveVersion" /> and the <see cref="IsOG" />/<see cref="IsNG" /> flags derived from it.</summary>
+	private void SetArchiveVersion(byte? version)
+	{
+		ArchiveVersion = version;
+		IsOG = version == 1;
+		IsNG = version is 8 or 7;
+	}
+
 	[MemberNotNull(nameof(IsReadable))]
 	private void ReadHeader()
 	{
 		_readFailReason = null;
-		ArchiveVersion = null;
+		SetArchiveVersion(null);
 		ArchiveFormat = null;
-		IsOG = false;
-		IsNG = false;
 		var header = new byte[12];
 		int bytesRead;
 		try
@@ -178,9 +184,7 @@ public partial class Archive : ObservableObject, IFile
 			return;
 		}
 
-		ArchiveVersion = header[4];
-		IsOG = ArchiveVersion == 1;
-		IsNG = ArchiveVersion is 8 or 7;
+		SetArchiveVersion(header[4]);
 
 		if (header.AsSpan(8, 4).SequenceEqual(Magic.GNRL))
 			ArchiveFormat = "GNRL";
@@ -241,9 +245,7 @@ public partial class Archive : ObservableObject, IFile
 			return Fail(Classify(e, FailReason.WriteFailed));
 		}
 
-		ArchiveVersion = version;
-		IsOG = ArchiveVersion == 1;
-		IsNG = ArchiveVersion is 8 or 7;
+		SetArchiveVersion(version);
 		PatchSuccessful = true;
 		PatchFailed = false;
 		return PatchOutcome.Patched;

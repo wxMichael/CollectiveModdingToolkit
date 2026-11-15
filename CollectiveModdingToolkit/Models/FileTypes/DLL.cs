@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
@@ -159,8 +160,8 @@ public class DLL : IFile
 
 	public int Priority { get; private set; }
 
-	//[MemberNotNullWhen(true, nameof(Mod))]
-	public bool IsManaged => Mod != null;
+	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
+
 	public string? Mod { get; private set; }
 
 	public FileOrigin? Origin { get; private set; }
