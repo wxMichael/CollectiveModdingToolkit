@@ -32,6 +32,7 @@ internal static class Magic
 	internal static readonly byte[] GNRL = CodePage.GetBytes("GNRL");
 	internal static readonly byte[] DX10 = CodePage.GetBytes("DX10");
 	internal static readonly byte[] HEDR = CodePage.GetBytes("HEDR");
+	internal static readonly byte[] DDS = CodePage.GetBytes("DDS ");
 }
 
 internal static class GameVersion
