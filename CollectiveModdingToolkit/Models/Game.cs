@@ -430,8 +430,7 @@ public partial class Game : ObservableObject
 				var modulePath = Path.Combine(DataPath, moduleName);
 				if (!FileExistsInGame(modulePath)) return false;
 
-				module = new Module(moduleName, modulePath);
-				module.SetOrigin(manager.Resolve(modulePath));
+				module = new Module(moduleName, modulePath, manager.Resolve(modulePath));
 				Modules.Add(module);
 				ModulesWinning[moduleName] = module;
 			}
@@ -470,8 +469,7 @@ public partial class Game : ObservableObject
 			// Microsoft debug interface access DLLs that some plugins ship with. They are never F4SE plugins.
 			if (fileName.StartsWith("msdia", StringComparison.OrdinalIgnoreCase)) continue;
 
-			DLL dll = new(fileName, filePath);
-			dll.SetOrigin(Manager.Resolve(filePath));
+			DLL dll = new(fileName, filePath, Manager.Resolve(filePath));
 			//Console.WriteLine(dll.PathRelative);
 			Dlls.Add(dll);
 			DllsWinning.TryAdd(fileName, dll);

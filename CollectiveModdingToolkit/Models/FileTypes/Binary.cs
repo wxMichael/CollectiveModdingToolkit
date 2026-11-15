@@ -119,7 +119,7 @@ public class Binary : ObservableObject, IFile
 		PathFull = pathFull;
 		PathRelative = pathRelative;
 		// Known before reading, so the identified file is the one a mod manager actually provides.
-		SetOrigin(origin);
+		Origin = origin;
 		Found = File.Exists(this.RealPath);
 		IsReadable = Found;
 		if (Found)
@@ -176,7 +176,7 @@ public class Binary : ObservableObject, IFile
 
 	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
-	public FileOrigin? Origin { get; private set; }
+	public FileOrigin? Origin { get; }
 
 	/// <summary>
 	///     Whether a base file is expected to exist for a given game version.
@@ -199,11 +199,6 @@ public class Binary : ObservableObject, IFile
 			base.OnPropertyChanged(e);
 		else
 			Dispatcher.UIThread.Post(() => base.OnPropertyChanged(e));
-	}
-
-	internal void SetOrigin(FileOrigin? origin)
-	{
-		Origin = origin;
 	}
 
 	/// <summary>

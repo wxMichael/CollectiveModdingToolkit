@@ -95,10 +95,11 @@ public class DLL : IFile
 	private const string ExportQuery = "F4SEPlugin_Query";
 	private const string ExportVersion = "F4SEPlugin_Version";
 
-	internal DLL(string name, string pathFull)
+	internal DLL(string name, string pathFull, FileOrigin? origin)
 	{
 		Name = name;
 		PathFull = pathFull;
+		Origin = origin;
 	}
 
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
@@ -147,12 +148,7 @@ public class DLL : IFile
 
 	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
-	public FileOrigin? Origin { get; private set; }
-
-	internal void SetOrigin(FileOrigin? origin)
-	{
-		Origin = origin;
-	}
+	public FileOrigin? Origin { get; }
 
 	/// <summary>
 	///     Reads the DLL's exports (and, for Next-Gen/Anniversary plugins, its version data) without loading it.

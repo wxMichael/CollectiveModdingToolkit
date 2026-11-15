@@ -26,10 +26,11 @@ namespace CollectiveModdingToolkit.Models.FileTypes;
 
 public class Module : IFile
 {
-	internal Module(string name, string pathFull)
+	internal Module(string name, string pathFull, FileOrigin? origin)
 	{
 		Name = name;
 		PathFull = pathFull;
+		Origin = origin;
 	}
 
 	public bool? IsLight { get; private set; }
@@ -47,12 +48,7 @@ public class Module : IFile
 
 	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
-	public FileOrigin? Origin { get; private set; }
-
-	internal void SetOrigin(FileOrigin? origin)
-	{
-		Origin = origin;
-	}
+	public FileOrigin? Origin { get; }
 
 	internal void ReadHeader()
 	{
