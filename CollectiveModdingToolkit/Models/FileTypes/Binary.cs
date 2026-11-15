@@ -111,26 +111,19 @@ public class Binary : ObservableObject, IFile
 
 	internal Binary(
 		string name,
-		string ext,
 		string pathFull,
 		string pathRelative,
-		int priority = 0,
-		string? modName = null,
 		FileOrigin? origin = null)
 	{
 		Name = name;
-		Ext = ext;
 		PathFull = pathFull;
 		PathRelative = pathRelative;
 		// Known before reading, so the identified file is the one a mod manager actually provides.
-		Origin = origin;
+		SetOrigin(origin);
 		Found = File.Exists(this.RealPath);
 		IsReadable = Found;
 		if (Found)
 		{
-			Priority = priority == 0 ? 0 : priority + 1;
-			Mod = modName;
-
 			// Match on version first, then CRC32. Only hash the file if the version didn't identify it.
 			var knownVersions = BaseFiles[PathRelative];
 			var versionString = Utilities.GetFileVersion(this.RealPath);
@@ -173,19 +166,13 @@ public class Binary : ObservableObject, IFile
 	/// <summary>Shown while hovering, where <see cref="GameVersion" /> is shown otherwise.</summary>
 	public string FullVersion => Version ?? GameVersion;
 
-	public string Name { get; }
-	public string Ext { get; }
-	public string PathFull { get; }
 	public string PathRelative { get; }
 
-	public bool WasRead => IsReadable != null;
+	public string Name { get; }
+	public string PathFull { get; }
 
 	[MemberNotNullWhen(true, nameof(Version))]
 	public bool? IsReadable { get; }
-
-	public int Priority { get; private set; }
-
-	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
 
 	public string? Mod { get; private set; }
 
@@ -218,7 +205,6 @@ public class Binary : ObservableObject, IFile
 	{
 		Origin = origin;
 		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
-		Priority = origin?.Priority ?? 0;
 	}
 
 	/// <summary>

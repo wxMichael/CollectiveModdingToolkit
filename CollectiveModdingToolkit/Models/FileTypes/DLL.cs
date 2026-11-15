@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
@@ -96,18 +95,10 @@ public class DLL : IFile
 	private const string ExportQuery = "F4SEPlugin_Query";
 	private const string ExportVersion = "F4SEPlugin_Version";
 
-	internal DLL(
-		string name,
-		string pathFull,
-		string? pathRelative = null,
-		int priority = 0,
-		string? modName = null)
+	internal DLL(string name, string pathFull)
 	{
 		Name = name;
 		PathFull = pathFull;
-		PathRelative = pathRelative ?? $"F4SE/Plugins/{name}";
-		Priority = priority == 0 ? 0 : priority + 1;
-		Mod = modName;
 	}
 
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
@@ -119,8 +110,6 @@ public class DLL : IFile
 	private bool SupportsOG { get; set; }
 
 	/// <summary>Next-Gen/Anniversary: exports <c>F4SEPlugin_Version</c>, which says which game versions it works with.</summary>
-	public bool HasVersionData => VersionData != null;
-
 	private F4SEPluginVersionData? VersionData { get; set; }
 
 	// private bool SupportsNG => VersionData?.SupportsNextGen == true;
@@ -150,17 +139,11 @@ public class DLL : IFile
 	public StatusLevel AELevel => AEMark.Level();
 	public StatusLevel CurrentLevel => CurrentMark.Level();
 
+	private bool WasRead => IsReadable != null;
+
 	public string Name { get; }
-	public string Ext => ".dll";
 	public string PathFull { get; }
-	public string PathRelative { get; }
-
-	public bool WasRead => IsReadable != null;
 	public bool? IsReadable { get; private set; }
-
-	public int Priority { get; private set; }
-
-	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
 
 	public string? Mod { get; private set; }
 
@@ -170,7 +153,6 @@ public class DLL : IFile
 	{
 		Origin = origin;
 		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
-		Priority = origin?.Priority ?? 0;
 	}
 
 	/// <summary>

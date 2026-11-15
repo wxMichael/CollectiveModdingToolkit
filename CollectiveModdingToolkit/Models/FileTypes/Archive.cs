@@ -52,18 +52,10 @@ public partial class Archive : ObservableObject, IFile
 	private FailReason? _readFailReason;
 
 	// TODO: check if counted against limits (+ba2) when !IsReadable
-	internal Archive(
-		string name,
-		string pathFull,
-		string? pathRelative = null,
-		int priority = 0,
-		string? modName = null)
+	internal Archive(string name, string pathFull)
 	{
 		Name = name;
 		PathFull = pathFull;
-		PathRelative = pathRelative ?? name;
-		Priority = priority == 0 ? 0 : priority + 1;
-		Mod = modName;
 		ReadHeader();
 	}
 
@@ -84,19 +76,13 @@ public partial class Archive : ObservableObject, IFile
 	[ObservableProperty] public partial bool? PatchSuccessful { get; private set; } = null;
 	[ObservableProperty] public partial bool? PatchFailed { get; private set; } = null;
 	[ObservableProperty] public partial FailReason? PatchFailReason { get; private set; } = null;
-	public string Name { get; }
-	public string Ext => ".ba2";
-	public string PathFull { get; }
-	public string PathRelative { get; }
 
-	public bool WasRead => IsReadable != null;
+	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
+	public string Name { get; }
+	public string PathFull { get; }
 
 	[MemberNotNullWhen(true, nameof(ArchiveVersion))]
 	public bool? IsReadable { get; private set; }
-
-	public int Priority { get; private set; }
-
-	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
 
 	public string? Mod { get; private set; }
 
@@ -140,7 +126,6 @@ public partial class Archive : ObservableObject, IFile
 	{
 		Origin = origin;
 		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
-		Priority = origin?.Priority ?? 0;
 
 		// The constructor read PathFull; if the real file is elsewhere (mod folder), read that instead.
 		if (origin != null && !string.Equals(origin.SourcePath, PathFull, StringComparison.OrdinalIgnoreCase))

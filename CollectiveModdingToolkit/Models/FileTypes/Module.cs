@@ -26,20 +26,10 @@ namespace CollectiveModdingToolkit.Models.FileTypes;
 
 public class Module : IFile
 {
-	internal Module(
-		string name,
-		string pathFull,
-		string? pathRelative = null,
-		string? ext = null,
-		int priority = 0,
-		string? modName = null)
+	internal Module(string name, string pathFull)
 	{
 		Name = name;
 		PathFull = pathFull;
-		PathRelative = pathRelative ?? name;
-		Ext = ext ?? Path.GetExtension(name).ToLowerInvariant();
-		Priority = priority == 0 ? 0 : priority + 1;
-		Mod = modName;
 	}
 
 	public bool? IsLight { get; private set; }
@@ -47,19 +37,13 @@ public class Module : IFile
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
 	public bool? IsEnabled { get; set; }
-	public string Name { get; }
-	public string Ext { get; }
-	public string PathFull { get; }
-	public string PathRelative { get; }
 
 	public bool WasRead => IsReadable != null;
+	public string Name { get; }
+	public string PathFull { get; }
 
 	[MemberNotNullWhen(true, nameof(IsLight))]
 	public bool? IsReadable { get; private set; }
-
-	public int Priority { get; private set; }
-
-	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
 
 	public string? Mod { get; private set; }
 
@@ -69,7 +53,6 @@ public class Module : IFile
 	{
 		Origin = origin;
 		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
-		Priority = origin?.Priority ?? 0;
 	}
 
 	internal void ReadHeader()

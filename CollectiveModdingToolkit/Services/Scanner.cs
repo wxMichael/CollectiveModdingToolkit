@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading;
 using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Models.FileTypes;
 
 namespace CollectiveModdingToolkit.Services;
 
@@ -531,7 +532,7 @@ public static class Scanner
 			int count;
 			try
 			{
-				count = Count(module.Origin?.SourcePath ?? module.PathFull, pattern, token);
+				count = Count(module.RealPath, pattern, token);
 			}
 			catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 			{

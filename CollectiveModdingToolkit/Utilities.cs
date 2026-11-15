@@ -123,7 +123,7 @@ internal static class Utilities
 	///     game-folder path).
 	/// </summary>
 	internal static bool RevealFile(object? item) =>
-		item is IFile file && RevealInExplorer(file.Origin?.SourcePath ?? file.PathFull);
+		item is IFile file && RevealInExplorer(file.RealPath);
 
 	/// <summary>
 	///     Resolves <paramref name="path" /> (absolute, or relative to the game folder) and returns it relative to the game

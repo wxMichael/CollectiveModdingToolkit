@@ -189,7 +189,7 @@ public partial class Game
 				ProblemType.WrongVersion,
 				optionalTool ? Severity.Low : Severity.Medium,
 				$"{binary.Name} {binary.Version} is {what}, but your game is {GameVersion}.",
-				binary.Origin?.SourcePath ?? binary.PathFull,
+				binary.RealPath,
 				binary.Mod,
 				isF4SE
 					? $"Install the F4SE version for {GameVersion} or use the Downgrader."
@@ -244,7 +244,7 @@ public partial class Game
 
 			AddProblem(ProblemType.InvalidArchive, Severity.Critical,
 				"This archive could not be read. The cause is a permissions problem, an unexpected format, or corruption.",
-				archive.Origin?.SourcePath ?? archive.PathFull, archive.Mod,
+				archive.RealPath, archive.Mod,
 				"Re-download or reinstall the mod it belongs to.");
 		}
 
@@ -257,7 +257,7 @@ public partial class Game
 				: $"version {archive.ArchiveVersion}";
 			AddProblem(ProblemType.InvalidArchive, Severity.Medium,
 				$"This archive has an unsupported {detail}. Fallout 4 archives are General or Texture, version 1, 7, or 8.",
-				archive.Origin?.SourcePath ?? archive.PathFull, archive.Mod,
+				archive.RealPath, archive.Mod,
 				"It may be for another game, or corrupted. Re-download the mod it belongs to.");
 		}
 	}
@@ -281,7 +281,7 @@ public partial class Game
 
 			AddProblem(ProblemType.InvalidModule, Severity.Critical,
 				"This module could not be read. The cause is a permissions problem, an unexpected format, or corruption.",
-				module.Origin?.SourcePath ?? module.PathFull, module.Mod,
+				module.RealPath, module.Mod,
 				"Re-download or reinstall the mod it belongs to.");
 		}
 
@@ -304,7 +304,7 @@ public partial class Game
 
 			AddProblem(ProblemType.InvalidModule, Severity.Critical,
 				$"The module version ({version}) is not valid for Fallout 4. Fallout 4 uses 0.95 and 1.00.{forGames}",
-				module.Origin?.SourcePath ?? module.PathFull, module.Mod,
+				module.RealPath, module.Mod,
 				"Open the module in the Creation Kit and save it, or replace it with a version made for Fallout 4. Files with 0.94 were likely made with FalloutSnip.");
 		}
 	}

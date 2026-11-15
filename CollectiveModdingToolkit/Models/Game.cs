@@ -347,10 +347,7 @@ public partial class Game : ObservableObject
 			var fileName = relativePath.Contains(Path.DirectorySeparatorChar)
 				? Path.GetFileName(relativePath)
 				: relativePath;
-			var fileExt = Path.GetExtension(fileName);
-			var origin = Manager.Resolve(fullPath);
-			Binary binary = new(fileName, fileExt, fullPath, relativePath, origin: origin);
-			binary.SetOrigin(origin);
+			Binary binary = new(fileName, fullPath, relativePath, Manager.Resolve(fullPath));
 			if (fileName.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase))
 			{
 				ExeVersion = F4SERuntime.Pack(binary.Version);
