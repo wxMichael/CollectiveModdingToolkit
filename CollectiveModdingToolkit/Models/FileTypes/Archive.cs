@@ -54,8 +54,11 @@ public partial class Archive : ObservableObject, IFile
 	public bool IsGNRL => ArchiveFormat == "GNRL";
 	public bool IsDX10 => ArchiveFormat == "DX10";
 
-	[ObservableProperty] public partial bool? PatchSuccessful { get; private set; } = null;
-	[ObservableProperty] public partial bool? PatchFailed { get; private set; } = null;
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(PatchFailed))]
+	public partial bool? PatchSuccessful { get; private set; }
+
+	public bool PatchFailed => PatchSuccessful == false;
 	[ObservableProperty] public partial FailReason? PatchFailReason { get; private set; } = null;
 
 	[MemberNotNullWhen(true, nameof(Mod))] public bool IsManaged => Mod != null;
@@ -180,7 +183,6 @@ public partial class Archive : ObservableObject, IFile
 	internal PatchOutcome SetVersion(byte version)
 	{
 		PatchSuccessful = null;
-		PatchFailed = null;
 		PatchFailReason = null;
 
 		if (!File.Exists(this.RealPath)) return Fail(FailReason.FileNotFound);
@@ -193,7 +195,6 @@ public partial class Archive : ObservableObject, IFile
 		if (alreadyPatched)
 		{
 			PatchSuccessful = true;
-			PatchFailed = false;
 			return PatchOutcome.AlreadyPatched;
 		}
 
@@ -213,14 +214,12 @@ public partial class Archive : ObservableObject, IFile
 
 		SetArchiveVersion(version);
 		PatchSuccessful = true;
-		PatchFailed = false;
 		return PatchOutcome.Patched;
 	}
 
 	private PatchOutcome Fail(FailReason reason)
 	{
 		PatchSuccessful = false;
-		PatchFailed = true;
 		PatchFailReason = reason;
 		return PatchOutcome.Failed;
 	}
