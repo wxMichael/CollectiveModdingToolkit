@@ -68,7 +68,7 @@ public partial class Archive : ObservableObject, IFile
 	[MemberNotNullWhen(true, nameof(ArchiveVersion))]
 	public bool? IsReadable { get; private set; }
 
-	public string? Mod { get; private set; }
+	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
 	public FileOrigin? Origin { get; private set; }
 
@@ -109,7 +109,6 @@ public partial class Archive : ObservableObject, IFile
 	internal void SetOrigin(FileOrigin? origin)
 	{
 		Origin = origin;
-		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
 
 		// The constructor read PathFull; if the real file is elsewhere (mod folder), read that instead.
 		if (origin != null && !string.Equals(origin.SourcePath, PathFull, StringComparison.OrdinalIgnoreCase))

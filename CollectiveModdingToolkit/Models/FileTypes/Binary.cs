@@ -174,7 +174,7 @@ public class Binary : ObservableObject, IFile
 	[MemberNotNullWhen(true, nameof(Version))]
 	public bool? IsReadable { get; }
 
-	public string? Mod { get; private set; }
+	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
 	public FileOrigin? Origin { get; private set; }
 
@@ -204,7 +204,6 @@ public class Binary : ObservableObject, IFile
 	internal void SetOrigin(FileOrigin? origin)
 	{
 		Origin = origin;
-		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
 	}
 
 	/// <summary>

@@ -45,14 +45,13 @@ public class Module : IFile
 	[MemberNotNullWhen(true, nameof(IsLight))]
 	public bool? IsReadable { get; private set; }
 
-	public string? Mod { get; private set; }
+	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
 	public FileOrigin? Origin { get; private set; }
 
 	internal void SetOrigin(FileOrigin? origin)
 	{
 		Origin = origin;
-		Mod = origin is { IsGameFolder: false } ? origin.ModName : null;
 	}
 
 	internal void ReadHeader()
