@@ -130,25 +130,58 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 						<Button.Flyout>
 							<Flyout Placement="BottomEdgeAlignedRight">
 								<StackPanel Spacing="4"
-								            Width="190">
+								            Width="260">
 									<CheckBox Content="Overview Issues"
-									          IsChecked="{Binding Settings.ScanOverviewIssues}"
-									          ToolTip.Tip="Report details of issues from Overview" />
+									          IsChecked="{Binding Settings.ScanOverviewIssues}" />
+									<TextBlock Text="Report details of issues from Overview."
+									           Classes="Readable"
+									           Foreground="{DynamicResource NeutralBrushBright}"
+									           FontSize="{StaticResource Small}"
+									           TextWrapping="Wrap"
+									           Margin="28,-2,0,6" />
 									<CheckBox Content="Wrong File Formats"
-									          IsChecked="{Binding Settings.ScanWrongFormat}"
-									          ToolTip.Tip="Check file types against a whitelist per Data folder.&#10;e.g. MP3 instead of XWM/WAV in Data/Sound/." />
+									          IsChecked="{Binding Settings.ScanWrongFormat}" />
+									<TextBlock
+										Text="Check file types against a whitelist per Data folder, e.g. MP3 instead of XWM/WAV in Data/Sound/."
+										Classes="Readable"
+										Foreground="{DynamicResource NeutralBrushBright}"
+										FontSize="{StaticResource Small}"
+										TextWrapping="Wrap"
+										Margin="28,-2,0,6" />
 									<CheckBox Content="Loose Previs"
-									          IsChecked="{Binding Settings.ScanLoosePrevis}"
-									          ToolTip.Tip="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders." />
+									          IsChecked="{Binding Settings.ScanLoosePrevis}" />
+									<TextBlock Text="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
+									           Classes="Readable"
+									           Foreground="{DynamicResource NeutralBrushBright}"
+									           FontSize="{StaticResource Small}"
+									           TextWrapping="Wrap"
+									           Margin="28,-2,0,6" />
 									<CheckBox Content="Junk Files"
-									          IsChecked="{Binding Settings.ScanJunkFiles}"
-									          ToolTip.Tip="Report junk files such as desktop.ini, Thumbs.db,&#10;and leftover fomod folders." />
+									          IsChecked="{Binding Settings.ScanJunkFiles}" />
+									<TextBlock Text="Report junk files such as desktop.ini and Thumbs.db, and leftover fomod folders."
+									           Classes="Readable"
+									           Foreground="{DynamicResource NeutralBrushBright}"
+									           FontSize="{StaticResource Small}"
+									           TextWrapping="Wrap"
+									           Margin="28,-2,0,6" />
 									<CheckBox Content="Problem Overrides"
-									          IsChecked="{Binding Settings.ScanProblemOverrides}"
-									          ToolTip.Tip="Check for overrides that typically cause issues&#10;such as outdated F4SE script files or loose AnimTextData folders." />
+									          IsChecked="{Binding Settings.ScanProblemOverrides}" />
+									<TextBlock
+										Text="Check for overrides that typically cause issues, such as outdated F4SE script files or loose AnimTextData folders."
+										Classes="Readable"
+										Foreground="{DynamicResource NeutralBrushBright}"
+										FontSize="{StaticResource Small}"
+										TextWrapping="Wrap"
+										Margin="28,-2,0,6" />
 									<CheckBox Content="Race Subgraphs"
-									          IsChecked="{Binding Settings.ScanRaceSubgraphs}"
-									          ToolTip.Tip="Counts race animation subgraph records (RACE \ SADD).&#10;Adding too many may cause stutter when loading Cells.&#10;Base Game Count: 37&#10;Warning Threshold: 100" />
+									          IsChecked="{Binding Settings.ScanRaceSubgraphs}" />
+									<TextBlock
+										Text="Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100."
+										Classes="Readable"
+										Foreground="{DynamicResource NeutralBrushBright}"
+										FontSize="{StaticResource Small}"
+										TextWrapping="Wrap"
+										Margin="28,-2,0,6" />
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>

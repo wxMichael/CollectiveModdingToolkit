@@ -27,7 +27,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<SolidColorBrush x:Key="BgBrush" Color="{DynamicResource Grey0}" />
 	<SolidColorBrush x:Key="BgRaisedBrush" Color="{DynamicResource Grey1}" />
 	<SolidColorBrush x:Key="BgHighBrush" Color="{DynamicResource Grey2}" />
-	<SolidColorBrush x:Key="BgTooltipBrush" Color="{DynamicResource Grey2}" />
+	<SolidColorBrush x:Key="BgTooltipBrush" Color="{DynamicResource Grey1}" />
 	<SolidColorBrush x:Key="HighlightBrush" Color="#16FFFFFF" />
 
 	<!-- Strokes -->
@@ -40,6 +40,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<SolidColorBrush x:Key="TextBrush" Color="{DynamicResource Grey11}" />
 	<SolidColorBrush x:Key="TextFaintBrush" Color="DimGray" />
 	<SolidColorBrush x:Key="NeutralBrush" Color="{DynamicResource NeutralColor}" />
+	<SolidColorBrush x:Key="NeutralBrushBright" Color="{DynamicResource Grey7}" />
 	<SolidColorBrush x:Key="Neutral2Brush" Color="{DynamicResource Neutral2Color}" />
 
 	<!-- Status -->
