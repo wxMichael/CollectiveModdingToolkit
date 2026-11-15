@@ -33,10 +33,12 @@ public partial class Archive : ObservableObject, IFile
 	private FailReason? _readFailReason;
 
 	// TODO: check if counted against limits (+ba2) when !IsReadable
-	internal Archive(string name, string pathFull)
+	internal Archive(string name, string pathFull, FileOrigin? origin)
 	{
 		Name = name;
 		PathFull = pathFull;
+		// Known before reading, so the header comes from the file a mod manager actually provides.
+		Origin = origin;
 		ReadHeader();
 	}
 
@@ -70,7 +72,7 @@ public partial class Archive : ObservableObject, IFile
 
 	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
 
-	public FileOrigin? Origin { get; private set; }
+	public FileOrigin? Origin { get; }
 
 	/// <summary>A user-facing explanation of a failed patch.</summary>
 	public static string Describe(FailReason reason) => reason switch
@@ -104,15 +106,6 @@ public partial class Archive : ObservableObject, IFile
 			base.OnPropertyChanged(e);
 		else
 			Dispatcher.UIThread.Post(() => base.OnPropertyChanged(e));
-	}
-
-	internal void SetOrigin(FileOrigin? origin)
-	{
-		Origin = origin;
-
-		// The constructor read PathFull; if the real file is elsewhere (mod folder), read that instead.
-		if (origin != null && !string.Equals(origin.SourcePath, PathFull, StringComparison.OrdinalIgnoreCase))
-			ReadHeader();
 	}
 
 	/// <summary>Sets <see cref="ArchiveVersion" /> and the <see cref="IsOG" />/<see cref="IsNG" /> flags derived from it.</summary>

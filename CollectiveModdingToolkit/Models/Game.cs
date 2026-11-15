@@ -599,8 +599,7 @@ public partial class Game : ObservableObject
 			Archive? archive;
 			if (FileExistsInGame(archivePath))
 			{
-				archive = new Archive(archiveName, archivePath);
-				archive.SetOrigin(Manager.Resolve(archivePath));
+				archive = new Archive(archiveName, archivePath, Manager.Resolve(archivePath));
 				Archives.Add(archive);
 				ArchivesWinning.TryAdd(ArchiveKey(archiveName), archive);
 			}
@@ -626,8 +625,7 @@ public partial class Game : ObservableObject
 			if (!ArchivesWinning.TryGetValue(ArchiveKey(texturesPatch), out var patch) &&
 			    FileExistsInGame(texturesPatchPath))
 			{
-				patch = new Archive(texturesPatch, texturesPatchPath);
-				patch.SetOrigin(Manager.Resolve(texturesPatchPath));
+				patch = new Archive(texturesPatch, texturesPatchPath, Manager.Resolve(texturesPatchPath));
 				Archives.Add(patch);
 				ArchivesWinning.TryAdd(ArchiveKey(texturesPatch), patch);
 			}
@@ -658,8 +656,7 @@ public partial class Game : ObservableObject
 				Archive? archive;
 				if (!ArchivesINI.Contains(archiveName) && FileExistsInGame(archivePath))
 				{
-					archive = new Archive(archiveName, archivePath);
-					archive.SetOrigin(Manager.Resolve(archivePath));
+					archive = new Archive(archiveName, archivePath, Manager.Resolve(archivePath));
 					Archives.Add(archive);
 					ArchivesWinning.TryAdd(ArchiveKey(archiveName), archive);
 				}
