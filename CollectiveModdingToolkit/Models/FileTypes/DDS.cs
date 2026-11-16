@@ -66,6 +66,7 @@ internal enum DXGI_FORMAT : uint
 public class DDS : IFile
 {
 	private const uint DDPF_FOURCC = 0x4;
+	private const uint DDSCAPS2_CUBEMAP = 0x200;
 	private const uint FourCC_DX10 = 0x30315844; // "DX10" little-endian
 
 	/// <summary>Magic (4) + DDS_HEADER (124).</summary>
@@ -86,6 +87,10 @@ public class DDS : IFile
 
 	/// <summary>Whether the pixel format declares the DX10 extension header.</summary>
 	private bool HasDx10Header => (_ddspf.Flags & DDPF_FOURCC) != 0 && _ddspf.FourCC == FourCC_DX10;
+
+	/// <summary>Whether the texture is a cubemap, per the legacy caps or the DX10 header.</summary>
+	internal bool IsCubemap =>
+		(Caps2 & DDSCAPS2_CUBEMAP) != 0 || (_headerDx10 is { } dx10 && (dx10.MiscFlag & 0x4) != 0);
 
 	public string Name { get; }
 	public string PathFull { get; }

@@ -56,6 +56,7 @@ public enum ProblemType
 	NoModManager,
 	UnknownGameVersion,
 	RaceSubgraphs,
+	InvalidTexture,
 	Configuration,
 	ScanError,
 }
@@ -208,6 +209,7 @@ public class ProblemInfo : ObservableObject
 			ProblemType.NoModManager => "No Mod Manager",
 			ProblemType.UnknownGameVersion => "Unknown Game Version",
 			ProblemType.RaceSubgraphs => "Race Subgraph Record Count",
+			ProblemType.InvalidTexture => "Texture Issue",
 			ProblemType.Configuration => "Configuration",
 			ProblemType.ScanError => "Scan Error",
 			_ => "Problem",

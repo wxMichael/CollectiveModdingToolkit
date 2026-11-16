@@ -78,6 +78,7 @@ public sealed partial class AppSettings : ObservableObject
 	[ObservableProperty] public partial bool ScanJunkFiles { get; set; } = true;
 	[ObservableProperty] public partial bool ScanProblemOverrides { get; set; } = true;
 	[ObservableProperty] public partial bool ScanRaceSubgraphs { get; set; } = true;
+	[ObservableProperty] public partial bool ScanTextureIssues { get; set; } = true;
 
 	partial void OnLogLevelChanged(LogLevel value) => Log.Level = value;
 
@@ -131,6 +132,9 @@ public sealed partial class AppSettings : ObservableObject
 
 					if (TryReadBool(root, "scannerRaceSubgraphs", out var scanRace))
 						settings.ScanRaceSubgraphs = scanRace;
+
+					if (TryReadBool(root, "scannerTextureIssues", out var scanTextures))
+						settings.ScanTextureIssues = scanTextures;
 				}
 				else
 				{
@@ -181,6 +185,7 @@ public sealed partial class AppSettings : ObservableObject
 				writer.WriteBoolean("scannerJunkFiles", ScanJunkFiles);
 				writer.WriteBoolean("scannerProblemOverrides", ScanProblemOverrides);
 				writer.WriteBoolean("scannerRaceSubgraphs", ScanRaceSubgraphs);
+				writer.WriteBoolean("scannerTextureIssues", ScanTextureIssues);
 				writer.WriteEndObject();
 			}
 

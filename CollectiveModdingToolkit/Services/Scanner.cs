@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
@@ -36,17 +37,18 @@ public sealed record ScanOptions(
 	bool LoosePrevis,
 	bool JunkFiles,
 	bool ProblemOverrides,
-	bool RaceSubgraphs)
+	bool RaceSubgraphs,
+	bool TextureIssues)
 {
 	/// <summary>True if any option needs the Data folder walked. Overview Issues and Race Subgraphs don't.</summary>
-	public bool NeedsFileWalk => WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides;
+	public bool NeedsFileWalk => WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues;
 
 	public bool Any => OverviewIssues || NeedsFileWalk || RaceSubgraphs;
 
 	public static ScanOptions FromSettings(AppSettings s) =>
 		new(
 			s.ScanOverviewIssues, s.ScanWrongFormat, s.ScanLoosePrevis, s.ScanJunkFiles, s.ScanProblemOverrides,
-			s.ScanRaceSubgraphs);
+			s.ScanRaceSubgraphs, s.ScanTextureIssues);
 }
 
 public static class Scanner
@@ -300,6 +302,12 @@ public static class Scanner
 			var ext = fileName[(dot + 1)..].ToLowerInvariant();
 			var stem = fileName[..dot];
 
+			if (options.TextureIssues && ext == "dds")
+			{
+				CheckTexture(problems, game, manager, entry);
+				continue;
+			}
+
 			if (!options.WrongFormat) continue;
 
 			var misplacedDll = ext == "dll" &&
@@ -356,6 +364,41 @@ public static class Scanner
 				}
 			}
 		}
+	}
+
+	/// <summary>Reports a loose DDS with an unreadable header or dimensions the game can't handle.</summary>
+	private static void CheckTexture(List<ProblemInfo> problems, Game game, IModManager manager, Entry entry)
+	{
+		var path = GetSourcePath(manager, entry);
+		DDS dds = new(Path.GetFileName(path), path, null);
+		dds.ReadHeader();
+
+		if (dds.IsReadable != true)
+		{
+			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
+				"This texture's DDS header is missing, corrupted, or unreadable.",
+				SolutionType.DeleteOrIgnoreFile);
+			return;
+		}
+
+		bool valid;
+		string requirement;
+		if (dds.IsCubemap)
+		{
+			valid = dds.Width % 4 == 0 && dds.Height % 4 == 0;
+			requirement = "a multiple of 4 for a cubemap";
+		}
+		else
+		{
+			valid = BitOperations.IsPow2(dds.Width) && BitOperations.IsPow2(dds.Height);
+			requirement = "a power of 2";
+		}
+
+		if (!valid)
+			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
+				$"This texture is {dds.Width} x {dds.Height}. Dimensions must be {requirement}.",
+				null,
+				"Resize the texture, or report it to the mod author. Using it in-game may cause issues.");
 	}
 
 	/// <summary>
