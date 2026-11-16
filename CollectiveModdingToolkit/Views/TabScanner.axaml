@@ -131,57 +131,31 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							<Flyout Placement="BottomEdgeAlignedRight">
 								<StackPanel Spacing="4"
 								            Width="260">
-									<CheckBox Content="Overview Issues"
-									          IsChecked="{Binding Settings.ScanOverviewIssues}" />
-									<TextBlock Text="Report details of issues from Overview."
-									           Classes="Readable"
-									           Foreground="{DynamicResource NeutralBrushBright}"
-									           FontSize="{StaticResource Small}"
-									           TextWrapping="Wrap"
-									           Margin="28,-2,0,6" />
-									<CheckBox Content="Wrong File Formats"
-									          IsChecked="{Binding Settings.ScanWrongFormat}" />
-									<TextBlock
-										Text="Check file types against a whitelist per Data folder, e.g. MP3 instead of XWM/WAV in Data/Sound/."
-										Classes="Readable"
-										Foreground="{DynamicResource NeutralBrushBright}"
-										FontSize="{StaticResource Small}"
-										TextWrapping="Wrap"
-										Margin="28,-2,0,6" />
-									<CheckBox Content="Loose Previs"
-									          IsChecked="{Binding Settings.ScanLoosePrevis}" />
-									<TextBlock Text="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders."
-									           Classes="Readable"
-									           Foreground="{DynamicResource NeutralBrushBright}"
-									           FontSize="{StaticResource Small}"
-									           TextWrapping="Wrap"
-									           Margin="28,-2,0,6" />
-									<CheckBox Content="Junk Files"
-									          IsChecked="{Binding Settings.ScanJunkFiles}" />
-									<TextBlock Text="Report junk files such as desktop.ini and Thumbs.db, and leftover fomod folders."
-									           Classes="Readable"
-									           Foreground="{DynamicResource NeutralBrushBright}"
-									           FontSize="{StaticResource Small}"
-									           TextWrapping="Wrap"
-									           Margin="28,-2,0,6" />
-									<CheckBox Content="Problem Overrides"
-									          IsChecked="{Binding Settings.ScanProblemOverrides}" />
-									<TextBlock
-										Text="Check for overrides that typically cause issues, such as outdated F4SE script files or loose AnimTextData folders."
-										Classes="Readable"
-										Foreground="{DynamicResource NeutralBrushBright}"
-										FontSize="{StaticResource Small}"
-										TextWrapping="Wrap"
-										Margin="28,-2,0,6" />
-									<CheckBox Content="Race Subgraphs"
-									          IsChecked="{Binding Settings.ScanRaceSubgraphs}" />
-									<TextBlock
-										Text="Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100."
-										Classes="Readable"
-										Foreground="{DynamicResource NeutralBrushBright}"
-										FontSize="{StaticResource Small}"
-										TextWrapping="Wrap"
-										Margin="28,-2,0,6" />
+
+									<ctrl:SettingOption Header="Overview Issues"
+									                    IsChecked="{Binding Settings.ScanOverviewIssues}"
+									                    Description="Report details of issues from Overview." />
+
+									<ctrl:SettingOption Header="Wrong File Formats"
+									                    IsChecked="{Binding Settings.ScanWrongFormat}"
+									                    Description="Check file types against a whitelist per Data folder, e.g. MP3 instead of XWM/WAV in Data/Sound/." />
+
+									<ctrl:SettingOption Header="Loose Previs"
+									                    IsChecked="{Binding Settings.ScanLoosePrevis}"
+									                    Description="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders." />
+
+									<ctrl:SettingOption Header="Junk Files"
+									                    IsChecked="{Binding Settings.ScanJunkFiles}"
+									                    Description="Report junk files such as desktop.ini and Thumbs.db, and leftover fomod folders." />
+
+									<ctrl:SettingOption Header="Problem Overrides"
+									                    IsChecked="{Binding Settings.ScanProblemOverrides}"
+									                    Description="Check for overrides that typically cause issues, such as outdated F4SE script files or loose AnimTextData folders." />
+
+									<ctrl:SettingOption Header="Race Subgraphs"
+									                    IsChecked="{Binding Settings.ScanRaceSubgraphs}"
+									                    Description="Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100." />
+
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>
