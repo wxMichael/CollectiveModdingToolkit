@@ -63,7 +63,7 @@ internal enum DXGI_FORMAT : uint
 	BC7_UNORM_SRGB = 99,
 }
 
-public class DDS : IFile
+public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(name, pathFull, origin)
 {
 	private const uint DDPF_FOURCC = 0x4;
 	private const uint DDSCAPS2_CUBEMAP = 0x200;
@@ -78,28 +78,12 @@ public class DDS : IFile
 	/// <summary>The DX10 extension header, or null if this file has none.</summary>
 	private DDS_HEADER_DXT10? _headerDx10;
 
-	internal DDS(string name, string pathFull, FileOrigin? origin)
-	{
-		Name = name;
-		PathFull = pathFull;
-		Origin = origin;
-	}
-
 	/// <summary>Whether the pixel format declares the DX10 extension header.</summary>
 	private bool HasDx10Header => (_ddspf.Flags & DDPF_FOURCC) != 0 && _ddspf.FourCC == FourCC_DX10;
 
 	/// <summary>Whether the texture is a cubemap, per the legacy caps or the DX10 header.</summary>
 	internal bool IsCubemap =>
 		(Caps2 & DDSCAPS2_CUBEMAP) != 0 || (_headerDx10 is { } dx10 && (dx10.MiscFlag & 0x4) != 0);
-
-	public string Name { get; }
-	public string PathFull { get; }
-
-	public bool? IsReadable { get; private set; }
-
-	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
-
-	public FileOrigin? Origin { get; }
 
 	internal void ReadHeader()
 	{

@@ -19,20 +19,12 @@
  */
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CollectiveModdingToolkit.Models.FileTypes;
 
-public class Module : IFile
+public class Module(string name, string pathFull, FileOrigin? origin) : FileBase(name, pathFull, origin)
 {
-	internal Module(string name, string pathFull, FileOrigin? origin)
-	{
-		Name = name;
-		PathFull = pathFull;
-		Origin = origin;
-	}
-
 	public bool? IsLight { get; private set; }
 	public double HEDRVersion { get; private set; }
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
@@ -40,15 +32,6 @@ public class Module : IFile
 	public bool? IsEnabled { get; set; }
 
 	public bool WasRead => IsReadable != null;
-	public string Name { get; }
-	public string PathFull { get; }
-
-	[MemberNotNullWhen(true, nameof(IsLight))]
-	public bool? IsReadable { get; private set; }
-
-	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
-
-	public FileOrigin? Origin { get; }
 
 	internal void ReadHeader()
 	{

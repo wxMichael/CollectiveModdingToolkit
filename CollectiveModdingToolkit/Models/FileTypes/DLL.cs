@@ -88,19 +88,12 @@ public static class DllMarkExtensions
 	}
 }
 
-public class DLL : IFile
+public class DLL(string name, string pathFull, FileOrigin? origin) : FileBase(name, pathFull, origin)
 {
 	private const string ExportLoad = "F4SEPlugin_Load";
 	private const string ExportPreload = "F4SEPlugin_Preload";
 	private const string ExportQuery = "F4SEPlugin_Query";
 	private const string ExportVersion = "F4SEPlugin_Version";
-
-	internal DLL(string name, string pathFull, FileOrigin? origin)
-	{
-		Name = name;
-		PathFull = pathFull;
-		Origin = origin;
-	}
 
 	public string OriginText => Origin?.DisplayName ?? "Unknown";
 
@@ -141,14 +134,6 @@ public class DLL : IFile
 	public StatusLevel CurrentLevel => CurrentMark.Level();
 
 	private bool WasRead => IsReadable != null;
-
-	public string Name { get; }
-	public string PathFull { get; }
-	public bool? IsReadable { get; private set; }
-
-	public string? Mod => Origin is { IsGameFolder: false } ? Origin.ModName : null;
-
-	public FileOrigin? Origin { get; }
 
 	/// <summary>
 	///     Reads the DLL's exports (and, for Next-Gen/Anniversary plugins, its version data) without loading it.
