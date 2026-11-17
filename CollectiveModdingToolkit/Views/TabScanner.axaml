@@ -244,7 +244,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				           Classes="Readable Small Neutral"
 				           HorizontalAlignment="Center"
 				           VerticalAlignment="Center"
-				           Text="▲ Select a mod and issue above ▲"
+				           Text="▲ Select an issue above ▲"
 				           IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNull}}" />
 
 				<ScrollViewer Grid.Column="0"
