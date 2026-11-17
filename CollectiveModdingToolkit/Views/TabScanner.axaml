@@ -35,7 +35,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<vm:TabScannerViewModel />
 	</Design.DataContext>
 
-	<Grid RowDefinitions="30,*,Auto,150">
+	<Grid RowDefinitions="30,*,Auto,210">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="220"
 			                  MinWidth="170" />
