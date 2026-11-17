@@ -337,15 +337,24 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				        IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<StackPanel Spacing="5"
 					            Width="120">
+
 						<Button Content="Copy Details"
 						        Classes="Small"
 						        HorizontalAlignment="Stretch"
 						        Command="{Binding CopyDetailsCommand}" />
+
+						<Button Content="&#x1F4C2; Open Path"
+						        Classes="Small"
+						        HorizontalAlignment="Stretch"
+						        IsVisible="{Binding CurrentIssue.HasPath, FallbackValue=False}"
+						        Command="{Binding RevealIssueCommand}" />
+
 						<Button Content="File List"
 						        Classes="Small"
 						        HorizontalAlignment="Stretch"
 						        IsVisible="{Binding CurrentIssue.FileList, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}"
 						        Command="{Binding ShowFileListCommand}" />
+
 					</StackPanel>
 				</Border>
 			</Grid>

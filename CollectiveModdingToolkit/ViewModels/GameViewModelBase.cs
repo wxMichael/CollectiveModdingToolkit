@@ -21,19 +21,15 @@
 using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
-using CommunityToolkit.Mvvm.Input;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
 /// <summary>Base for tabs that show the loaded game; forwards the session's state so views can bind to it directly.</summary>
-public abstract partial class GameViewModelBase : ViewModelBase
+public abstract class GameViewModelBase : ShellViewModelBase
 {
-	private readonly IShellService _shell;
-
-	protected GameViewModelBase(GameSession session, IShellService shell)
+	protected GameViewModelBase(GameSession session, IShellService shell) : base(shell)
 	{
 		Session = session;
-		_shell = shell;
 		// Session property names match the forwarders below, so a refresh updates every bound view.
 		session.PropertyChanged += (_, e) =>
 		{
@@ -50,7 +46,4 @@ public abstract partial class GameViewModelBase : ViewModelBase
 
 	/// <summary>True until the first game load finishes. Tabs show a loading overlay meanwhile.</summary>
 	public bool IsLoading => Session.Game is null;
-
-	[RelayCommand]
-	private void RevealFile(object? item) => _shell.RevealFile(item);
 }
