@@ -95,6 +95,8 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 		{
 			using var file = File.OpenRead(this.RealPath);
 			bytesRead = file.ReadAtLeast(headerBytes, HeaderSize, false);
+
+			if (bytesRead > 0) ReadSignature(headerBytes);
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{

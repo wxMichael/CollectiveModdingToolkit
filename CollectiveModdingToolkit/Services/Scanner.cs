@@ -373,9 +373,15 @@ public static class Scanner
 
 		if (dds.IsReadable != true)
 		{
-			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
-				"This texture's DDS header is missing, corrupted, or unreadable.",
-				SolutionType.DeleteOrIgnoreFile);
+			if (dds.Signature != null)
+				AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
+					$"This file's header is invalid for DDS. The signature read was '{dds.Signature}'.",
+					null,
+					"Report it to the mod author. Resaving the file may be able to repair it.");
+			else
+				AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
+					"This texture's DDS header is missing, corrupted, or unreadable.",
+					SolutionType.DeleteOrIgnoreFile);
 			return;
 		}
 
