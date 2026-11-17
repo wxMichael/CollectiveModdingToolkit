@@ -302,52 +302,50 @@ public static class Scanner
 			var ext = fileName[(dot + 1)..].ToLowerInvariant();
 			var stem = fileName[..dot];
 
-			if (options.TextureIssues && ext == "dds")
-			{
-				CheckTexture(problems, game, manager, entry);
-				continue;
-			}
+			if (options.TextureIssues && ext == "dds") CheckTexture(problems, game, manager, entry);
 
-			if (!options.WrongFormat) continue;
-
-			var misplacedDll = ext == "dll" &&
-			                   !entry.Relative.StartsWith(@"f4se\plugins", StringComparison.OrdinalIgnoreCase);
-			if ((whitelist != null && !whitelist.Contains(ext)) || misplacedDll)
+			if (options.WrongFormat)
 			{
-				var location = root ?? "Data";
-				string summary;
-				SolutionType solution;
-				if (ProperFormats.TryGetValue(ext, out var proper))
+				var misplacedDll = ext == "dll" &&
+				                   !entry.Relative.StartsWith(@"f4se\plugins", StringComparison.OrdinalIgnoreCase);
+				if ((whitelist != null && !whitelist.Contains(ext)) || misplacedDll)
 				{
-					var folder = dirs.Length > 0 ? string.Join('\\', dirs) + '\\' : string.Empty;
-					string[] found =
-					[
-						.. proper.Where(e => files.ContainsKey($"{folder}{stem}.{e}"))
-							.Select(e => $"{stem}.{e}"),
-					];
-					if (found.Length > 0)
+					var location = root ?? "Data";
+					string summary;
+					SolutionType solution;
+					if (ProperFormats.TryGetValue(ext, out var proper))
 					{
-						summary =
-							$"Format not in whitelist for {location}.\nA file with the expected format was found ({string.Join(", ", found)}).";
-						solution = SolutionType.DeleteOrIgnoreFile;
+						var folder = dirs.Length > 0 ? string.Join('\\', dirs) + '\\' : string.Empty;
+						string[] found =
+						[
+							.. proper.Where(e => files.ContainsKey($"{folder}{stem}.{e}"))
+								.Select(e => $"{stem}.{e}"),
+						];
+						if (found.Length > 0)
+						{
+							summary =
+								$"Format not in whitelist for {location}.\nA file with the expected format was found ({string.Join(", ", found)}).";
+							solution = SolutionType.DeleteOrIgnoreFile;
+						}
+						else
+						{
+							summary =
+								$"Format not in whitelist for {location}.\nA file with the expected format was NOT found ({string.Join(", ", proper)}).";
+							solution = SolutionType.ConvertDeleteOrIgnoreFile;
+						}
 					}
 					else
 					{
 						summary =
-							$"Format not in whitelist for {location}.\nA file with the expected format was NOT found ({string.Join(", ", proper)}).";
-						solution = SolutionType.ConvertDeleteOrIgnoreFile;
+							$"Format not in whitelist for {location}.\nUnable to determine whether the game will use this file.";
+						solution = SolutionType.UnknownFormat;
 					}
-				}
-				else
-				{
-					summary =
-						$"Format not in whitelist for {location}.\nUnable to determine whether the game will use this file.";
-					solution = SolutionType.UnknownFormat;
-				}
 
-				AddFileProblem(problems, game, manager, entry, ProblemType.UnexpectedFormat, Severity.Medium, summary,
-					solution);
-				continue;
+					AddFileProblem(problems, game, manager, entry, ProblemType.UnexpectedFormat, Severity.Medium,
+						summary,
+						solution);
+					continue;
+				}
 			}
 
 			if (ext == "ba2" && !ArchiveNameWhitelist.Contains(fileName) && !archivesEnabled.Contains(fileName))
