@@ -336,7 +336,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				        BorderThickness="1,0,0,0"
 				        IsVisible="{Binding CurrentIssue, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<StackPanel Spacing="5"
-					            Width="100">
+					            Width="120">
 						<Button Content="Copy Details"
 						        Classes="Small"
 						        HorizontalAlignment="Stretch"
