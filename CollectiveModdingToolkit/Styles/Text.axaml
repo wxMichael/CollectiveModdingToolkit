@@ -80,5 +80,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Style Selector="^.Purple">
 			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource PurpleBrush}" />
 		</Style>
+		<Style Selector="^.Accent">
+			<Setter Property="(TextElement.Foreground)" Value="{DynamicResource AccentBrightBrush}" />
+		</Style>
 	</Style>
 </Styles>

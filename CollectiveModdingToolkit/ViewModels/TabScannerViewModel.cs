@@ -25,6 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CollectiveModdingToolkit.Controls;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -161,8 +162,8 @@ public partial class TabScannerViewModel : ViewModelBase
 		text.AppendLine($"Mod: {ModName(p)}");
 		if (p.HasPath) text.AppendLine($"Location: {p.RelativePath}");
 
-		text.AppendLine($"Summary: {p.Summary}");
-		text.AppendLine($"Solution: {p.Solution ?? "No solution suggestion."}");
+		text.AppendLine($"Summary: {RichText.Strip(p.Summary)}");
+		text.AppendLine($"Solution: {(p.Solution is null ? "No solution suggestion." : RichText.Strip(p.Solution))}");
 		return text.ToString();
 	}
 

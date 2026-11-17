@@ -137,8 +137,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									                    Description="Report details of issues from Overview." />
 
 									<ctrl:SettingOption Header="Texture Issues"
-														IsChecked="{Binding Settings.ScanTextureIssues}"
-														Description="Check loose DDS textures for invalid headers and dimensions. Must be a power of 2, or a multiple of 4 for cubemaps." />
+									                    IsChecked="{Binding Settings.ScanTextureIssues}"
+									                    Description="Check loose DDS textures for invalid headers and dimensions. Must be a power of 2, or a multiple of 4 for cubemaps." />
 
 									<ctrl:SettingOption Header="Wrong File Formats"
 									                    IsChecked="{Binding Settings.ScanWrongFormat}"
@@ -268,6 +268,10 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									<Setter Property="TextAlignment"
 									        Value="Right" />
 								</Style>
+								<Style Selector="TextBlock:not(.Label)">
+									<Setter Property="Foreground"
+									        Value="{StaticResource Neutral2Brush}" />
+								</Style>
 							</Grid.Styles>
 
 							<TextBlock Grid.Row="0"
@@ -308,7 +312,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							<TextBlock Grid.Row="3"
 							           Grid.Column="1"
 							           Classes="Small"
-							           Text="{Binding Summary}" />
+							           ctrl:RichText.Markup="{Binding Summary}" />
 
 							<TextBlock Grid.Row="4"
 							           Grid.Column="0"
@@ -317,7 +321,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							<StackPanel Grid.Row="4"
 							            Grid.Column="1">
 								<TextBlock Classes="Small"
-								           Text="{Binding Solution, TargetNullValue='No solution suggestion.'}" />
+								           ctrl:RichText.Markup="{Binding Solution, TargetNullValue='[i]No solution suggestion.[/i]'}" />
 								<TextBlock Classes="Small"
 								           Text="{Binding Url}"
 								           Cursor="Hand"

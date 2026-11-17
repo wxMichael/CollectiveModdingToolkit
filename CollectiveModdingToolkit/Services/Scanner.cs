@@ -426,7 +426,7 @@ public static class Scanner
 			else if (options.ProblemOverrides && name.Equals("animtextdata", StringComparison.OrdinalIgnoreCase))
 			{
 				type = ProblemType.AnimTextDataFolder;
-				summary = "The existence of unpacked AnimTextData may cause the game to crash.";
+				summary = "The existence of unpacked [accent]AnimTextData[/accent] may cause the game to crash.";
 				severity = Severity.Critical;
 			}
 			else
