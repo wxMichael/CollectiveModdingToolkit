@@ -19,7 +19,7 @@
 
 		<ApplicationIcon>Assets\Images\icon-cm-64.ico</ApplicationIcon>
 
-		<FileVersion>1.0</FileVersion>
+		<FileVersion>2.0</FileVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<OutputType>WinExe</OutputType>
