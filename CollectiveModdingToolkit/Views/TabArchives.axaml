@@ -50,11 +50,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<Style Selector="DataGridCell.Success">
 			<Setter Property="Background"
-			        Value="#003D00" />
+			        Value="{DynamicResource GoodDimBrush}" />
 		</Style>
 		<Style Selector="DataGridCell.Failed">
 			<Setter Property="Background"
-			        Value="#3D0000" />
+			        Value="{DynamicResource BadDimBrush}" />
 		</Style>
 	</UserControl.Styles>
 

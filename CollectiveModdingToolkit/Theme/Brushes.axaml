@@ -28,13 +28,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<SolidColorBrush x:Key="BgRaisedBrush" Color="{DynamicResource Grey1}" />
 	<SolidColorBrush x:Key="BgHighBrush" Color="{DynamicResource Grey2}" />
 	<SolidColorBrush x:Key="BgTooltipBrush" Color="{DynamicResource Grey1}" />
-	<SolidColorBrush x:Key="HighlightBrush" Color="#16FFFFFF" />
+	<SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource HighlightColor}" />
 
 	<!-- Strokes -->
 	<SolidColorBrush x:Key="StrokeSubtleBrush" Color="{DynamicResource Grey2}" />
 	<SolidColorBrush x:Key="StrokeBrush" Color="{DynamicResource Grey3}" />
-	<SolidColorBrush x:Key="StrokeMidBrush" Color="#808080" />
-	<SolidColorBrush x:Key="StrokeBrightBrush" Color="#BBBBBB" />
+	<SolidColorBrush x:Key="StrokeMidBrush" Color="{DynamicResource StrokeMidColor}" />
+	<SolidColorBrush x:Key="StrokeBrightBrush" Color="{DynamicResource StrokeBrightColor}" />
 
 	<!-- Text -->
 	<SolidColorBrush x:Key="TextBrush" Color="{DynamicResource Grey11}" />
@@ -46,6 +46,8 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<!-- Status -->
 	<SolidColorBrush x:Key="GoodBrush" Color="{DynamicResource GoodColor}" />
 	<SolidColorBrush x:Key="BadBrush" Color="{DynamicResource BadColor}" />
+	<SolidColorBrush x:Key="GoodDimBrush" Color="{DynamicResource GoodDimColor}" />
+	<SolidColorBrush x:Key="BadDimBrush" Color="{DynamicResource BadDimColor}" />
 	<SolidColorBrush x:Key="CautionBrush" Color="{DynamicResource CautionColor}" />
 	<SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource WarningColor}" />
 	<SolidColorBrush x:Key="BlueBrush" Color="{DynamicResource BlueColor}" />
