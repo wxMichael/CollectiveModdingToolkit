@@ -154,6 +154,10 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									                    IsChecked="{Binding Settings.ScanLoosePrevis}"
 									                    Description="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders." />
 
+									<ctrl:SettingOption Header="Modding Best Practices"
+									                    IsChecked="{Binding Settings.ScanBestPractices}"
+									                    Description="Intended for mod authors. Suggestions for things that work but could be better, such as JSON materials, non-standard texture formats, unused alpha channels, and texture names that don't match their slot." />
+
 									<ctrl:SettingOption Header="Empty Files"
 									                    IsChecked="{Binding Settings.ScanEmptyFiles}"
 									                    Description="Report files with no content (0 bytes). These are sometimes intentional, so investigation is needed before action." />

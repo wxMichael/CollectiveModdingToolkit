@@ -59,6 +59,9 @@ public enum ProblemType
 	RaceSubgraphs,
 	InvalidTexture,
 	EmptyFile,
+	InvalidMaterial,
+	MaterialTextures,
+	MaterialTextureWarnings,
 	Configuration,
 	ScanError,
 }
@@ -145,7 +148,7 @@ public class ProblemInfo : ObservableObject
 	public string FullPath { get; } = string.Empty;
 	public string BasePath { get; private set; } = string.Empty;
 	public string RelativePath { get; private set; } = string.Empty;
-	public PathType PathType { get; private set; }
+	public PathType PathType { get; }
 
 	/// <summary>The mod the file comes from. Null means unmanaged, the game folder, or not applicable.</summary>
 	public string? Mod { get; private set; }
@@ -237,6 +240,9 @@ public class ProblemInfo : ObservableObject
 			ProblemType.RaceSubgraphs => "Race Subgraph Record Count",
 			ProblemType.InvalidTexture => "Texture Issue",
 			ProblemType.EmptyFile => "Empty File",
+			ProblemType.InvalidMaterial => "Material Issue",
+			ProblemType.MaterialTextures => "Material Textures",
+			ProblemType.MaterialTextureWarnings => "Material Texture Warnings",
 			ProblemType.Configuration => "Configuration",
 			ProblemType.ScanError => "Scan Error",
 			_ => "Problem",

@@ -80,6 +80,8 @@ public sealed partial class AppSettings : ObservableObject
 	[ObservableProperty] public partial bool ScanRaceSubgraphs { get; set; } = true;
 	[ObservableProperty] public partial bool ScanTextureIssues { get; set; } = true;
 	[ObservableProperty] public partial bool ScanEmptyFiles { get; set; } = true;
+	[ObservableProperty] public partial bool ScanMaterialIssues { get; set; } = true;
+	[ObservableProperty] public partial bool ScanBestPractices { get; set; } = true;
 	[ObservableProperty] public partial bool ScanReadArchives { get; set; } = true;
 
 	partial void OnLogLevelChanged(LogLevel value) => Log.Level = value;
@@ -141,6 +143,12 @@ public sealed partial class AppSettings : ObservableObject
 					if (TryReadBool(root, "scannerEmptyFiles", out var scanEmpty))
 						settings.ScanEmptyFiles = scanEmpty;
 
+					if (TryReadBool(root, "scannerMaterialIssues", out var scanMaterials))
+						settings.ScanMaterialIssues = scanMaterials;
+
+					if (TryReadBool(root, "scannerBestPractices", out var scanBest))
+						settings.ScanBestPractices = scanBest;
+
 					if (TryReadBool(root, "scannerReadArchives", out var scanArchives))
 						settings.ScanReadArchives = scanArchives;
 				}
@@ -195,6 +203,8 @@ public sealed partial class AppSettings : ObservableObject
 				writer.WriteBoolean("scannerRaceSubgraphs", ScanRaceSubgraphs);
 				writer.WriteBoolean("scannerTextureIssues", ScanTextureIssues);
 				writer.WriteBoolean("scannerEmptyFiles", ScanEmptyFiles);
+				writer.WriteBoolean("scannerMaterialIssues", ScanMaterialIssues);
+				writer.WriteBoolean("scannerBestPractices", ScanBestPractices);
 				writer.WriteBoolean("scannerReadArchives", ScanReadArchives);
 				writer.WriteEndObject();
 			}

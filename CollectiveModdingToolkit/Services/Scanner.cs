@@ -40,18 +40,22 @@ public sealed record ScanOptions(
 	bool RaceSubgraphs,
 	bool TextureIssues,
 	bool EmptyFiles,
+	bool MaterialIssues,
+	bool BestPractices,
 	bool ReadArchives)
 {
 	/// <summary>True if any option needs the Data folder walked. Overview Issues and Race Subgraphs don't.</summary>
 	public bool NeedsFileWalk =>
-		WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues || EmptyFiles;
+		WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues || EmptyFiles ||
+		MaterialIssues || BestPractices;
 
 	public bool Any => OverviewIssues || NeedsFileWalk || RaceSubgraphs;
 
 	public static ScanOptions FromSettings(AppSettings s) =>
 		new(
 			s.ScanOverviewIssues, s.ScanWrongFormat, s.ScanLoosePrevis, s.ScanJunkFiles, s.ScanProblemOverrides,
-			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanEmptyFiles, s.ScanReadArchives);
+			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanEmptyFiles,
+			s.ScanMaterialIssues, s.ScanBestPractices, s.ScanReadArchives);
 }
 
 public static class Scanner
@@ -67,6 +71,9 @@ public static class Scanner
 		"Loose previs files should be archived so they only win conflicts according to their plugin's load order.\n"
 		+ "Loose previs files are also not supported by PJM's Previs Scripts.";
 
+	private const string EmptyFileSolution =
+		"[i]This might be intentional[/i], such as disabling an HKX file, so investigation is needed.";
+
 	/// <summary>Folders that are never scanned. Lowercase.</summary>
 	private static readonly string[] IgnoreFolders = ["bodyslide", "fo4edit", "robco_patcher", "source"];
 
@@ -77,7 +84,7 @@ public static class Scanner
 	private static readonly Dictionary<string, HashSet<string>?> DataWhitelist = new()
 	{
 		["f4se"] = null,
-		["materials"] = ["bgem", "bgsm", "txt"],
+		["materials"] = ["bgem", "bgsm", "json", "txt"],
 		["meshes"] =
 		[
 			"bto", "btr", "hko", "hkx", "hkx_back", "hkx_backup", "lst", "max", "nif", "obj", "sclp", "ssf", "tri",
@@ -209,12 +216,17 @@ public static class Scanner
 				.Order(StringComparer.OrdinalIgnoreCase),
 		];
 
-		var context = new ScanContext(game, options, manager, problems, token);
+		var context = new ScanContext(game, options, manager, problems, token) { Files = files };
+		if (options.MaterialIssues || options.BestPractices)
+			context.Textures = TextureLookup.Build(game, files, e => GetSourcePath(manager, e),
+				text => progress?.Report(new Progress(text, 1)), token);
+
 		var reportedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var archivesEnabled = new HashSet<string>(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase);
 		var readArchives = options.ReadArchives &&
 		                   (options.WrongFormat || options.JunkFiles || options.ProblemOverrides ||
-		                    options.TextureIssues || options.EmptyFiles);
+		                    options.TextureIssues || options.EmptyFiles || options.MaterialIssues ||
+		                    options.BestPractices);
 		var currentTop = string.Empty;
 
 		foreach (var entry in files.Values.OrderBy(e => e.Relative, StringComparer.OrdinalIgnoreCase))
@@ -384,6 +396,10 @@ public static class Scanner
 				CheckTexture(problems, game, manager, entry);
 		}
 
+		if ((options.MaterialIssues || options.BestPractices) && root == "materials" &&
+		    ext is "bgsm" or "bgem" or "json")
+			CheckMaterial(c, entry, relative, inner);
+
 		if (!options.WrongFormat) return;
 
 		var misplacedDll = ext == "dll" &&
@@ -425,13 +441,10 @@ public static class Scanner
 			solution, inner: inner);
 	}
 
-	private const string EmptyFileSolution =
-		"A file with no contents is almost always the result of a failed download, extraction, or save.\n"
-		+ "[accent]Reinstall the mod[/accent] it came from or [accent]report it[/accent] to the mod author. It can also be [accent]deleted or ignored[/accent] if it isn't used.";
-
 	/// <summary>Empty files that exist on purpose: mod manager markers and dotfiles such as .gitkeep.</summary>
 	private static bool IsPlaceholder(string fileName) =>
-		fileName.StartsWith('.') || fileName.StartsWith("__folder_managed_by_vortex", StringComparison.OrdinalIgnoreCase);
+		fileName.StartsWith('.') ||
+		fileName.StartsWith("__folder_managed_by_vortex", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>Files the game loads at start-up or crashes on when empty, versus ones nothing reads.</summary>
 	private static Severity EmptyFileSeverity(string fileName)
@@ -441,7 +454,8 @@ public static class Scanner
 		{
 			"" => Severity.Low,
 			".esp" or ".esm" or ".esl" or ".ba2" or ".dll" => Severity.Critical,
-			".txt" or ".md" or ".log" or ".url" or ".ini" or ".cfg" or ".json" or ".xml" or ".pdf" or ".rtf" => Severity.Low,
+			".txt" or ".md" or ".log" or ".url" or ".ini" or ".cfg" or ".json" or ".xml" or ".pdf" or ".rtf" => Severity
+				.Low,
 			_ => Severity.Medium,
 		};
 	}
@@ -514,6 +528,42 @@ public static class Scanner
 			c.Token.ThrowIfCancellationRequested();
 			ScanFile(c, entry, file.Path.Replace('/', '\\'), names.Contains, reportedFolders, file);
 		}
+	}
+
+	/// <summary>Reports problems with a material and the textures it uses.</summary>
+	private static void CheckMaterial(ScanContext c, Entry entry, string relative, Ba2Entry? inner)
+	{
+		if (c.Textures == null) return;
+
+		// Materials in an archive the game doesn't load are never used, and their textures may not be loaded either.
+		if (inner != null && !c.Game.ArchivesEnabled.Contains(Path.GetFileName(entry.FullPath))) return;
+
+		var path = GetSourcePath(c.Manager, entry);
+		byte[] data;
+		try
+		{
+			var length = inner?.UnpackedSize ?? new FileInfo(path).Length;
+			if (length > MaterialChecker.MaxSize)
+			{
+				AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidMaterial, Severity.Medium,
+					$"This material is [bad]unusually large[/bad] ({length:N0} bytes). Materials are a few hundred bytes, so this is probably not a material.",
+					null, "[accent]Report it[/accent] to the mod author.", inner);
+				return;
+			}
+
+			data = inner == null ? File.ReadAllBytes(path) : Ba2Reader.ReadStart(path, inner, (int)length);
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+		{
+			Log.Warning($"Scanner: unable to read material {relative}: {e.Message}");
+			return;
+		}
+
+		// Suggestions (Low) belong to Best Practices; everything else to Material Issues.
+		foreach (var issue in MaterialChecker.Check(relative, data, c.Textures))
+			if (issue.Severity == Severity.Low ? c.Options.BestPractices : c.Options.MaterialIssues)
+				AddFileProblem(c.Problems, c.Game, c.Manager, entry, issue.Type, issue.Severity, issue.Summary, null,
+					issue.Solution, inner);
 	}
 
 	/// <summary>Reports a DDS texture inside a BA2 with an invalid header, dimensions, format, or naming.</summary>
@@ -860,7 +910,14 @@ public static class Scanner
 		ScanOptions Options,
 		IModManager Manager,
 		List<ProblemInfo> Problems,
-		CancellationToken Token);
+		CancellationToken Token)
+	{
+		/// <summary>Every loose file the game would see, by path relative to Data.</summary>
+		public Dictionary<string, Entry> Files { get; init; } = [];
+
+		/// <summary>Textures for checking materials. Null unless material checks are on.</summary>
+		public TextureLookup? Textures { get; set; }
+	}
 
 	/// <summary>One file as the game would see it: the winning copy across the Data folder and every mod.</summary>
 	internal sealed record Entry(string Relative, string FullPath, string? Mod, string Root, long Length);
