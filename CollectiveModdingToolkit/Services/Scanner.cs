@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using System.Threading;
 using CollectiveModdingToolkit.Managers;
@@ -37,7 +38,8 @@ public sealed record ScanOptions(
 	bool JunkFiles,
 	bool ProblemOverrides,
 	bool RaceSubgraphs,
-	bool TextureIssues)
+	bool TextureIssues,
+	bool ReadArchives)
 {
 	/// <summary>True if any option needs the Data folder walked. Overview Issues and Race Subgraphs don't.</summary>
 	public bool NeedsFileWalk => WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues;
@@ -47,7 +49,7 @@ public sealed record ScanOptions(
 	public static ScanOptions FromSettings(AppSettings s) =>
 		new(
 			s.ScanOverviewIssues, s.ScanWrongFormat, s.ScanLoosePrevis, s.ScanJunkFiles, s.ScanProblemOverrides,
-			s.ScanRaceSubgraphs, s.ScanTextureIssues);
+			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanReadArchives);
 }
 
 public static class Scanner
@@ -205,15 +207,18 @@ public static class Scanner
 				.Order(StringComparer.OrdinalIgnoreCase),
 		];
 
-		var archivesEnabled = new HashSet<string>(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase);
+		var context = new ScanContext(game, options, manager, problems, token);
 		var reportedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var archivesEnabled = new HashSet<string>(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase);
+		var readArchives = options.ReadArchives &&
+		                   (options.WrongFormat || options.JunkFiles || options.ProblemOverrides ||
+		                    options.TextureIssues);
 		var currentTop = string.Empty;
 
 		foreach (var entry in files.Values.OrderBy(e => e.Relative, StringComparer.OrdinalIgnoreCase))
 		{
 			token.ThrowIfCancellationRequested();
 			var parts = entry.Relative.Split('\\');
-			var fileName = parts[^1];
 			var dirs = parts[..^1];
 			var root = dirs.Length > 0 ? dirs[0].ToLowerInvariant() : null;
 
@@ -225,21 +230,77 @@ public static class Scanner
 					100.0 * index / Math.Max(1, topFolders.Length)));
 			}
 
-			HashSet<string>? whitelist = null;
-			if (root != null)
+			ScanFile(context, entry, entry.Relative, name => files.ContainsKey(name), reportedFolders, null);
+
+			// Only archives directly in Data are loaded by the game.
+			var fileName = parts[^1];
+			if (root != null || !fileName.EndsWith(".ba2", StringComparison.OrdinalIgnoreCase) ||
+			    ArchiveNameWhitelist.Contains(fileName))
+				continue;
+
+			if (readArchives)
 			{
-				if (root == "fomod")
-				{
-					if (options.JunkFiles && reportedFolders.Add("fomod"))
-						AddFolderProblem(problems, game, manager, entry, 1, ProblemType.JunkFile, Severity.Low,
-							"This is a junk folder not used by the game or mod managers.",
-							SolutionType.DeleteOrIgnoreFolder);
+				progress?.Report(new Progress($"Reading archive: {fileName}", 100.0));
+				ScanArchive(context, entry);
+			}
 
-					continue;
-				}
+			if (!archivesEnabled.Contains(fileName)) CheckArchiveName(context, entry, fileName);
+		}
+	}
 
-				if (!DataWhitelist.TryGetValue(root, out whitelist)) continue;
+	private static void CheckArchiveName(ScanContext c, Entry entry, string fileName)
+	{
+		var stem = fileName[..fileName.LastIndexOf('.')];
+		var split = stem.LastIndexOf(" - ", StringComparison.Ordinal);
+		var suffix = split < 0 ? null : stem[(split + 3)..].ToLowerInvariant();
+		if (suffix != null && c.Game.BA2Suffixes.Contains(suffix)) return;
 
+		var baseName = split < 0 ? stem : stem[..split];
+		AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidArchiveName, Severity.Medium,
+			"This is not a valid archive name and won't be loaded by the game.",
+			SolutionType.RenameArchive,
+			$"{SolutionText(SolutionType.RenameArchive)}\n\nValid Suffixes: {string.Join(", ", c.Game.BA2Suffixes)}\nExample: {baseName} - Main.ba2");
+	}
+
+	/// <summary>
+	///     Applies the per-file checks to one file, loose or inside an archive.
+	/// </summary>
+	/// <param name="c">Scan state.</param>
+	/// <param name="entry">The loose file, or the archive the file is in.</param>
+	/// <param name="relative">Path relative to Data (or the mod folder), or inside the archive.</param>
+	/// <param name="exists">Whether another file exists at a relative path, in the same place as this one.</param>
+	/// <param name="reportedFolders">Folders already reported.</param>
+	/// <param name="inner">The file inside <paramref name="entry" />, if it is an archive.</param>
+	private static void ScanFile(ScanContext c, Entry entry, string relative, Func<string, bool> exists,
+		HashSet<string> reportedFolders, Ba2Entry? inner)
+	{
+		var game = c.Game;
+		var options = c.Options;
+		var manager = c.Manager;
+		var problems = c.Problems;
+		var parts = relative.Split('\\');
+		var fileName = parts[^1];
+		var dirs = parts[..^1];
+		var root = dirs.Length > 0 ? dirs[0].ToLowerInvariant() : null;
+		var archived = inner != null;
+
+		HashSet<string>? whitelist = null;
+		if (root != null)
+		{
+			if (root == "fomod")
+			{
+				if (options.JunkFiles && reportedFolders.Add(archived ? $"{entry.FullPath}|fomod" : "fomod"))
+					AddFolderProblem(problems, game, manager, entry, 1, ProblemType.JunkFile, Severity.Low,
+						"This is a junk folder not used by the game or mod managers.",
+						SolutionType.DeleteOrIgnoreFolder, archived ? dirs[0] : null);
+
+				return;
+			}
+
+			if (!DataWhitelist.TryGetValue(root, out whitelist)) return;
+
+			// Packed previs and AnimTextData are the fix for these problems, not the problem.
+			if (!archived)
 				switch (root)
 				{
 					case "vis" when options.LoosePrevis:
@@ -249,118 +310,201 @@ public static class Scanner
 								Severity.Medium,
 								SummaryPrevis, SolutionType.ArchiveFolder);
 
-						continue;
+						return;
 					}
 					case "meshes"
 						when IsInProblemFolder(options, game, manager, problems, reportedFolders, entry, dirs):
-						continue;
+						return;
 				}
+		}
+
+		if (options.JunkFiles && (JunkFiles.Contains(fileName) ||
+		                          JunkFileSuffixes.Any(s =>
+			                          fileName.EndsWith(s, StringComparison.OrdinalIgnoreCase))))
+		{
+			AddFileProblem(problems, game, manager, entry, ProblemType.JunkFile, Severity.Low,
+				"This is a junk file not used by the game or mod managers.", SolutionType.DeleteOrIgnoreFile,
+				inner: inner);
+			return;
+		}
+
+		// Only scripts directly in Data\Scripts.
+		if (root == "scripts" && dirs.Length == 1 && options.ProblemOverrides)
+			if (F4SEScripts.TryGetHash(game.GameVersion, fileName, out var f4SEScriptCRC))
+			{
+				var mod = GetMod(manager, entry);
+
+				var scriptCRC = GetScriptHash(c, entry, inner);
+				if (scriptCRC == null) return;
+
+				if (!scriptCRC.Equals(f4SEScriptCRC, StringComparison.OrdinalIgnoreCase))
+					AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Critical,
+						"This is an override of an F4SE script which does not match your game's version.",
+						null,
+						mod == null || mod.Contains("Fallout 4 Script Extender")
+							? $"Install F4SE for {game.GameVersion}."
+							: "Check if this mod is supposed to override F4SE Scripts.\n"
+							  + "If this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\n"
+							  + "Otherwise, this mod or file may need to be deleted.", inner);
+
+				else if (mod != null && !mod.Contains("Fallout 4 Script Extender"))
+					AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Low,
+						"This is an override of an F4SE script. It matches your game's version so won't "
+						+ "cause issues now, but if this is unintentionally bundled with a mod it may cause "
+						+ "issues if your game or F4SE version ever changes.",
+						null,
+						"If this file isn't expected in this mod, inform the author of the potential mistake", inner);
+
+				return;
 			}
 
-			if (options.JunkFiles && (JunkFiles.Contains(fileName) ||
-			                          JunkFileSuffixes.Any(s =>
-				                          fileName.EndsWith(s, StringComparison.OrdinalIgnoreCase))))
+		var dot = fileName.LastIndexOf('.');
+		if (dot < 0) return;
+
+		var ext = fileName[(dot + 1)..].ToLowerInvariant();
+		var stem = fileName[..dot];
+
+		if (options.TextureIssues && ext == "dds")
+		{
+			if (inner != null)
+				CheckArchivedTexture(c, entry, inner);
+			else
+				CheckTexture(problems, game, manager, entry);
+		}
+
+		if (!options.WrongFormat) return;
+
+		var misplacedDll = ext == "dll" &&
+		                   !relative.StartsWith(@"f4se\plugins", StringComparison.OrdinalIgnoreCase);
+		if ((whitelist == null || whitelist.Contains(ext)) && !misplacedDll) return;
+
+		var location = root ?? "Data";
+		string summary;
+		SolutionType solution;
+		if (ProperFormats.TryGetValue(ext, out var proper))
+		{
+			var folder = dirs.Length > 0 ? string.Join('\\', dirs) + '\\' : string.Empty;
+			string[] found =
+			[
+				.. proper.Where(e => exists($"{folder}{stem}.{e}"))
+					.Select(e => $"{stem}.{e}"),
+			];
+			if (found.Length > 0)
 			{
-				AddFileProblem(problems, game, manager, entry, ProblemType.JunkFile, Severity.Low,
-					"This is a junk file not used by the game or mod managers.", SolutionType.DeleteOrIgnoreFile);
-				continue;
+				summary =
+					$"Format not in whitelist for {location}.\nA file with the expected format was found ({string.Join(", ", found)}).";
+				solution = SolutionType.DeleteOrIgnoreFile;
 			}
-
-			// Only scripts directly in Data\Scripts.
-			if (root == "scripts" && dirs.Length == 1 && options.ProblemOverrides)
-				if (F4SEScripts.TryGetHash(game.GameVersion, fileName, out var f4SEScriptCRC))
-				{
-					var mod = GetMod(manager, entry);
-
-					var scriptCRC = Utilities.GetFileHash(entry.FullPath);
-					if (!scriptCRC.Equals(f4SEScriptCRC, StringComparison.OrdinalIgnoreCase))
-						AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Critical,
-							"This is an override of an F4SE script which does not match your game's version.",
-							null,
-							mod == null || mod.Contains("Fallout 4 Script Extender")
-								? $"Install F4SE for {game.GameVersion}."
-								: "Check if this mod is supposed to override F4SE Scripts.\n"
-								  + "If this is a script extender/library or requires one, this is likely intentional but it must support your game version explicitly.\n"
-								  + "Otherwise, this mod or file may need to be deleted.");
-
-					else if (mod != null && !mod.Contains("Fallout 4 Script Extender"))
-						AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Low,
-							"This is an override of an F4SE script. It matches your game's version so won't "
-							+ "cause issues now, but if this is unintentionally bundled with a mod it may cause "
-							+ "issues if your game or F4SE version ever changes.",
-							null,
-							"If this file isn't expected in this mod, inform the author of the potential mistake");
-
-
-					continue;
-				}
-
-			var dot = fileName.LastIndexOf('.');
-			if (dot < 0) continue;
-
-			var ext = fileName[(dot + 1)..].ToLowerInvariant();
-			var stem = fileName[..dot];
-
-			if (options.TextureIssues && ext == "dds") CheckTexture(problems, game, manager, entry);
-
-			if (options.WrongFormat)
+			else
 			{
-				var misplacedDll = ext == "dll" &&
-				                   !entry.Relative.StartsWith(@"f4se\plugins", StringComparison.OrdinalIgnoreCase);
-				if ((whitelist != null && !whitelist.Contains(ext)) || misplacedDll)
-				{
-					var location = root ?? "Data";
-					string summary;
-					SolutionType solution;
-					if (ProperFormats.TryGetValue(ext, out var proper))
-					{
-						var folder = dirs.Length > 0 ? string.Join('\\', dirs) + '\\' : string.Empty;
-						string[] found =
-						[
-							.. proper.Where(e => files.ContainsKey($"{folder}{stem}.{e}"))
-								.Select(e => $"{stem}.{e}"),
-						];
-						if (found.Length > 0)
-						{
-							summary =
-								$"Format not in whitelist for {location}.\nA file with the expected format was found ({string.Join(", ", found)}).";
-							solution = SolutionType.DeleteOrIgnoreFile;
-						}
-						else
-						{
-							summary =
-								$"Format not in whitelist for {location}.\nA file with the expected format was NOT found ({string.Join(", ", proper)}).";
-							solution = SolutionType.ConvertDeleteOrIgnoreFile;
-						}
-					}
-					else
-					{
-						summary =
-							$"Format not in whitelist for {location}.\nUnable to determine whether the game will use this file.";
-						solution = SolutionType.UnknownFormat;
-					}
-
-					AddFileProblem(problems, game, manager, entry, ProblemType.UnexpectedFormat, Severity.Medium,
-						summary,
-						solution);
-					continue;
-				}
-			}
-
-			if (ext == "ba2" && !ArchiveNameWhitelist.Contains(fileName) && !archivesEnabled.Contains(fileName))
-			{
-				var split = stem.LastIndexOf(" - ", StringComparison.Ordinal);
-				var suffix = split < 0 ? null : stem[(split + 3)..].ToLowerInvariant();
-				if (suffix == null || !game.BA2Suffixes.Contains(suffix))
-				{
-					var baseName = split < 0 ? stem : stem[..split];
-					AddFileProblem(problems, game, manager, entry, ProblemType.InvalidArchiveName, Severity.Medium,
-						"This is not a valid archive name and won't be loaded by the game.",
-						SolutionType.RenameArchive,
-						$"{SolutionText(SolutionType.RenameArchive)}\n\nValid Suffixes: {string.Join(", ", game.BA2Suffixes)}\nExample: {baseName} - Main.ba2");
-				}
+				summary =
+					$"Format not in whitelist for {location}.\nA file with the expected format was NOT found ({string.Join(", ", proper)}).";
+				solution = SolutionType.ConvertDeleteOrIgnoreFile;
 			}
 		}
+		else
+		{
+			summary =
+				$"Format not in whitelist for {location}.\nUnable to determine whether the game will use this file.";
+			solution = SolutionType.UnknownFormat;
+		}
+
+		AddFileProblem(problems, game, manager, entry, ProblemType.UnexpectedFormat, Severity.Medium, summary,
+			solution, inner: inner);
+	}
+
+	/// <summary>The CRC of a script, loose or archived. Null if it can't be read.</summary>
+	private static string? GetScriptHash(ScanContext c, Entry entry, Ba2Entry? inner)
+	{
+		if (inner == null) return Utilities.GetFileHash(entry.FullPath);
+
+		const long maxScriptSize = 16 << 20;
+		if (inner.UnpackedSize > maxScriptSize) return null;
+
+		try
+		{
+			var data = Ba2Reader.ReadStart(GetSourcePath(c.Manager, entry), inner, (int)inner.UnpackedSize);
+			return $"{Crc32.HashToUInt32(data):X8}";
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>Reads a BA2's index and applies the per-file checks to everything in it.</summary>
+	private static void ScanArchive(ScanContext c, Entry entry)
+	{
+		var path = GetSourcePath(c.Manager, entry);
+		List<Ba2Entry> files;
+		try
+		{
+			files = Ba2Reader.Read(path, c.Token);
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+		{
+			// Unsupported versions (e.g. Starfield's) are skipped quietly.
+			if (e is InvalidDataException && e.Message.StartsWith("Unsupported", StringComparison.Ordinal)) return;
+
+			Log.Warning($"Scanner: unable to read archive {path}: {e.Message}");
+			AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidArchive, Severity.Medium,
+				$"This archive [warning]could not be read[/warning] to check its contents. {e.Message}", null,
+				"[accent]Report it[/accent] to the mod author. The archive may be corrupted or incomplete.");
+			return;
+		}
+
+		// Paths inside archives may use either slash.
+		var names = new HashSet<string>(files.Select(f => f.Path.Replace('/', '\\')), StringComparer.OrdinalIgnoreCase);
+		var reportedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var file in files)
+		{
+			c.Token.ThrowIfCancellationRequested();
+			ScanFile(c, entry, file.Path.Replace('/', '\\'), names.Contains, reportedFolders, file);
+		}
+	}
+
+	/// <summary>Reports a DDS texture inside a BA2 with an invalid header, dimensions, format, or naming.</summary>
+	private static void CheckArchivedTexture(ScanContext c, Entry entry, Ba2Entry file)
+	{
+		var path = GetSourcePath(c.Manager, entry);
+		var relative = file.Path.Replace('/', '\\');
+		DDS dds = new(Path.GetFileName(relative), path, null);
+		long length;
+		if (file.IsTexture)
+		{
+			var header = Ba2Reader.BuildDdsHeader(file);
+			dds.ReadHeader(header);
+			length = header.Length + file.UnpackedSize;
+		}
+		else
+		{
+			try
+			{
+				dds.ReadHeader(Ba2Reader.ReadStart(path, file, 148));
+			}
+			catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+			{
+				return;
+			}
+
+			length = file.UnpackedSize;
+		}
+
+		if (dds.IsReadable != true)
+		{
+			AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidTexture, Severity.Medium,
+				dds.Signature == null
+					? "This texture's [accent]DDS header[/accent] is [bad]missing, corrupted, or unreadable[/bad]."
+					: $"This file's header is [bad]invalid for DDS[/bad]. The signature read was [b]'{dds.Signature}'[/b].",
+				null,
+				"[accent]Report it[/accent] to the mod author. [accent]Resaving[/accent] the file [i]might[/i] repair it.",
+				file);
+			return;
+		}
+
+		foreach (var issue in TextureChecker.Check(dds, relative, length))
+			AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidTexture, issue.Severity,
+				issue.Summary, null, issue.Solution, file);
 	}
 
 	/// <summary>Reports DDS textures with invalid headers, dimensions, formats, or naming.</summary>
@@ -526,7 +670,8 @@ public static class Scanner
 
 	private static void AddFileProblem(
 		List<ProblemInfo> problems, Game game, IModManager manager, Entry entry,
-		ProblemType type, Severity severity, string summary, SolutionType? solutionType, string? solution = null)
+		ProblemType type, Severity severity, string summary, SolutionType? solutionType, string? solution = null,
+		Ba2Entry? inner = null)
 	{
 		var path = GetSourcePath(manager, entry);
 		var mod = GetMod(manager, entry);
@@ -534,7 +679,10 @@ public static class Scanner
 		problems.Add(new ProblemInfo(
 			type, severity, summary, path, basePath, mod,
 			solution ?? (solutionType is { } t ? SolutionText(t) : null),
-			solutionType ?? SolutionType.None));
+			solutionType ?? SolutionType.None)
+		{
+			Title = inner?.Path, ListTitle = inner == null ? null : Path.GetFileName(inner.Path),
+		});
 	}
 
 	/// <summary>
@@ -542,7 +690,7 @@ public static class Scanner
 	/// </summary>
 	private static void AddFolderProblem(
 		List<ProblemInfo> problems, Game game, IModManager manager, Entry entry, int depth,
-		ProblemType type, Severity severity, string summary, SolutionType solutionType)
+		ProblemType type, Severity severity, string summary, SolutionType solutionType, string? innerFolder = null)
 	{
 		var parts = entry.Relative.Split('\\');
 		var sourceFile = GetSourcePath(manager, entry);
@@ -553,8 +701,12 @@ public static class Scanner
 
 		var mod = GetMod(manager, entry);
 		var basePath = GetBasePath(game, entry, sourceFile);
+
+		// Inside an archive the folder isn't on disk, so point at the archive and name the folder.
+		if (innerFolder != null) folder = sourceFile;
+
 		problems.Add(new ProblemInfo(type, severity, summary, folder, basePath, mod, SolutionText(solutionType),
-			solutionType));
+			solutionType) { Title = innerFolder });
 	}
 
 	private static void ScanRaceSubgraphs(Game game, List<ProblemInfo> problems, CancellationToken token)
@@ -632,6 +784,13 @@ public static class Scanner
 
 		return count;
 	}
+
+	private sealed record ScanContext(
+		Game Game,
+		ScanOptions Options,
+		IModManager Manager,
+		List<ProblemInfo> Problems,
+		CancellationToken Token);
 
 	/// <summary>One file as the game would see it: the winning copy across the Data folder and every mod.</summary>
 	private sealed record Entry(string Relative, string FullPath, string? Mod, string Root);

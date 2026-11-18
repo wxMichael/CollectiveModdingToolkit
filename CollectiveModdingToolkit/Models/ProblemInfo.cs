@@ -167,6 +167,12 @@ public class ProblemInfo : ObservableObject
 	/// </summary>
 	public string? Title { get; init; }
 
+	/// <summary>
+	///     A shorter name for lists, when <see cref="DisplayName" /> is long, e.g. the file name of a file inside an
+	///     archive.
+	/// </summary>
+	public string? ListTitle { get; init; }
+
 	/// <summary>What to call this problem in a list: the title, else the file name, else the problem kind.</summary>
 	public string DisplayName => Title ?? (FileName.Length > 0 ? FileName : Problem);
 

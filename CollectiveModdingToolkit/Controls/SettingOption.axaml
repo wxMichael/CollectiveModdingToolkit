@@ -28,6 +28,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<CheckBox Content="{Binding #Root.Header}"
 		          IsChecked="{Binding #Root.IsChecked, Mode=TwoWay}" />
 		<TextBlock Text="{Binding #Root.Description}"
+		           IsVisible="{Binding #Root.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 		           Classes="Readable"
 		           Foreground="{DynamicResource NeutralBrushBright}"
 		           FontSize="{StaticResource Small}"

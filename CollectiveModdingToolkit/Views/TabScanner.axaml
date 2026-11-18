@@ -132,13 +132,19 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 								<StackPanel Spacing="4"
 								            Width="260">
 
-									<ctrl:SettingOption Header="Overview Issues"
-									                    IsChecked="{Binding Settings.ScanOverviewIssues}"
-									                    Description="Report details of issues from Overview." />
+									<ctrl:SettingOption Header="Read BA2 Archives"
+									                    IsChecked="{Binding Settings.ScanReadArchives}" />
+
+									<ctrl:SettingOption Header="Overview Tab Issues"
+									                    IsChecked="{Binding Settings.ScanOverviewIssues}" />
 
 									<ctrl:SettingOption Header="Texture Issues"
 									                    IsChecked="{Binding Settings.ScanTextureIssues}"
-									                    Description="Check loose DDS textures for invalid headers and dimensions. Must be a power of 2, or a multiple of 4 for cubemaps." />
+									                    Description="Check DDS textures for invalid headers and dimensions." />
+
+									<ctrl:SettingOption Header="Problem Overrides"
+									                    IsChecked="{Binding Settings.ScanProblemOverrides}"
+									                    Description="Check for overrides that typically cause issues, such as outdated F4SE script files or loose AnimTextData folders." />
 
 									<ctrl:SettingOption Header="Wrong File Formats"
 									                    IsChecked="{Binding Settings.ScanWrongFormat}"
@@ -152,13 +158,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									                    IsChecked="{Binding Settings.ScanJunkFiles}"
 									                    Description="Report junk files such as desktop.ini and Thumbs.db, and leftover fomod folders." />
 
-									<ctrl:SettingOption Header="Problem Overrides"
-									                    IsChecked="{Binding Settings.ScanProblemOverrides}"
-									                    Description="Check for overrides that typically cause issues, such as outdated F4SE script files or loose AnimTextData folders." />
-
 									<ctrl:SettingOption Header="Race Subgraphs"
 									                    IsChecked="{Binding Settings.ScanRaceSubgraphs}"
-									                    Description="Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100." />
+									                    Description="Speculative. Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100." />
 
 								</StackPanel>
 							</Flyout>

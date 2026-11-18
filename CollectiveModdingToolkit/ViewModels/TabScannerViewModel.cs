@@ -45,7 +45,7 @@ public sealed record ScanGroup(string Name, int Count)
 /// </summary>
 public sealed record ScanRow(ProblemInfo Problem, string Secondary)
 {
-	public string Title => Problem.DisplayName;
+	public string Title => Problem.ListTitle ?? Problem.DisplayName;
 
 	public StatusLevel Level => Problem.IsInfo ? StatusLevel.None : Problem.Level;
 }

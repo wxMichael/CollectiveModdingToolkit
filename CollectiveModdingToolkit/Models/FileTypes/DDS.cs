@@ -150,6 +150,21 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 			return;
 		}
 
+		Parse(headerBytes[..Math.Max(0, bytesRead)]);
+	}
+
+	/// <summary>Reads the header from bytes already in memory, e.g. from inside an archive.</summary>
+	internal void ReadHeader(ReadOnlySpan<byte> data)
+	{
+		ResetFields();
+		if (data.Length > 0) ReadSignature(data);
+
+		Parse(data[..Math.Min(data.Length, HeaderSize + HeaderDx10Size)]);
+	}
+
+	private void Parse(ReadOnlySpan<byte> headerBytes)
+	{
+		var bytesRead = headerBytes.Length;
 		if (bytesRead < HeaderSize || !headerBytes[..4].SequenceEqual(Magic.DDS) ||
 		    BinaryPrimitives.ReadUInt32LittleEndian(headerBytes[4..]) != 124)
 		{

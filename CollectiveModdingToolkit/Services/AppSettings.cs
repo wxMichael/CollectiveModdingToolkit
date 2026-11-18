@@ -79,6 +79,7 @@ public sealed partial class AppSettings : ObservableObject
 	[ObservableProperty] public partial bool ScanProblemOverrides { get; set; } = true;
 	[ObservableProperty] public partial bool ScanRaceSubgraphs { get; set; } = true;
 	[ObservableProperty] public partial bool ScanTextureIssues { get; set; } = true;
+	[ObservableProperty] public partial bool ScanReadArchives { get; set; } = true;
 
 	partial void OnLogLevelChanged(LogLevel value) => Log.Level = value;
 
@@ -135,6 +136,9 @@ public sealed partial class AppSettings : ObservableObject
 
 					if (TryReadBool(root, "scannerTextureIssues", out var scanTextures))
 						settings.ScanTextureIssues = scanTextures;
+
+					if (TryReadBool(root, "scannerReadArchives", out var scanArchives))
+						settings.ScanReadArchives = scanArchives;
 				}
 				else
 				{
@@ -186,6 +190,7 @@ public sealed partial class AppSettings : ObservableObject
 				writer.WriteBoolean("scannerProblemOverrides", ScanProblemOverrides);
 				writer.WriteBoolean("scannerRaceSubgraphs", ScanRaceSubgraphs);
 				writer.WriteBoolean("scannerTextureIssues", ScanTextureIssues);
+				writer.WriteBoolean("scannerReadArchives", ScanReadArchives);
 				writer.WriteEndObject();
 			}
 
