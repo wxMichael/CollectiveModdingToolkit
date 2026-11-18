@@ -18,6 +18,24 @@ Conventions:
 
 ## [Unreleased]
 
+## [2.0] - 2026-11-18
+
+### Added
+
+- Scanner: Read BA2 archive contents.
+- Scanner: Texture Issues: Report invalid DDS headers, dimensions, cubemaps, etc.
+- Scanner: Verify F4SE script overrides against CRCs for the game version.
+- Scanner: "Open Path" issue action to open a file's location.
+
+### Changed
+
+- Scanner: AnimTextData issues are now Medium severity. This still needs data and testing.
+
+### Fixed
+
+- Scanner: Show stage-relative or full paths instead of `..` traversals.
+- Scanner: Settings tooltip text is no longer clipped.
+
 ## [1.0] - 2026-11-14
 
 ### Added
@@ -52,5 +70,6 @@ Conventions:
 
 - Modules tab placeholder. It will return when functional.
 
+[2.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.0
 [1.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v1.0
 [Unreleased]: https://github.com/wxMichael/CollectiveModdingToolkit/commits/main
