@@ -18,6 +18,12 @@ Conventions:
 
 ## [Unreleased]
 
+## [2.1] - 2026-11-18
+
+### Fixed
+
+- Mod manager is no longer lost (shown as "Not Found") after Refresh or Patch All.
+
 ## [2.0] - 2026-11-18
 
 ### Added
@@ -70,6 +76,7 @@ Conventions:
 
 - Modules tab placeholder. It will return when functional.
 
+[2.1]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.1
 [2.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.0
 [1.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v1.0
 [Unreleased]: https://github.com/wxMichael/CollectiveModdingToolkit/commits/main
