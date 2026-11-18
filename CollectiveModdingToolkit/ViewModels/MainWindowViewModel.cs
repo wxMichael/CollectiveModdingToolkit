@@ -39,6 +39,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 		Overview = new OverviewViewModel(Session, shell);
 		F4SE = new F4SEViewModel(Session, shell);
 		Archives = new ArchivesViewModel(Session, shell, dialogs);
+		Materials = new MaterialsViewModel(Session, shell, dialogs);
 		Scanner = new TabScannerViewModel(Session, shell, clipboard, dialogs);
 		Downgrader = new DowngraderViewModel(Session, shell, dialogs);
 		Tools = new ToolsViewModel(shell, clipboard);
@@ -51,6 +52,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public OverviewViewModel Overview { get; }
 	public F4SEViewModel F4SE { get; }
 	public ArchivesViewModel Archives { get; }
+	public MaterialsViewModel Materials { get; }
 	public TabScannerViewModel Scanner { get; }
 	public DowngraderViewModel Downgrader { get; }
 	public ToolsViewModel Tools { get; }

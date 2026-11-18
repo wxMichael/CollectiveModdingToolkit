@@ -67,6 +67,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			<TabItem Header="Archives">
 				<v:TabArchives DataContext="{Binding Archives}" />
 			</TabItem>
+			<TabItem Header="Materials">
+				<v:TabMaterials DataContext="{Binding Materials}" />
+			</TabItem>
 			<!-- <TabItem Header="Modules">
 				<v:TabModules />
 			</TabItem> -->

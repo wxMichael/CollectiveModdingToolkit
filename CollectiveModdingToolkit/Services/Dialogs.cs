@@ -24,6 +24,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
 using CollectiveModdingToolkit.Views;
 
 namespace CollectiveModdingToolkit.Services;
@@ -37,6 +38,12 @@ public interface IDialogService
 {
 	void ShowAbout(string title, string text);
 	void ShowFileList(string title, string info, IReadOnlyList<string> lines);
+
+	/// <summary>Asks for a material file to open. Null if cancelled.</summary>
+	Task<string?> PickMaterialToOpenAsync(string? folder);
+
+	/// <summary>Asks where to save a material. Null if cancelled.</summary>
+	Task<string?> PickMaterialToSaveAsync(string suggestedName, string? folder);
 }
 
 /// <summary>Finds the app's main window without anything holding a static reference to it.</summary>
@@ -56,6 +63,11 @@ public sealed class ClipboardService : IClipboardService
 
 public sealed class DialogService : IDialogService
 {
+	private static readonly FilePickerFileType MaterialFiles = new("Materials (BGSM, BGEM, JSON)")
+	{
+		Patterns = ["*.bgsm", "*.bgem", "*.json"],
+	};
+
 	public void ShowAbout(string title, string text)
 	{
 		AboutWindow.Open(AppWindow.Main, title, text);
@@ -65,4 +77,35 @@ public sealed class DialogService : IDialogService
 	{
 		FileListWindow.Open(AppWindow.Main, title, info, lines);
 	}
+
+	public async Task<string?> PickMaterialToOpenAsync(string? folder)
+	{
+		if (AppWindow.Main?.StorageProvider is not { CanOpen: true } storage) return null;
+
+		var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+		{
+			Title = "Open Material",
+			AllowMultiple = false,
+			FileTypeFilter = [MaterialFiles],
+			SuggestedStartLocation = await Folder(storage, folder),
+		});
+		return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+	}
+
+	public async Task<string?> PickMaterialToSaveAsync(string suggestedName, string? folder)
+	{
+		if (AppWindow.Main?.StorageProvider is not { CanSave: true } storage) return null;
+
+		var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+		{
+			Title = "Save Material",
+			SuggestedFileName = suggestedName,
+			FileTypeChoices = [MaterialFiles],
+			SuggestedStartLocation = await Folder(storage, folder),
+		});
+		return file?.TryGetLocalPath();
+	}
+
+	private static async Task<IStorageFolder?> Folder(IStorageProvider storage, string? path) =>
+		path == null ? null : await storage.TryGetFolderFromPathAsync(path);
 }

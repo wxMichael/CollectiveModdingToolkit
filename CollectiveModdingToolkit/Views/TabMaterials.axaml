@@ -1,0 +1,235 @@
+<!--
+
+Collective Modding Toolkit
+Copyright (C) 2024, 2025, 2026  wxMichael
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+-->
+
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CollectiveModdingToolkit.ViewModels"
+             xmlns:ctrl="using:CollectiveModdingToolkit.Controls"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="500"
+             x:Class="CollectiveModdingToolkit.Views.TabMaterials"
+             x:DataType="vm:MaterialsViewModel">
+
+	<Design.DataContext>
+		<vm:MaterialsViewModel />
+	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="TextBox.Invalid">
+			<Setter Property="BorderBrush"
+			        Value="{DynamicResource BadBrush}" />
+		</Style>
+		<Style Selector="TextBlock.GroupTitle">
+			<Setter Property="FontWeight"
+			        Value="Bold" />
+			<Setter Property="Margin"
+			        Value="0,10,0,2" />
+		</Style>
+	</UserControl.Styles>
+
+	<Grid ColumnDefinitions="260,Auto,*">
+
+		<!-- The list of loose materials -->
+		<DockPanel Grid.Column="0">
+			<StackPanel DockPanel.Dock="Top"
+			            Margin="5"
+			            Spacing="5">
+				<TextBox PlaceholderText="Filter"
+				         Text="{Binding Filter, Mode=TwoWay}" />
+				<Grid ColumnDefinitions="*,*"
+				      ColumnSpacing="5">
+					<Button Grid.Column="0"
+					        Classes="Small"
+					        HorizontalAlignment="Stretch"
+					        Content="Open File..."
+					        Command="{Binding OpenFileCommand}" />
+					<Button Grid.Column="1"
+					        Classes="Small"
+					        HorizontalAlignment="Stretch"
+					        Content="Refresh"
+					        Command="{Binding RefreshListCommand}" />
+				</Grid>
+			</StackPanel>
+			<TextBlock DockPanel.Dock="Bottom"
+			           Classes="Readable Neutral"
+			           Margin="5,3"
+			           Text="{Binding ListInfo}" />
+			<ListBox ItemsSource="{Binding Items}"
+			         SelectedItem="{Binding SelectedItem}"
+			         BorderBrush="{DynamicResource StrokeMidBrush}"
+			         BorderThickness="0,1">
+				<ListBox.ItemTemplate>
+					<DataTemplate x:DataType="vm:MaterialListItem">
+						<StackPanel Margin="5,0"
+						            ToolTip.Tip="{Binding Relative}">
+							<TextBlock Classes="Readable"
+							           Text="{Binding Name}"
+							           TextTrimming="CharacterEllipsis" />
+							<TextBlock Classes="Readable Smaller Neutral"
+							           Text="{Binding Mod}"
+							           IsVisible="{Binding Mod, Converter={x:Static ObjectConverters.IsNotNull}}"
+							           TextTrimming="CharacterEllipsis" />
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</DockPanel>
+
+		<GridSplitter Grid.Column="1"
+		              Width="3"
+		              ResizeDirection="Columns" />
+
+		<!-- The editor -->
+		<Grid Grid.Column="2"
+		      RowDefinitions="Auto,Auto,*,Auto">
+
+			<TextBlock Grid.Row="0"
+			           Grid.RowSpan="3"
+			           Classes="Readable Neutral"
+			           HorizontalAlignment="Center"
+			           VerticalAlignment="Center"
+			           TextAlignment="Center"
+			           Text="Select a material, or open a BGSM / BGEM file to edit it."
+			           IsVisible="{Binding !HasDocument}" />
+
+			<!-- File, version, and actions -->
+			<StackPanel Grid.Row="0"
+			            Margin="8,5"
+			            Spacing="5"
+			            IsVisible="{Binding HasDocument}">
+				<TextBlock Classes="Readable"
+				           FontWeight="Bold"
+				           Text="{Binding Document.FileName}" />
+				<StackPanel Orientation="Horizontal"
+				            Spacing="8">
+					<TextBlock Classes="Readable Neutral"
+					           VerticalAlignment="Center"
+					           Text="{Binding Document.Description}" />
+					<TextBlock Classes="Readable"
+					           VerticalAlignment="Center"
+					           Text="Version:" />
+					<TextBox Width="60"
+					         Classes.Invalid="{Binding Document.IsVersionInvalid}"
+					         Text="{Binding Document.VersionText, Mode=TwoWay}"
+					         ToolTip.Tip="The file format version. 1-2 are Fallout 4's; 3 and later are Fallout 76's." />
+					<Button Classes="Small"
+					        Content="Convert to Fallout 4"
+					        IsVisible="{Binding CanConvert}"
+					        Command="{Binding ConvertToFallout4Command}" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
+					<Button Classes="Small Primary"
+					        Content="Save"
+					        Command="{Binding SaveCommand}" />
+					<Button Classes="Small"
+					        Content="Save As..."
+					        Command="{Binding SaveAsCommand}" />
+					<Button Classes="Small"
+					        Content="Revert"
+					        Command="{Binding RevertCommand}" />
+					<Button Classes="Small"
+					        Content="&#x1F4C2; Open Path"
+					        Command="{Binding RevealCommand}" />
+					<TextBlock Classes="Readable Warning"
+					           VerticalAlignment="Center"
+					           Text="● Unsaved changes"
+					           IsVisible="{Binding Document.IsDirty, FallbackValue=False}" />
+				</StackPanel>
+			</StackPanel>
+
+			<Separator Grid.Row="1"
+			           IsVisible="{Binding HasDocument}" />
+
+			<!-- Every value, in sections -->
+			<ScrollViewer Grid.Row="2"
+			              VerticalScrollBarVisibility="Auto"
+			              IsVisible="{Binding HasDocument}">
+				<ItemsControl ItemsSource="{Binding Document.Groups}"
+				              Margin="8,0,12,8">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="vm:MaterialGroupViewModel">
+							<StackPanel>
+								<TextBlock Classes="Readable GroupTitle"
+								           Text="{Binding Name}" />
+								<ItemsControl ItemsSource="{Binding Fields}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate x:DataType="vm:MaterialFieldViewModel">
+											<Grid ColumnDefinitions="200,*"
+											      Margin="0,1">
+												<TextBlock Grid.Column="0"
+												           Classes="Readable"
+												           VerticalAlignment="Center"
+												           Text="{Binding Label}"
+												           ToolTip.Tip="{Binding JsonKey}" />
+
+												<CheckBox Grid.Column="1"
+												          MinHeight="0"
+												          IsChecked="{Binding BoolValue, Mode=TwoWay}"
+												          IsVisible="{Binding IsBool}" />
+
+												<TextBox Grid.Column="1"
+												         Classes.Invalid="{Binding IsInvalid}"
+												         Text="{Binding Text, Mode=TwoWay}"
+												         IsVisible="{Binding IsText}" />
+
+												<ComboBox Grid.Column="1"
+												          HorizontalAlignment="Left"
+												          MinWidth="160"
+												          ItemsSource="{Binding Options}"
+												          SelectedItem="{Binding Text, Mode=TwoWay}"
+												          IsVisible="{Binding IsEnum}" />
+
+												<StackPanel Grid.Column="1"
+												            Orientation="Horizontal"
+												            Spacing="6"
+												            IsVisible="{Binding IsColor}">
+													<Border Width="24"
+													        Height="24"
+													        CornerRadius="3"
+													        BorderThickness="1"
+													        BorderBrush="{DynamicResource StrokeBrightBrush}"
+													        Background="{Binding Swatch}" />
+													<TextBox Width="100"
+													         Classes.Invalid="{Binding IsInvalid}"
+													         Text="{Binding Text, Mode=TwoWay}" />
+												</StackPanel>
+											</Grid>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+
+			<TextBlock Grid.Row="3"
+			           Classes="Readable"
+			           Margin="8,3"
+			           ctrl:Status.Level="{Binding StatusLevel}"
+			           Text="{Binding StatusText}"
+			           TextWrapping="Wrap" />
+		</Grid>
+	</Grid>
+</UserControl>
