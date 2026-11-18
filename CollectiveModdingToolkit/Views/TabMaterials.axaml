@@ -128,10 +128,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					<TextBlock Classes="Readable"
 					           VerticalAlignment="Center"
 					           Text="Version:" />
-					<TextBox Width="60"
-					         Classes.Invalid="{Binding Document.IsVersionInvalid}"
-					         Text="{Binding Document.VersionText, Mode=TwoWay}"
-					         ToolTip.Tip="The file format version. 1-2 are Fallout 4's; 3 and later are Fallout 76's." />
+					<ComboBox Classes="Small"
+					          MinWidth="70"
+					          ItemsSource="{x:Static vm:MaterialDocument.VersionOptions}"
+					          SelectedItem="{Binding Document.Version, Mode=TwoWay}"
+					          ToolTip.Tip="The file format version. 1-2 are Fallout 4's; 3 and later are Fallout 76's." />
 					<Button Classes="Small"
 					        Content="Convert to Fallout 4"
 					        IsVisible="{Binding CanConvert}"
@@ -145,6 +146,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					<Button Classes="Small"
 					        Content="Save As..."
 					        Command="{Binding SaveAsCommand}" />
+					<Button Classes="Small"
+					        Content="Save to Overwrite"
+					        IsVisible="{Binding HasOverwrite}"
+					        Command="{Binding SaveToOverwriteCommand}"
+					        ToolTip.Tip="Saves a copy to MO2's Overwrite folder, keeping its path below Data." />
 					<Button Classes="Small"
 					        Content="Revert"
 					        Command="{Binding RevertCommand}" />
@@ -189,9 +195,19 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 												          IsVisible="{Binding IsBool}" />
 
 												<TextBox Grid.Column="1"
-												         Classes.Invalid="{Binding IsInvalid}"
 												         Text="{Binding Text, Mode=TwoWay}"
 												         IsVisible="{Binding IsText}" />
+
+												<NumericUpDown Grid.Column="1"
+												               Classes="Small"
+												               HorizontalAlignment="Left"
+												               MinWidth="160"
+												               Minimum="0"
+												               Maximum="{Binding NumberMaximum}"
+												               Increment="{Binding NumberIncrement}"
+												               FormatString="{Binding NumberFormat}"
+												               Value="{Binding Number, Mode=TwoWay}"
+												               IsVisible="{Binding IsNumber}" />
 
 												<ComboBox Grid.Column="1"
 												          HorizontalAlignment="Left"
@@ -204,12 +220,24 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 												            Orientation="Horizontal"
 												            Spacing="6"
 												            IsVisible="{Binding IsColor}">
-													<Border Width="24"
-													        Height="24"
-													        CornerRadius="3"
-													        BorderThickness="1"
-													        BorderBrush="{DynamicResource StrokeBrightBrush}"
-													        Background="{Binding Swatch}" />
+													<Button Width="28"
+													        Height="28"
+													        Padding="0"
+													        ToolTip.Tip="Pick a color">
+														<Border Width="20"
+														        Height="20"
+														        CornerRadius="3"
+														        BorderThickness="1"
+														        BorderBrush="{DynamicResource StrokeBrightBrush}"
+														        Background="{Binding Swatch}" />
+														<Button.Flyout>
+															<Flyout Placement="BottomEdgeAlignedLeft">
+																<ColorView Color="{Binding PickerColor, Mode=TwoWay}"
+																           IsAlphaEnabled="False"
+																           IsColorPaletteVisible="False" />
+															</Flyout>
+														</Button.Flyout>
+													</Button>
 													<TextBox Width="100"
 													         Classes.Invalid="{Binding IsInvalid}"
 													         Text="{Binding Text, Mode=TwoWay}" />

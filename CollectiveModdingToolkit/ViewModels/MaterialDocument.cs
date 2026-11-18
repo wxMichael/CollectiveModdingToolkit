@@ -18,10 +18,7 @@
  *
  */
 
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using CollectiveModdingToolkit.Materials;
@@ -39,7 +36,7 @@ public sealed partial class MaterialDocument : ObservableObject
 		Path = path;
 		File = file;
 		SourceFormat = sourceFormat;
-		VersionText = file.Version.ToString(CultureInfo.InvariantCulture);
+		Version = (int)file.Version;
 		_fields = [.. file.Fields.Select(f => new MaterialFieldViewModel(file, f, OnEdited))];
 		RebuildGroups();
 	}
@@ -60,9 +57,11 @@ public sealed partial class MaterialDocument : ObservableObject
 
 	[ObservableProperty] public partial bool IsDirty { get; private set; }
 
-	[ObservableProperty] public partial string VersionText { get; set; }
+	/// <summary>Every version the editor can write.</summary>
+	public static IReadOnlyList<int> VersionOptions { get; } =
+		[.. Enumerable.Range(0, (int)MaterialFile.MaxSupportedVersion + 1)];
 
-	[ObservableProperty] public partial bool IsVersionInvalid { get; private set; }
+	[ObservableProperty] public partial int Version { get; set; }
 
 	public string TypeName => File.Signature;
 
@@ -100,14 +99,13 @@ public sealed partial class MaterialDocument : ObservableObject
 	/// <summary>Switches to a Fallout 4 version, which drops values only newer versions store.</summary>
 	public void ConvertToFallout4()
 	{
-		VersionText = MaterialFile.MaxFallout4Version.ToString(CultureInfo.InvariantCulture);
+		Version = (int)MaterialFile.MaxFallout4Version;
 	}
 
-	partial void OnVersionTextChanged(string value)
+	partial void OnVersionChanged(int value)
 	{
-		IsVersionInvalid = !uint.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var version) ||
-		                   version > MaterialFile.MaxSupportedVersion;
-		if (IsVersionInvalid || version == File.Version) return;
+		var version = (uint)value;
+		if (version == File.Version) return;
 
 		File.Version = version;
 		foreach (var field in _fields) field.Refresh();

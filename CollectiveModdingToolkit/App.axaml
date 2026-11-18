@@ -39,6 +39,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<Application.Styles>
 		<dialogHostAvalonia:DialogHostStyles />
 		<semi:SemiTheme Locale="en-US" />
+		<semi:ColorPickerSemiTheme />
 		<StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
 		<StyleInclude Source="Styles/Main.axaml" />
 	</Application.Styles>

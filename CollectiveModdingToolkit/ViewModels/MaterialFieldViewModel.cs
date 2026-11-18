@@ -31,15 +31,9 @@ namespace CollectiveModdingToolkit.ViewModels;
 public sealed partial class MaterialFieldViewModel : ObservableObject
 {
 	private readonly Action _changed;
-	private readonly MaterialFile _file;
 	private readonly MaterialField _field;
+	private readonly MaterialFile _file;
 	private bool _refreshing;
-
-	[ObservableProperty] public partial string Text { get; set; } = string.Empty;
-
-	/// <summary>True while <see cref="Text" /> can't be turned into a value.</summary>
-	[ObservableProperty]
-	public partial bool IsInvalid { get; private set; }
 
 	public MaterialFieldViewModel(MaterialFile file, MaterialField field, Action changed)
 	{
@@ -48,6 +42,12 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 		_changed = changed;
 		Refresh();
 	}
+
+	[ObservableProperty] public partial string Text { get; set; } = string.Empty;
+
+	/// <summary>True while <see cref="Text" /> can't be turned into a value.</summary>
+	[ObservableProperty]
+	public partial bool IsInvalid { get; private set; }
 
 	public string Label => _field.Label;
 	public string Group => _field.Group;
@@ -60,8 +60,62 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 	public bool IsBool => Kind == MaterialFieldKind.Bool;
 	public bool IsColor => Kind == MaterialFieldKind.Color;
 	public bool IsEnum => Kind == MaterialFieldKind.Enum;
-	public bool IsText => Kind is MaterialFieldKind.Float or MaterialFieldKind.Byte or MaterialFieldKind.Text
-		or MaterialFieldKind.Texture;
+	public bool IsText => Kind is MaterialFieldKind.Text or MaterialFieldKind.Texture;
+	public bool IsNumber => Kind is MaterialFieldKind.Float or MaterialFieldKind.Byte;
+
+	public decimal NumberMaximum => Kind == MaterialFieldKind.Byte ? byte.MaxValue : decimal.MaxValue;
+	public decimal NumberIncrement => Kind == MaterialFieldKind.Byte ? 1 : 0.1m;
+	public string NumberFormat => Kind == MaterialFieldKind.Byte ? "0" : "0.######";
+
+	/// <summary>The value of a float or byte field. Null while the box is empty, which changes nothing.</summary>
+	public decimal? Number
+	{
+		get
+		{
+			try
+			{
+				return _field.GetValue(_file) switch
+				{
+					float f => (decimal)f,
+					byte b => b,
+					_ => null,
+				};
+			}
+			catch (OverflowException)
+			{
+				// Floats beyond decimal's range can't be shown; leave them as they are.
+				return null;
+			}
+		}
+		set
+		{
+			if (value is not { } number || number == Number) return;
+
+			_field.SetValue(_file,
+				Kind == MaterialFieldKind.Byte ? (object)(byte)Math.Clamp(number, 0, 255) : (float)number);
+			OnPropertyChanged();
+			_changed();
+		}
+	}
+
+	/// <summary>The color as the picker shows it.</summary>
+	public Color PickerColor
+	{
+		get => IsColor && _field.GetValue(_file) is MaterialColor c
+			? Color.FromRgb(ToByte(c.R), ToByte(c.G), ToByte(c.B))
+			: default;
+		set
+		{
+			if (!IsColor || value == PickerColor) return;
+
+			const float scale = 1f / 255;
+			_field.SetValue(_file, new MaterialColor(value.R * scale, value.G * scale, value.B * scale));
+			Text = ((MaterialColor)_field.GetValue(_file)).ToHex();
+			OnPropertyChanged();
+			OnPropertyChanged(nameof(Swatch));
+			_changed();
+		}
+	}
 
 	public bool BoolValue
 	{
@@ -96,6 +150,8 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 		_refreshing = false;
 		IsInvalid = false;
 		OnPropertyChanged(nameof(BoolValue));
+		OnPropertyChanged(nameof(Number));
+		OnPropertyChanged(nameof(PickerColor));
 		OnPropertyChanged(nameof(Swatch));
 		OnPropertyChanged(nameof(AppliesToVersion));
 	}
@@ -106,15 +162,7 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 
 		object? parsed = Kind switch
 		{
-			MaterialFieldKind.Float => float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture,
-				out var f) && float.IsFinite(f)
-				? f
-				: null,
-			MaterialFieldKind.Byte => byte.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var b)
-				? b
-				: null,
 			MaterialFieldKind.Color => MaterialColor.TryParseHex(value) is { } c ? c : null,
-			MaterialFieldKind.Enum => value,
 			_ => value,
 		};
 
@@ -122,11 +170,13 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 		if (parsed == null) return;
 
 		// Typing a color keeps the exact floats unless the hex text actually changed.
-		if (parsed is MaterialColor color && _field.GetValue(_file) is MaterialColor old && old.ToHex() == color.ToHex())
+		if (parsed is MaterialColor color && _field.GetValue(_file) is MaterialColor old &&
+		    old.ToHex() == color.ToHex())
 			return;
 
 		_field.SetValue(_file, parsed);
 		OnPropertyChanged(nameof(Swatch));
+		OnPropertyChanged(nameof(PickerColor));
 		_changed();
 	}
 
