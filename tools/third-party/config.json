@@ -23,6 +23,17 @@
 			"textFile": "tools/third-party/zstd-LICENSE.txt"
 		},
 		{
+			"name": "Material-Editor",
+			"license": "MIT",
+			"details": [
+				"Copyright (c) 2018 ousnius",
+				"https://github.com/ousnius/Material-Editor",
+				"Used in: the BGSM/BGEM material reader and writer (CollectiveModdingToolkit.Materials), a port of",
+				"its MaterialLib. Original decoding of version 2 files by gibbed; version 20 and later by jonwd7."
+			],
+			"textFile": "tools/third-party/material-editor-LICENSE.txt"
+		},
+		{
 			"name": "Cascadia Code",
 			"license": "SIL Open Font License 1.1",
 			"details": [
