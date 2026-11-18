@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Models.FileTypes;
 
@@ -215,42 +216,15 @@ internal static class TextureChecker
 		return (flags & (DDPF_RGB | DDPF_ALPHA | DDPF_LUMINANCE | DDPF_YUV | DDPF_ALPHAPIXELS)) != 0;
 	}
 
-	private static Kind GetKind(DDS dds)
-	{
-		if (dds.DxgiFormat is { } dxgi)
-			return dxgi switch
-			{
-				>= 70 and <= 72 => Kind.Bc1,
-				>= 73 and <= 75 => Kind.Bc2,
-				>= 76 and <= 78 => Kind.Bc3,
-				>= 79 and <= 81 => Kind.Bc4,
-				>= 82 and <= 84 => Kind.Bc5,
-				>= 94 and <= 96 => Kind.Bc6H,
-				>= 97 and <= 99 => Kind.Bc7,
-				_ => Kind.Other,
-			};
-
-		if ((dds.PixelFormatFlags & DDPF_FOURCC) == 0) return Kind.Other;
-
-		return dds.FourCC switch
-		{
-			0x31545844 => Kind.Bc1,
-			0x32545844 or 0x33545844 => Kind.Bc2,
-			0x34545844 or 0x35545844 => Kind.Bc3,
-			0x31495441 or 0x55344342 or 0x53344342 => Kind.Bc4,
-			0x32495441 or 0x55354342 or 0x53354342 => Kind.Bc5,
-			_ => Kind.Other,
-		};
-	}
-
 	/// <summary>Bits per pixel, or for block formats bits per 4x4 block. Null if unknown.</summary>
-	private static int? BitsPerElement(DDS dds, Kind kind)
+	private static int? BitsPerElement(DDS dds, TextureFormatClass kind)
 	{
 		switch (kind)
 		{
-			case Kind.Bc1 or Kind.Bc4:
+			case TextureFormatClass.Bc1 or TextureFormatClass.Bc4:
 				return 64;
-			case Kind.Bc2 or Kind.Bc3 or Kind.Bc5 or Kind.Bc6H or Kind.Bc7:
+			case TextureFormatClass.Bc2 or TextureFormatClass.Bc3 or TextureFormatClass.Bc5 or TextureFormatClass.Bc6H
+				or TextureFormatClass.Bc7:
 				return 128;
 		}
 
@@ -279,7 +253,7 @@ internal static class TextureChecker
 	/// <param name="mipCount">Mip levels to count, or null to use the header's.</param>
 	private static long? ExpectedDataSize(DDS dds, uint? mipCount = null)
 	{
-		if (BitsPerElement(dds, GetKind(dds)) is not { } bits) return null;
+		if (BitsPerElement(dds, dds.Format) is not { } bits) return null;
 
 		var mips = Math.Max(1, mipCount ?? dds.MipMapCount);
 		if (mips > FullMipCount(dds)) return null;
@@ -312,17 +286,5 @@ internal static class TextureChecker
 		}
 
 		return total * surfaces;
-	}
-
-	private enum Kind
-	{
-		Other,
-		Bc1,
-		Bc2,
-		Bc3,
-		Bc4,
-		Bc5,
-		Bc6H,
-		Bc7,
 	}
 }

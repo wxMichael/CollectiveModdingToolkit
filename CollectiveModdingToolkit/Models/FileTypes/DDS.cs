@@ -21,6 +21,7 @@
 using System;
 using System.Buffers.Binary;
 using System.IO;
+using CollectiveModdingToolkit.Materials;
 
 // ReSharper disable InconsistentNaming
 
@@ -110,6 +111,54 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 
 	/// <summary>Size of the header(s) preceding the pixel data.</summary>
 	internal int DataOffset => HeaderSize + (HasDx10Header ? HeaderDx10Size : 0);
+
+	/// <summary>The kind of pixel data, with uncompressed formats grouped by their channels.</summary>
+	internal TextureFormatClass Format
+	{
+		get
+		{
+			if (_headerDx10 is { } dx10)
+				return (uint)dx10.DXGIFormat switch
+				{
+					>= 70 and <= 72 => TextureFormatClass.Bc1,
+					>= 73 and <= 75 => TextureFormatClass.Bc2,
+					>= 76 and <= 78 => TextureFormatClass.Bc3,
+					>= 79 and <= 81 => TextureFormatClass.Bc4,
+					>= 82 and <= 84 => TextureFormatClass.Bc5,
+					>= 94 and <= 96 => TextureFormatClass.Bc6H,
+					>= 97 and <= 99 => TextureFormatClass.Bc7,
+					// Uncompressed with alpha: 32/16-bit float and int RGBA, RGB10A2, RGBA8, A8, BGRA5551/8888/4444.
+					>= 1 and <= 4 or >= 9 and <= 14 or >= 23 and <= 25 or >= 27 and <= 32 or 65 or 86 or 87 or 90
+						or 91 or 115 => TextureFormatClass.Rgba,
+					>= 5 and <= 8 or >= 35 and <= 39 or >= 48 and <= 52 or 85 or 88 or 92 or 93 =>
+						TextureFormatClass.Rgb,
+					41 or 54 or 56 or 61 => TextureFormatClass.SingleChannel,
+					_ => TextureFormatClass.Unknown,
+				};
+
+			if ((_ddspf.Flags & DDPF_FOURCC) != 0)
+				return _ddspf.FourCC switch
+				{
+					0x31545844 => TextureFormatClass.Bc1,
+					0x32545844 or 0x33545844 => TextureFormatClass.Bc2,
+					0x34545844 or 0x35545844 => TextureFormatClass.Bc3,
+					0x31495441 or 0x55344342 or 0x53344342 => TextureFormatClass.Bc4,
+					0x32495441 or 0x55354342 or 0x53354342 => TextureFormatClass.Bc5,
+					_ => TextureFormatClass.Unknown,
+				};
+
+			const uint alphaPixels = 0x1, alphaOnly = 0x2, rgb = 0x40, luminance = 0x20000;
+			if ((_ddspf.Flags & rgb) != 0)
+				return (_ddspf.Flags & alphaPixels) != 0 ? TextureFormatClass.Rgba : TextureFormatClass.Rgb;
+
+			return (_ddspf.Flags & (luminance | alphaOnly)) != 0
+				? TextureFormatClass.SingleChannel
+				: TextureFormatClass.Unknown;
+		}
+	}
+
+	/// <summary>What a material needs to know about this texture.</summary>
+	internal TextureFacts Facts => new(Format, IsCubemap);
 
 	/// <summary>Whether the pixel data is block-compressed (BC1-BC7, or the legacy DXTn/ATIn FourCCs).</summary>
 	internal bool IsBlockCompressed
