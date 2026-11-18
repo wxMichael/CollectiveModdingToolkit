@@ -121,17 +121,17 @@ public static class Scanner
 	{
 		return type switch
 		{
-			SolutionType.ArchiveFolder => "These folders should be packed into BA2 archives.",
+			SolutionType.ArchiveFolder => "These folders should be [accent]packed into BA2 archives[/accent].",
 			SolutionType.DeleteOrIgnoreFile or SolutionType.DeleteOrIgnoreFolder =>
-				"It can either be deleted or ignored.",
+				"It can either be [accent]deleted or ignored[/accent].",
 			SolutionType.ConvertDeleteOrIgnoreFile =>
-				"This file may need to be converted and relevant files updated for the new name.\nOtherwise it can likely be deleted or ignored.",
+				"This file may need to be [accent]converted[/accent] and relevant files [accent]updated for the new name[/accent].\nOtherwise it can likely be [accent]deleted or ignored[/accent].",
 			SolutionType.RenameArchive =>
-				"Archives must be named the same as a plugin with an added suffix or added to an INI.",
+				"Archives [accent]must[/accent] be named the same as a plugin with an added suffix or added to an INI.",
 			SolutionType.DownloadMod => "Download the mod here:",
 			SolutionType.VerifyFiles =>
-				"Verify files with Steam or reinstall the game.\nIf you downgraded the game you will need to do so again afterward.",
-			SolutionType.UnknownFormat => "If this file type is expected here, please report it.",
+				"[accent]Verify files[/accent] with Steam or [accent]reinstall[/accent] the game.\nIf you downgraded the game you will need to do so again afterward.",
+			SolutionType.UnknownFormat => "If this file type is expected here, please [accent]report it[/accent].",
 			_ => string.Empty,
 		};
 	}
@@ -157,8 +157,8 @@ public static class Scanner
 			problems.Add(new ProblemInfo(
 				ProblemType.ScanError,
 				Severity.Critical,
-				$"The scan failed and results may be incomplete.\n{e.GetType().Name}: {e.Message}",
-				solution: "Please report this error.") { Title = "Scanner" });
+				$"The scan [warning]failed[/warning] and results may be incomplete.\n{e.GetType().Name}: {e.Message}",
+				solution: "Please [accent]report this error[/accent].") { Title = "Scanner" });
 		}
 
 		return problems;
@@ -374,10 +374,10 @@ public static class Scanner
 		{
 			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
 				dds.Signature == null
-					? "This texture's DDS header is missing, corrupted, or unreadable."
-					: $"This file's header is invalid for DDS. The signature read was '{dds.Signature}'.",
+					? "This texture's [accent]DDS header[/accent] is [bad]missing, corrupted, or unreadable[/bad]."
+					: $"This file's header is [bad]invalid for DDS[/bad]. The signature read was [b]'{dds.Signature}'[/b].",
 				null,
-				"Report it to the mod author. Resaving the file may be able to repair it.");
+				"[accent]Report it[/accent] to the mod author. Resaving the file [i]might[/i] repair it.");
 
 			return;
 		}
