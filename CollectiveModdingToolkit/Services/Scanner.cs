@@ -590,7 +590,23 @@ public static class Scanner
 	///     Merges the Data folder and every mod's files, later layers winning.
 	/// </summary>
 	private static Dictionary<string, Entry> BuildIndex(Game game, IModManager manager, HashSet<string> skipDirectories,
-		string[] skipSuffixes, CancellationToken token)
+		string[] skipSuffixes, CancellationToken token) =>
+		BuildIndex(game, manager, skipDirectories, skipSuffixes, null, token);
+
+	/// <summary>
+	///     Merges the winning loose files under one top-level Data folder, e.g. "Materials", for tools that don't need the
+	///     whole scanner. Keys are paths relative to Data.
+	/// </summary>
+	internal static Dictionary<string, Entry> IndexFolder(Game game, string folder, CancellationToken token = default)
+	{
+		var manager = game.Manager;
+		var skipDirectories = new HashSet<string>([.. IgnoreFolders, .. manager.SkipDirectories],
+			StringComparer.OrdinalIgnoreCase);
+		return BuildIndex(game, manager, skipDirectories, [.. manager.SkipFileSuffixes], folder, token);
+	}
+
+	private static Dictionary<string, Entry> BuildIndex(Game game, IModManager manager, HashSet<string> skipDirectories,
+		string[] skipSuffixes, string? onlyUnder, CancellationToken token)
 	{
 		Dictionary<string, Entry> files = new(StringComparer.OrdinalIgnoreCase);
 
@@ -607,10 +623,11 @@ public static class Scanner
 
 		void Walk(string root, string? mod)
 		{
-			if (!Directory.Exists(root)) return;
+			var start = onlyUnder == null ? root : Path.Combine(root, onlyUnder);
+			if (!Directory.Exists(start)) return;
 
 			Stack<string> pending = new();
-			pending.Push(root);
+			pending.Push(start);
 			while (pending.Count > 0)
 			{
 				token.ThrowIfCancellationRequested();
@@ -646,7 +663,7 @@ public static class Scanner
 	}
 
 	/// <summary>The mod a file comes from, or null if it's a game-folder file or the manager can't say.</summary>
-	private static string? GetMod(IModManager manager, Entry entry)
+	internal static string? GetMod(IModManager manager, Entry entry)
 	{
 		if (entry.Mod != null) return entry.Mod;
 
@@ -657,7 +674,7 @@ public static class Scanner
 	}
 
 	/// <summary>The path to show and open: the mod's real file, not the game-folder link.</summary>
-	private static string GetSourcePath(IModManager manager, Entry entry) =>
+	internal static string GetSourcePath(IModManager manager, Entry entry) =>
 		entry.Mod != null || manager is ModOrganizer
 			? entry.FullPath
 			: manager.Resolve(entry.FullPath)?.SourcePath ?? entry.FullPath;
@@ -794,7 +811,7 @@ public static class Scanner
 		CancellationToken Token);
 
 	/// <summary>One file as the game would see it: the winning copy across the Data folder and every mod.</summary>
-	private sealed record Entry(string Relative, string FullPath, string? Mod, string Root);
+	internal sealed record Entry(string Relative, string FullPath, string? Mod, string Root);
 
 	public readonly record struct Progress(string Text, double Percent);
 }

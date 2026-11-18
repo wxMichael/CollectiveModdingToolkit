@@ -59,6 +59,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CollectiveModdingToolkit.Delta\CollectiveModdingToolkit.Delta.csproj" />
+		<ProjectReference Include="..\CollectiveModdingToolkit.Materials\CollectiveModdingToolkit.Materials.csproj" />
 	</ItemGroup>
 
 	<!-- THIRD-PARTY-NOTICES.txt is generated from the packages in use. Warn (offline, no network) when it has gone stale. -->
