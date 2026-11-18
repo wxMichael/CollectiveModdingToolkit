@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Threading;
 using CollectiveModdingToolkit.Managers;
 using CollectiveModdingToolkit.Models;
@@ -364,7 +363,7 @@ public static class Scanner
 		}
 	}
 
-	/// <summary>Reports a loose DDS with an unreadable header or dimensions the game can't handle.</summary>
+	/// <summary>Reports DDS textures with invalid headers, dimensions, formats, or naming.</summary>
 	private static void CheckTexture(List<ProblemInfo> problems, Game game, IModManager manager, Entry entry)
 	{
 		var path = GetSourcePath(manager, entry);
@@ -383,24 +382,21 @@ public static class Scanner
 			return;
 		}
 
-		bool valid;
-		string requirement;
-		if (dds.IsCubemap)
+		long length;
+		try
 		{
-			valid = dds.Width % 4 == 0 && dds.Height % 4 == 0;
-			requirement = "a multiple of 4 for a cubemap";
+			length = new FileInfo(path).Length;
 		}
-		else
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
-			valid = BitOperations.IsPow2(dds.Width) && BitOperations.IsPow2(dds.Height);
-			requirement = "a power of 2";
+			return;
 		}
 
-		if (!valid)
-			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
-				$"This texture is {dds.Width} x {dds.Height}. Dimensions must be {requirement}.",
-				null,
-				"Resize the texture, or report it to the mod author. Using it in-game may cause issues.");
+		// TODO: Check for use in Materials
+		// TODO: Check for use in Meshes
+		foreach (var issue in TextureChecker.Check(dds, entry.Relative, length))
+			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, issue.Severity, issue.Summary,
+				null, issue.Solution);
 	}
 
 	/// <summary>

@@ -85,6 +85,50 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 	internal bool IsCubemap =>
 		(Caps2 & DDSCAPS2_CUBEMAP) != 0 || (_headerDx10 is { } dx10 && (dx10.MiscFlag & 0x4) != 0);
 
+	/// <summary>Whether the file has a DX10 extension header.</summary>
+	internal bool HasExtendedHeader => _headerDx10 != null;
+
+	/// <summary>The DXGI format from the DX10 header, or null if there is none.</summary>
+	internal uint? DxgiFormat => _headerDx10 is { } dx10 ? (uint)dx10.DXGIFormat : null;
+
+	/// <summary>Number of array slices from the DX10 header (cubemaps count as one slice per cube), or 1.</summary>
+	internal uint ArraySize => _headerDx10 is { } dx10 ? Math.Max(1, dx10.ArraySize) : 1;
+
+	/// <summary>Whether the texture is a 3D volume, per the legacy caps or the DX10 header.</summary>
+	internal bool IsVolume => (Caps2 & 0x200000) != 0 || _headerDx10 is { ResourceDimension: 4 };
+
+	/// <summary>The legacy pixel format flags.</summary>
+	internal uint PixelFormatFlags => _ddspf.Flags;
+
+	/// <summary>The legacy pixel format FourCC.</summary>
+	internal uint FourCC => _ddspf.FourCC;
+
+	/// <summary>The legacy pixel format bit count for uncompressed formats.</summary>
+	internal uint RGBBitCount => _ddspf.RGBBitCount;
+
+	/// <summary>Size of the header(s) preceding the pixel data.</summary>
+	internal int DataOffset => HeaderSize + (HasDx10Header ? HeaderDx10Size : 0);
+
+	/// <summary>Whether the pixel data is block-compressed (BC1-BC7, or the legacy DXTn/ATIn FourCCs).</summary>
+	internal bool IsBlockCompressed
+	{
+		get
+		{
+			if (_headerDx10 is { } dx10)
+			{
+				var format = (uint)dx10.DXGIFormat;
+				return format is >= 70 and <= 84 or >= 94 and <= 99;
+			}
+
+			if ((_ddspf.Flags & DDPF_FOURCC) == 0) return false;
+
+			return _ddspf.FourCC is
+				0x31545844 or 0x32545844 or 0x33545844 or 0x34545844 or 0x35545844 // DXT1-5
+				or 0x31495441 or 0x32495441 // ATI1, ATI2
+				or 0x55344342 or 0x53344342 or 0x55354342 or 0x53354342; // BC4U, BC4S, BC5U, BC5S
+		}
+	}
+
 	internal void ReadHeader()
 	{
 		ResetFields();
