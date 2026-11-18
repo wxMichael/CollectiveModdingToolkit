@@ -154,6 +154,10 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									                    IsChecked="{Binding Settings.ScanLoosePrevis}"
 									                    Description="Report loose Data/Vis/ and Data/Meshes/Precombined/ folders." />
 
+									<ctrl:SettingOption Header="Empty Files"
+									                    IsChecked="{Binding Settings.ScanEmptyFiles}"
+									                    Description="Report files with no content (0 bytes). These are sometimes intentional, so investigation is needed before action." />
+
 									<ctrl:SettingOption Header="Junk Files"
 									                    IsChecked="{Binding Settings.ScanJunkFiles}"
 									                    Description="Report junk files such as desktop.ini and Thumbs.db, and leftover fomod folders." />

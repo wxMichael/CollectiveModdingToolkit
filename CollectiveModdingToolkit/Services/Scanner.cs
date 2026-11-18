@@ -39,17 +39,19 @@ public sealed record ScanOptions(
 	bool ProblemOverrides,
 	bool RaceSubgraphs,
 	bool TextureIssues,
+	bool EmptyFiles,
 	bool ReadArchives)
 {
 	/// <summary>True if any option needs the Data folder walked. Overview Issues and Race Subgraphs don't.</summary>
-	public bool NeedsFileWalk => WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues;
+	public bool NeedsFileWalk =>
+		WrongFormat || LoosePrevis || JunkFiles || ProblemOverrides || TextureIssues || EmptyFiles;
 
 	public bool Any => OverviewIssues || NeedsFileWalk || RaceSubgraphs;
 
 	public static ScanOptions FromSettings(AppSettings s) =>
 		new(
 			s.ScanOverviewIssues, s.ScanWrongFormat, s.ScanLoosePrevis, s.ScanJunkFiles, s.ScanProblemOverrides,
-			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanReadArchives);
+			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanEmptyFiles, s.ScanReadArchives);
 }
 
 public static class Scanner
@@ -212,7 +214,7 @@ public static class Scanner
 		var archivesEnabled = new HashSet<string>(game.ArchivesEnabled, StringComparer.OrdinalIgnoreCase);
 		var readArchives = options.ReadArchives &&
 		                   (options.WrongFormat || options.JunkFiles || options.ProblemOverrides ||
-		                    options.TextureIssues);
+		                    options.TextureIssues || options.EmptyFiles);
 		var currentTop = string.Empty;
 
 		foreach (var entry in files.Values.OrderBy(e => e.Relative, StringComparer.OrdinalIgnoreCase))
@@ -283,6 +285,15 @@ public static class Scanner
 		var dirs = parts[..^1];
 		var root = dirs.Length > 0 ? dirs[0].ToLowerInvariant() : null;
 		var archived = inner != null;
+
+		// Nothing else can be checked in a file with no contents, and the fomod folder is reported as a whole.
+		if (options.EmptyFiles && root != "fomod" && !IsPlaceholder(fileName) && IsEmpty(entry, inner))
+		{
+			AddFileProblem(problems, game, manager, entry, ProblemType.EmptyFile, EmptyFileSeverity(fileName),
+				"This file is [bad]empty[/bad] (0 bytes).",
+				null, EmptyFileSolution, inner);
+			return;
+		}
 
 		HashSet<string>? whitelist = null;
 		if (root != null)
@@ -412,6 +423,47 @@ public static class Scanner
 
 		AddFileProblem(problems, game, manager, entry, ProblemType.UnexpectedFormat, Severity.Medium, summary,
 			solution, inner: inner);
+	}
+
+	private const string EmptyFileSolution =
+		"A file with no contents is almost always the result of a failed download, extraction, or save.\n"
+		+ "[accent]Reinstall the mod[/accent] it came from or [accent]report it[/accent] to the mod author. It can also be [accent]deleted or ignored[/accent] if it isn't used.";
+
+	/// <summary>Empty files that exist on purpose: mod manager markers and dotfiles such as .gitkeep.</summary>
+	private static bool IsPlaceholder(string fileName) =>
+		fileName.StartsWith('.') || fileName.StartsWith("__folder_managed_by_vortex", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>Files the game loads at start-up or crashes on when empty, versus ones nothing reads.</summary>
+	private static Severity EmptyFileSeverity(string fileName)
+	{
+		var ext = Path.GetExtension(fileName).ToLowerInvariant();
+		return ext switch
+		{
+			"" => Severity.Low,
+			".esp" or ".esm" or ".esl" or ".ba2" or ".dll" => Severity.Critical,
+			".txt" or ".md" or ".log" or ".url" or ".ini" or ".cfg" or ".json" or ".xml" or ".pdf" or ".rtf" => Severity.Low,
+			_ => Severity.Medium,
+		};
+	}
+
+	/// <summary>Whether a loose file or a file inside an archive has no contents.</summary>
+	private static bool IsEmpty(Entry entry, Ba2Entry? inner)
+	{
+		if (inner != null) return inner.Chunks.Length == 0 || inner.UnpackedSize == 0;
+
+		if (entry.Length != 0) return false;
+
+		// Links to files can report 0, so confirm by asking the file itself.
+		try
+		{
+			using var handle = File.OpenHandle(entry.FullPath, FileMode.Open, FileAccess.Read,
+				FileShare.ReadWrite | FileShare.Delete);
+			return RandomAccess.GetLength(handle) == 0;
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>The CRC of a script, loose or archived. Null if it can't be read.</summary>
@@ -632,10 +684,10 @@ public static class Scanner
 			{
 				token.ThrowIfCancellationRequested();
 				var folder = pending.Pop();
-				IEnumerable<string> children;
+				IEnumerable<FileSystemInfo> children;
 				try
 				{
-					children = [.. Directory.EnumerateFileSystemEntries(folder)];
+					children = [.. new DirectoryInfo(folder).EnumerateFileSystemInfos()];
 				}
 				catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 				{
@@ -645,18 +697,18 @@ public static class Scanner
 
 				foreach (var child in children)
 				{
-					var name = Path.GetFileName(child);
-					if (Directory.Exists(child))
+					var name = child.Name;
+					if (child is DirectoryInfo)
 					{
-						if (!skipDirectories.Contains(name)) pending.Push(child);
+						if (!skipDirectories.Contains(name)) pending.Push(child.FullName);
 
 						continue;
 					}
 
 					if (skipSuffixes.Any(s => name.EndsWith(s, StringComparison.OrdinalIgnoreCase))) continue;
 
-					var relative = Path.GetRelativePath(root, child);
-					files[relative] = new Entry(relative, child, mod, root);
+					var relative = Path.GetRelativePath(root, child.FullName);
+					files[relative] = new Entry(relative, child.FullName, mod, root, (child as FileInfo)?.Length ?? 0);
 				}
 			}
 		}
@@ -811,7 +863,7 @@ public static class Scanner
 		CancellationToken Token);
 
 	/// <summary>One file as the game would see it: the winning copy across the Data folder and every mod.</summary>
-	internal sealed record Entry(string Relative, string FullPath, string? Mod, string Root);
+	internal sealed record Entry(string Relative, string FullPath, string? Mod, string Root, long Length);
 
 	public readonly record struct Progress(string Text, double Percent);
 }

@@ -58,6 +58,7 @@ public enum ProblemType
 	UnknownGameVersion,
 	RaceSubgraphs,
 	InvalidTexture,
+	EmptyFile,
 	Configuration,
 	ScanError,
 }
@@ -235,6 +236,7 @@ public class ProblemInfo : ObservableObject
 			ProblemType.UnknownGameVersion => "Unknown Game Version",
 			ProblemType.RaceSubgraphs => "Race Subgraph Record Count",
 			ProblemType.InvalidTexture => "Texture Issue",
+			ProblemType.EmptyFile => "Empty File",
 			ProblemType.Configuration => "Configuration",
 			ProblemType.ScanError => "Scan Error",
 			_ => "Problem",
