@@ -188,6 +188,15 @@ internal static class TextureChecker
 			var declared = Math.Max(1, dds.MipMapCount);
 			if (declared < FullMipCount(dds) && ExpectedDataSize(dds, FullMipCount(dds)) == actual) return;
 
+			// Six faces of data but no cubemap flag: the other five faces are ignored.
+			if (!dds.IsCubemap && !dds.IsVolume && dds.ArraySize == 1 && actual == expected * 6)
+			{
+				issues.Add(new TextureIssue(Error,
+					"This texture contains [accent]six faces[/accent] of pixel data, but its header is [bad]not flagged as a cubemap[/bad]. Only the first face will be used.",
+					ResaveSolution));
+				return;
+			}
+
 			issues.Add(new TextureIssue(Warning,
 				$"This texture has [warning]{actual - expected:N0} unexpected bytes[/warning] after its pixel data.",
 				ResaveSolution));
