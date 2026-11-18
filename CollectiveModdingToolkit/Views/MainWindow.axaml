@@ -57,7 +57,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			</Border>
 		</dialogHost:DialogHost.DialogContent>
 
-		<TabControl>
+		<TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}">
 			<TabItem Header="Overview">
 				<v:TabOverview DataContext="{Binding Overview}" />
 			</TabItem>

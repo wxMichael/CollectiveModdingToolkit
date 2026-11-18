@@ -21,12 +21,16 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using CollectiveModdingToolkit.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
 /// <summary>Composes the window: owns the shared session and one view model per tab.</summary>
-public sealed class MainWindowViewModel : ViewModelBase
+public sealed partial class MainWindowViewModel : ViewModelBase
 {
+	/// <summary>Index of the Materials tab in the window's tab strip.</summary>
+	private const int MaterialsTabIndex = 3;
+
 	/// <summary>Also used by the XAML previewer.</summary>
 	public MainWindowViewModel() : this(new ShellService(), new ClipboardService(), new DialogService())
 	{
@@ -40,7 +44,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 		F4SE = new F4SEViewModel(Session, shell);
 		Archives = new ArchivesViewModel(Session, shell, dialogs);
 		Materials = new MaterialsViewModel(Session, shell, dialogs);
-		Scanner = new TabScannerViewModel(Session, shell, clipboard, dialogs);
+		Scanner = new TabScannerViewModel(Session, shell, clipboard, dialogs, EditMaterial);
 		Downgrader = new DowngraderViewModel(Session, shell, dialogs);
 		Tools = new ToolsViewModel(shell, clipboard);
 		Settings = new SettingsViewModel(shell, Update);
@@ -48,6 +52,10 @@ public sealed class MainWindowViewModel : ViewModelBase
 	}
 
 	public GameSession Session { get; }
+
+	/// <summary>The selected tab, so other tabs can send the user somewhere.</summary>
+	[ObservableProperty]
+	public partial int SelectedTab { get; set; }
 
 	public OverviewViewModel Overview { get; }
 	public F4SEViewModel F4SE { get; }
@@ -71,6 +79,11 @@ public sealed class MainWindowViewModel : ViewModelBase
 	public static ErrorReporter Errors => ErrorReporter.Current;
 
 	public static string WindowTitle => AppInfo.WindowTitle;
+
+	private void EditMaterial(string path)
+	{
+		if (Materials.TryOpen(path)) SelectedTab = MaterialsTabIndex;
+	}
 
 	/// <summary>
 	///     Loads the game and hardware info and checks for updates in the background. Call once the window is showing.

@@ -180,6 +180,14 @@ public class ProblemInfo : ObservableObject
 	/// <summary>True if there's a file or folder to show in Explorer.</summary>
 	public bool HasPath => FullPath.Length > 0;
 
+	/// <summary>True if this is about a loose material file the Materials tab can open.</summary>
+	public bool IsMaterialFile =>
+		PathType == PathType.File && HasPath &&
+		Path.GetExtension(FullPath) is { } ext &&
+		(ext.Equals(".bgsm", StringComparison.OrdinalIgnoreCase) ||
+		 ext.Equals(".bgem", StringComparison.OrdinalIgnoreCase) ||
+		 ext.Equals(".json", StringComparison.OrdinalIgnoreCase));
+
 	public bool IsCritical => Severity == Severity.Critical;
 	public bool IsWarning => Severity is Severity.Medium or Severity.Low;
 	public bool IsInfo => Severity is Severity.NoImpact or Severity.Unknown;

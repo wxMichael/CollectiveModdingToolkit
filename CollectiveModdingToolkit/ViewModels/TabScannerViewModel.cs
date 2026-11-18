@@ -54,6 +54,7 @@ public partial class TabScannerViewModel : ViewModelBase
 {
 	private readonly IClipboardService _clipboard;
 	private readonly IDialogService _dialogs;
+	private readonly Action<string>? _editMaterial;
 	private readonly GameSession _session;
 	private readonly IShellService _shell;
 	private List<ProblemInfo> _problems = [];
@@ -65,9 +66,11 @@ public partial class TabScannerViewModel : ViewModelBase
 	{
 	}
 
+	/// <param name="editMaterial">Opens a material file in the editor. Null hides the Edit button's effect.</param>
 	public TabScannerViewModel(GameSession session, IShellService shell, IClipboardService clipboard,
-		IDialogService dialogs)
+		IDialogService dialogs, Action<string>? editMaterial = null)
 	{
+		_editMaterial = editMaterial;
 		_session = session;
 		_shell = shell;
 		_clipboard = clipboard;
@@ -90,8 +93,12 @@ public partial class TabScannerViewModel : ViewModelBase
 	[ObservableProperty] public partial ScanGroup? SelectedGroup { get; set; }
 
 	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(CurrentIssue))]
+	[NotifyPropertyChangedFor(nameof(CurrentIssue), nameof(CanEditCurrent))]
+	[NotifyCanExecuteChangedFor(nameof(EditMaterialCommand))]
 	public partial ScanRow? SelectedRow { get; set; }
+
+	/// <summary>Whether the selected issue is a material the editor can open.</summary>
+	public bool CanEditCurrent => CanEditMaterial();
 
 	public ProblemInfo? CurrentIssue => SelectedRow?.Problem;
 
@@ -169,6 +176,14 @@ public partial class TabScannerViewModel : ViewModelBase
 
 	[RelayCommand]
 	private void RevealIssue() => CurrentIssue?.Reveal();
+
+	private bool CanEditMaterial() => _editMaterial != null && CurrentIssue is { IsMaterialFile: true };
+
+	[RelayCommand(CanExecute = nameof(CanEditMaterial))]
+	private void EditMaterial()
+	{
+		if (CurrentIssue is { IsMaterialFile: true } issue) _editMaterial?.Invoke(issue.FullPath);
+	}
 
 	[RelayCommand]
 	private void OpenIssueUrl()

@@ -355,6 +355,12 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 						        IsVisible="{Binding CurrentIssue.HasPath, FallbackValue=False}"
 						        Command="{Binding RevealIssueCommand}" />
 
+						<Button Content="Edit Material"
+						        Classes="Small"
+						        HorizontalAlignment="Stretch"
+						        IsVisible="{Binding CanEditCurrent}"
+						        Command="{Binding EditMaterialCommand}" />
+
 						<Button Content="File List"
 						        Classes="Small"
 						        HorizontalAlignment="Stretch"
