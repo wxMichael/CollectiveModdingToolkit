@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -56,7 +55,9 @@ public static class OperatingSystem
 
 public partial class Computer : ObservableObject
 {
-	public static readonly nint CurrentProcess = Process.GetCurrentProcess().Handle;
+	// Pseudo-handle for the current process. Process.GetCurrentProcess().Handle would be closed once the Process
+	// object is finalized, making later NtQueryInformationProcess calls (e.g. on refresh) fail.
+	public static readonly nint CurrentProcess = -1;
 
 	public static readonly string AppDataLocal =
 		Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
