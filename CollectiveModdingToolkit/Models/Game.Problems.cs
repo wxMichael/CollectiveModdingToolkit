@@ -82,8 +82,22 @@ public partial class Game
 		Collection<string>? fileList = null)
 	{
 		Log.Info($"Problem: {ProblemInfo.Describe(type)}: {summary}{(path == null ? string.Empty : $" ({path})")}");
-		Problems.Add(new ProblemInfo(type, severity, summary, path, GamePath, mod, solution, solutionType, url,
+		Problems.Add(new ProblemInfo(type, severity, summary, path, GetBasePath(path), mod, solution, solutionType, url,
 			fileList));
+	}
+
+	/// <summary>The mod's staging folder if the file is in one, otherwise the game folder.</summary>
+	private string? GetBasePath(string? path)
+	{
+		if (path == null) return GamePath;
+
+		foreach (var stage in Manager.StagePaths)
+		{
+			var root = Path.TrimEndingDirectorySeparator(stage) + Path.DirectorySeparatorChar;
+			if (path.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return stage;
+		}
+
+		return GamePath;
 	}
 
 	/// <summary>True if the file exists in the game folder as the game (and the mod manager) sees it.</summary>

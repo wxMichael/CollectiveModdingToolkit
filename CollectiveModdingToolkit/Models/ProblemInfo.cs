@@ -18,6 +18,7 @@
  *
  */
 
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -108,7 +109,7 @@ public class ProblemInfo : ObservableObject
 			FullPath = fullPath;
 			BasePath = basePath ?? string.Empty;
 			FileName = Path.GetFileName(fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-			RelativePath = string.IsNullOrEmpty(basePath) ? FileName : Path.GetRelativePath(basePath, fullPath);
+			RelativePath = string.IsNullOrEmpty(basePath) ? FileName : MakeRelative(basePath, fullPath);
 			PathType = Directory.Exists(fullPath) ? PathType.Directory : PathType.File;
 		}
 	}
@@ -121,7 +122,7 @@ public class ProblemInfo : ObservableObject
 		FileName = fileName;
 		FullPath = fullPath;
 		BasePath = basePath;
-		RelativePath = Path.GetRelativePath(basePath, fullPath);
+		RelativePath = MakeRelative(basePath, fullPath);
 		PathType = pathType;
 		Problem = problem;
 		Summary = problem;
@@ -193,6 +194,16 @@ public class ProblemInfo : ObservableObject
 		Severity.Medium or Severity.Low => "⚠️",
 		_ => "ℹ️",
 	};
+
+	/// <summary>
+	///     Path relative to <paramref name="basePath" />, or the full path if it lies outside it (avoids "..\..\"
+	///     chains).
+	/// </summary>
+	private static string MakeRelative(string basePath, string fullPath)
+	{
+		var relative = Path.GetRelativePath(basePath, fullPath);
+		return relative.StartsWith("..", StringComparison.Ordinal) || Path.IsPathRooted(relative) ? fullPath : relative;
+	}
 
 	/// <summary>Opens Explorer at the file or folder this problem is about.</summary>
 	public bool Reveal() => HasPath && Utilities.RevealInExplorer(FullPath);
