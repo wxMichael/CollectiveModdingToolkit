@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net11.0</TargetFramework>
+		<TargetFramework>net11.0-windows</TargetFramework>
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
@@ -18,5 +18,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CollectiveModdingToolkit.Delta\CollectiveModdingToolkit.Delta.csproj" />
+		<ProjectReference Include="..\CollectiveModdingToolkit.Materials\CollectiveModdingToolkit.Materials.csproj" />
+		<ProjectReference Include="..\CollectiveModdingToolkit\CollectiveModdingToolkit.csproj" />
 	</ItemGroup>
 </Project>

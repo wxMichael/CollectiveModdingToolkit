@@ -36,6 +36,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="CollectiveModdingToolkit.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<TrimmerRootAssembly Include="Avalonia" />
 		<TrimmerRootAssembly Include="Semi.Avalonia" />
 		<TrimmerRootAssembly Include="CommunityToolkit.Mvvm" />
