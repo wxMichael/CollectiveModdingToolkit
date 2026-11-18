@@ -67,6 +67,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<StaticResource x:Key="TextBoxBorderedPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
 	<StaticResource x:Key="ComboBoxSelectorFocusBorderBrush" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="ComboBoxSelectorBorderedFocusBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ComboBoxSelectorPressedBorderBrush" ResourceKey="AccentBrush" />
+	<StaticResource x:Key="ComboBoxSelectorBorderedPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
+	<StaticResource x:Key="ComboBoxSelectorBorderedPressedBorderBrush" ResourceKey="AccentActiveBrush" />
 	<StaticResource x:Key="CalendarDatePickerFocusBorderBrush" ResourceKey="AccentBrush" />
 
 	<!-- Text selection -->
