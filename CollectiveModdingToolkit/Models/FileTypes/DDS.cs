@@ -30,6 +30,7 @@ namespace CollectiveModdingToolkit.Models.FileTypes;
 ///     The subset of DXGI_FORMAT values commonly found in DDS textures. Other values are still carried through as raw
 ///     numbers.
 /// </summary>
+// ReSharper disable UnusedMember.Global
 internal enum DXGI_FORMAT : uint
 {
 	UNKNOWN = 0,
@@ -62,6 +63,7 @@ internal enum DXGI_FORMAT : uint
 	BC7_UNORM = 98,
 	BC7_UNORM_SRGB = 99,
 }
+// ReSharper restore UnusedMember.Global
 
 public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(name, pathFull, origin)
 {
@@ -215,6 +217,7 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 		_headerDx10 = null;
 	}
 
+	// ReSharper disable NotAccessedField.Local
 	private struct DDSPixelFormat
 	{
 		internal uint Size;
@@ -235,6 +238,7 @@ public class DDS(string name, string pathFull, FileOrigin? origin) : FileBase(na
 		internal uint ArraySize;
 		internal uint MiscFlags2;
 	}
+	// ReSharper restore NotAccessedField.Local
 
 	// Header fields in file order.
 	// @formatter:off
