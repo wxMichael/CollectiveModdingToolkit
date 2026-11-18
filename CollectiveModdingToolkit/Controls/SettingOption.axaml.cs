@@ -21,6 +21,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 
 namespace CollectiveModdingToolkit.Controls;
 
@@ -54,5 +56,24 @@ public partial class SettingOption : UserControl
 	{
 		get => GetValue(IsCheckedProperty);
 		set => SetValue(IsCheckedProperty, value);
+	}
+
+	// Mirror hover onto the CheckBox so it looks hovered while anywhere over the control.
+	private void OnPointerEnteredRoot(object? sender, PointerEventArgs e) =>
+		Box.SetHovered(true);
+
+	private void OnPointerExitedRoot(object? sender, PointerEventArgs e) =>
+		Box.SetHovered(false);
+
+	private void OnPointerPressedRoot(object? sender, PointerPressedEventArgs e)
+	{
+		// Presses on the CheckBox itself are already handled by it.
+		if (e.Source is Visual source && (source == Box || Box.IsVisualAncestorOf(source))) return;
+
+		if (e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+		{
+			IsChecked = !IsChecked;
+			e.Handled = true;
+		}
 	}
 }

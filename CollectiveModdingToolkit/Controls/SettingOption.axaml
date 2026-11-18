@@ -21,14 +21,21 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 <!-- A CheckBox with a wrapped description underneath. -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CollectiveModdingToolkit.Controls"
              x:Class="CollectiveModdingToolkit.Controls.SettingOption"
              x:Name="Root">
 
-	<StackPanel Spacing="4">
-		<CheckBox Content="{Binding #Root.Header}"
-		          IsChecked="{Binding #Root.IsChecked, Mode=TwoWay}" />
+	<StackPanel Spacing="4"
+	            Background="Transparent"
+	            PointerPressed="OnPointerPressedRoot"
+	            PointerEntered="OnPointerEnteredRoot"
+	            PointerExited="OnPointerExitedRoot">
+		<local:HoverableCheckBox x:Name="Box"
+		                         Content="{Binding #Root.Header}"
+		                         IsChecked="{Binding #Root.IsChecked, Mode=TwoWay}" />
 		<TextBlock Text="{Binding #Root.Description}"
 		           IsVisible="{Binding #Root.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+		           Cursor="Hand"
 		           Classes="Readable"
 		           Foreground="{DynamicResource NeutralBrushBright}"
 		           FontSize="{StaticResource Small}"
