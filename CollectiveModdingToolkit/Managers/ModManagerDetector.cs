@@ -38,17 +38,26 @@ public static class ModManagerDetector
 	// ReSharper disable once UnusedMember.Local
 	private const string DebugManagerVariable = "CMT_DEBUG_MANAGER";
 
-	public static IModManager Detect()
+	private static readonly Lazy<Func<IModManager>> Factory = new(DetectFactory);
+
+	/// <summary>
+	///     Returns a new instance of the mod manager that launched this app.
+	///     Parent processes are only inspected once and later calls reuse that info.
+	/// </summary>
+	public static IModManager Detect() => Factory.Value();
+
+	private static Func<IModManager> DetectFactory()
 	{
 #if DEBUG
 		if (Environment.GetEnvironmentVariable(DebugManagerVariable) is { Length: > 0 } debugPath &&
-		    FromExePath(debugPath) is { } debugManager)
-			return debugManager;
+		    FromExePath(debugPath) is not null)
+			return () => FromExePath(debugPath)!;
 #endif
 
 		var processHandle = Computer.CurrentProcess;
 		var bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
 		PROCESS_BASIC_INFORMATION pbi = new();
+		Process? keepAlive = null;
 		for (var i = 0; i < 4; i++)
 		{
 			uint returnLength = 0;
@@ -81,14 +90,17 @@ public static class ModManagerDetector
 					break;
 				}
 
-				if (exePath != null && FromExePath(exePath, parent) is { } manager) return manager;
+				if (exePath != null && FromExePath(exePath, parent) is not null)
+					return () => FromExePath(exePath, parent)!;
 				break;
 			}
 
 			processHandle = parent.Handle;
+			keepAlive = parent; // Its handle closes when the Process is finalized.
 		}
 
-		return new Unmanaged();
+		GC.KeepAlive(keepAlive);
+		return () => new Unmanaged();
 	}
 
 	private static IModManager? FromExePath(string exePath, Process? process = null) =>
