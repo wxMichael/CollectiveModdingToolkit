@@ -339,7 +339,7 @@ public static class Scanner
 
 				if (!scriptCRC.Equals(f4SEScriptCRC, StringComparison.OrdinalIgnoreCase))
 					AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Critical,
-						"This is an override of an F4SE script which does not match your game's version.",
+						"This is an [bad]override of an F4SE script[/bad] which does not match your game's version.",
 						null,
 						mod == null || mod.Contains("Fallout 4 Script Extender")
 							? $"Install F4SE for {game.GameVersion}."
@@ -349,11 +349,12 @@ public static class Scanner
 
 				else if (mod != null && !mod.Contains("Fallout 4 Script Extender"))
 					AddFileProblem(problems, game, manager, entry, ProblemType.F4SEOverride, Severity.Low,
-						"This is an override of an F4SE script. It matches your game's version so won't "
+						"This is an [warning]override of an F4SE script[/warning]. It matches your game's version so won't "
 						+ "cause issues now, but if this is unintentionally bundled with a mod it may cause "
 						+ "issues if your game or F4SE version ever changes.",
 						null,
-						"If this file isn't expected in this mod, inform the author of the potential mistake", inner);
+						"If this file isn't expected in this mod, [accent]inform the author[/accent] of the potential mistake",
+						inner);
 
 				return;
 			}
