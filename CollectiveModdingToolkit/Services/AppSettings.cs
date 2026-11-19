@@ -75,13 +75,13 @@ public sealed partial class AppSettings : ObservableObject
 	[ObservableProperty] public partial bool ScanOverviewIssues { get; set; } = true;
 	[ObservableProperty] public partial bool ScanWrongFormat { get; set; } = true;
 	[ObservableProperty] public partial bool ScanLoosePrevis { get; set; } = true;
-	[ObservableProperty] public partial bool ScanJunkFiles { get; set; } = true;
+	[ObservableProperty] public partial bool ScanJunkFiles { get; set; } = false;
 	[ObservableProperty] public partial bool ScanProblemOverrides { get; set; } = true;
-	[ObservableProperty] public partial bool ScanRaceSubgraphs { get; set; } = true;
+	[ObservableProperty] public partial bool ScanRaceSubgraphs { get; set; } = false;
 	[ObservableProperty] public partial bool ScanTextureIssues { get; set; } = true;
-	[ObservableProperty] public partial bool ScanEmptyFiles { get; set; } = true;
+	[ObservableProperty] public partial bool ScanEmptyFiles { get; set; } = false;
 	[ObservableProperty] public partial bool ScanMaterialIssues { get; set; } = true;
-	[ObservableProperty] public partial bool ScanBestPractices { get; set; } = true;
+	[ObservableProperty] public partial bool ScanBestPractices { get; set; } = false;
 	[ObservableProperty] public partial bool ScanReadArchives { get; set; } = true;
 
 	partial void OnLogLevelChanged(LogLevel value) => Log.Level = value;
