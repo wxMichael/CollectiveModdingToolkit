@@ -100,6 +100,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<StaticResource x:Key="RadioButtonCheckIconPressedBorderBrush" ResourceKey="AccentActiveBrush" />
 	<StaticResource x:Key="RadioButtonUncheckIconPointeroverBorderBrush" ResourceKey="AccentHoverBrush" />
 	<StaticResource x:Key="RadioButtonUncheckIconPressedBorderBrush" ResourceKey="AccentActiveBrush" />
+	<StaticResource x:Key="RadioButtonButtonCheckedForeground" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="SliderTrackForeground" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="ProgressBarPrimaryForeground" ResourceKey="AccentBrush" />
 	<StaticResource x:Key="ListBoxItemSelectedBackground" ResourceKey="AccentTintBrush" />

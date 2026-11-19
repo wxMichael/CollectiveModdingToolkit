@@ -70,12 +70,6 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 						<Setter Property="VerticalAlignment" Value="Center" />
 						<Setter Property="VerticalContentAlignment" Value="Center" />
 					</Style>
-					<Style Selector="RadioButton:checked">
-						<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-					</Style>
-					<Style Selector="RadioButton:checked /template/ ContentPresenter#PART_ContentPresenter">
-						<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-					</Style>
 				</StackPanel.Styles>
 				<RadioButton Content="By Problem"
 				             Theme="{DynamicResource ButtonRadioButton}"
