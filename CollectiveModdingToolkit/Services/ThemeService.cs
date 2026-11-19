@@ -35,6 +35,8 @@ public readonly record struct AccentScheme(Color Base, Color Bright);
 /// </summary>
 public static class ThemeService
 {
+	private const double StatusDimAmount = 0.70;
+
 	private static IReadOnlyDictionary<string, AccentScheme> GameAccents { get; } =
 		new Dictionary<string, AccentScheme>(StringComparer.OrdinalIgnoreCase)
 		{
@@ -49,6 +51,7 @@ public static class ThemeService
 
 		CurrentGame = gameId;
 		ApplyAccent(accent);
+		RefreshStatusDims();
 	}
 
 	private static void ApplyAccent(AccentScheme accent)
@@ -66,7 +69,23 @@ public static class ThemeService
 	/// <summary>Overrides any color in Theme/Colors.axaml (e.g. <c>GoodColor</c>) for user color schemes.</summary>
 	private static void SetColor(string key, Color color)
 	{
-		if (Application.Current is { } app) app.Resources[key] = color;
+		if (Application.Current is not { } app) return;
+
+		app.Resources[key] = color;
+
+		// Dim variants (cell backgrounds) follow their status color
+		if (key is "GoodColor" or "BadColor")
+			app.Resources[key.Replace("Color", "DimColor")] = Mix(color, Colors.Black, StatusDimAmount);
+	}
+
+	/// <summary>Derives the Good/Bad dim colors from the current status colors (call once at startup).</summary>
+	private static void RefreshStatusDims()
+	{
+		if (Application.Current is not { } app) return;
+
+		foreach (var key in (string[])["GoodColor", "BadColor"])
+			if (app.TryGetResource(key, app.ActualThemeVariant, out var value) && value is Color color)
+				SetColor(key, color);
 	}
 
 	private static Color Mix(Color from, Color to, double t) =>

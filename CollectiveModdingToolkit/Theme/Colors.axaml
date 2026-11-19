@@ -45,8 +45,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<Color x:Key="Neutral2Color">#FFE4C4</Color>
 	<Color x:Key="GoodColor">LimeGreen</Color>
 	<Color x:Key="BadColor">Tomato</Color>
-	<Color x:Key="GoodDimColor">#003D00</Color>
-	<Color x:Key="BadDimColor">#3D0000</Color>
+	<!-- Dim variants are derived from Good/Bad by ThemeService (70% toward black); these are the matching defaults -->
+	<Color x:Key="GoodDimColor">#0F3E0F</Color>
+	<Color x:Key="BadDimColor">#4D1E15</Color>
 	<Color x:Key="CautionColor">Goldenrod</Color>
 	<Color x:Key="WarningColor">Orange</Color>
 	<Color x:Key="BlueColor">CadetBlue</Color>
