@@ -83,9 +83,8 @@ public sealed partial class MaterialDocument : ObservableObject
 
 	[ObservableProperty] public partial bool IsDirty { get; private set; }
 
-	/// <summary>Every version the editor can write.</summary>
-	public static IReadOnlyList<int> VersionOptions { get; } =
-		[.. Enumerable.Range(0, (int)MaterialFile.MaxSupportedVersion + 1)];
+	/// <summary>Every version the editor exposes in UI.</summary>
+	public static IReadOnlyList<int> VersionOptions { get; } = [2, 1, 22, 21, 20];
 
 	[ObservableProperty] public partial int Version { get; set; }
 
