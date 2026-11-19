@@ -72,6 +72,29 @@ public sealed partial class MaterialDocument : ObservableObject
 		$"{File.Signature} v{File.Version} ({(File.IsFallout4Format ? "Fallout 4" : "Fallout 76")} format)"
 		+ (SourceFormat == MaterialFormat.Json ? ", read from JSON" : string.Empty);
 
+	/// <summary>An in-memory sample material for the XAML previewer.</summary>
+	internal static MaterialDocument CreateDesignSample() =>
+		new(@"C:\Games\Fallout 4\Data\Materials\Armor\CombatArmor\CombatArmor.bgsm", new Bgsm
+		{
+			Version = 2,
+			TileU = true,
+			TileV = true,
+			UScale = 1,
+			VScale = 1,
+			Alpha = 1,
+			ZBufferWrite = true,
+			ZBufferTest = true,
+			DiffuseTexture = @"Armor\CombatArmor\CombatArmor_d.dds",
+			NormalTexture = @"Armor\CombatArmor\CombatArmor_n.dds",
+			SmoothSpecTexture = @"Armor\CombatArmor\CombatArmor_s.dds",
+			SpecularEnabled = true,
+			SpecularMult = 1.5f,
+			Smoothness = 0.8f,
+			RimLighting = true,
+			CastShadows = true,
+			ReceiveShadows = true,
+		}, MaterialFormat.Binary);
+
 	/// <summary>Reads a material from disk.</summary>
 	/// <exception cref="InvalidDataException">The file isn't a valid material.</exception>
 	/// <exception cref="IOException">The file can't be read.</exception>

@@ -56,6 +56,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	/// <summary>Design-time only.</summary>
 	public MaterialsViewModel() : this(new GameSession(), new ShellService(), new DialogService())
 	{
+		if (Design.IsDesignMode) LoadDesignData();
 	}
 
 	public MaterialsViewModel(GameSession session, IShellService shell, IDialogService dialogs) : base(session, shell)
@@ -101,6 +102,26 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 
 	/// <summary>Whether the open material is in a newer game's format, and can be converted back.</summary>
 	public bool CanConvert => Document is { IsFallout4Format: false };
+
+	/// <summary>Fills the list and editor with mock data so the XAML previewer has something to show.</summary>
+	private void LoadDesignData()
+	{
+		_all =
+		[
+			new MaterialListItem(@"Materials\Armor\CombatArmor\CombatArmor.bgsm", @"C:\Mods\Armor\CombatArmor.bgsm",
+				"Armor Overhaul"),
+			new MaterialListItem(@"Materials\Armor\CombatArmor\CombatArmorHelmet.bgsm", @"C:\Mods\Armor\Helmet.bgsm",
+				"Armor Overhaul"),
+			new MaterialListItem(@"Materials\Effects\Glow.bgem", @"C:\Mods\Fx\Glow.bgem", "Visual Effects"),
+			new MaterialListItem(@"Materials\Landscape\Rock01.bgsm", @"C:\Game\Data\Rock01.bgsm", null),
+		];
+		ApplyFilter();
+
+		Document = MaterialDocument.CreateDesignSample();
+		_reverting = true;
+		SelectedItem = Items[0];
+		_reverting = false;
+	}
 
 	partial void OnFilterChanged(string value) => ApplyFilter();
 
