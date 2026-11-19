@@ -10,7 +10,8 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 
-		<PublishAot>True</PublishAot>
+		<!-- PublishAot writes IsDynamicCodeSupported=false into runtimeconfig.json, which breaks the Avalonia previewer -->
+		<PublishAot Condition="'$(Configuration)' == 'Release'">True</PublishAot>
 		<TrimMode>full</TrimMode>
 		<StripSymbols>true</StripSymbols>
 		<InvariantGlobalization>false</InvariantGlobalization>
