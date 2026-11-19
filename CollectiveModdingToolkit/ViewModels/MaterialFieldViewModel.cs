@@ -51,6 +51,7 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 
 	public string Label => _field.Label;
 	public string Group => _field.Group;
+	public bool IsCommon => _field.IsCommon;
 	public MaterialFieldKind Kind => _field.Kind;
 	public IReadOnlyList<string>? Options => _field.Options;
 	public string JsonKey => _field.JsonKey;

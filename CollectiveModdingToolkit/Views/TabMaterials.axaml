@@ -117,27 +117,6 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			            Margin="8,5"
 			            Spacing="5"
 			            IsVisible="{Binding HasDocument}">
-				<TextBlock Classes="Readable"
-				           FontWeight="Bold"
-				           Text="{Binding Document.FileName}" />
-				<StackPanel Orientation="Horizontal"
-				            Spacing="8">
-					<TextBlock Classes="Readable Neutral"
-					           VerticalAlignment="Center"
-					           Text="{Binding Document.Description}" />
-					<TextBlock Classes="Readable"
-					           VerticalAlignment="Center"
-					           Text="Version:" />
-					<ComboBox Classes="Small"
-					          MinWidth="70"
-					          ItemsSource="{x:Static vm:MaterialDocument.VersionOptions}"
-					          SelectedItem="{Binding Document.Version, Mode=TwoWay}"
-					          ToolTip.Tip="The file format version. 1-2 are Fallout 4's; 3 and later are Fallout 76's." />
-					<Button Classes="Small"
-					        Content="Convert to Fallout 4"
-					        IsVisible="{Binding CanConvert}"
-					        Command="{Binding ConvertToFallout4Command}" />
-				</StackPanel>
 				<StackPanel Orientation="Horizontal"
 				            Spacing="5">
 					<Button Classes="Small Primary"
@@ -162,6 +141,41 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="● Unsaved changes"
 					           IsVisible="{Binding Document.IsDirty, FallbackValue=False}" />
 				</StackPanel>
+				<TextBlock Classes="Readable"
+				           FontWeight="Bold"
+				           Text="{Binding Document.FileName}" />
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
+					<StackPanel Orientation="Horizontal"
+					            Background="#101010"
+					            Spacing="0">
+						<RadioButton Content="General"
+						             Theme="{DynamicResource ButtonRadioButton}"
+						             GroupName="MaterialGrouping"
+						             IsChecked="{Binding GroupByGeneral, Mode=TwoWay}"
+						             ToolTip.Tip="Affects both BGSM and BGEM files." />
+						<RadioButton Content="{Binding Document.SpecificLabel}"
+						             Theme="{DynamicResource ButtonRadioButton}"
+						             GroupName="MaterialGrouping"
+						             IsChecked="{Binding GroupBySpecific, Mode=TwoWay}"
+						             ToolTip.Tip="{Binding Document.SpecificToolTip}" />
+					</StackPanel>
+					<TextBlock Classes="Readable Neutral"
+					           VerticalAlignment="Center"
+					           Text="{Binding Document.Description}" />
+					<TextBlock Classes="Readable"
+					           VerticalAlignment="Center"
+					           Text="Version:" />
+					<ComboBox Classes="Small"
+					          MinWidth="70"
+					          ItemsSource="{x:Static vm:MaterialDocument.VersionOptions}"
+					          SelectedItem="{Binding Document.Version, Mode=TwoWay}"
+					          ToolTip.Tip="The file format version. 1-2 are Fallout 4; 3+ are Fallout 76." />
+					<Button Classes="Small"
+					        Content="Convert to Fallout 4"
+					        IsVisible="{Binding CanConvert}"
+					        Command="{Binding ConvertToFallout4Command}" />
+				</StackPanel>
 			</StackPanel>
 
 			<Separator Grid.Row="1"
@@ -175,78 +189,84 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				              Margin="8,0,12,8">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="vm:MaterialGroupViewModel">
-							<StackPanel>
-								<TextBlock Classes="Readable GroupTitle"
-								           Text="{Binding Name}" />
-								<ItemsControl ItemsSource="{Binding Fields}">
-									<ItemsControl.ItemTemplate>
-										<DataTemplate x:DataType="vm:MaterialFieldViewModel">
-											<Grid ColumnDefinitions="200,*"
-											      Margin="0,1">
-												<TextBlock Grid.Column="0"
-												           Classes="Readable"
-												           VerticalAlignment="Center"
-												           Text="{Binding Label}"
-												           ToolTip.Tip="{Binding JsonKey}" />
+							<ctrl:GroupBox Header="{Binding Name}">
+								<StackPanel>
+									<ItemsControl ItemsSource="{Binding Fields}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="vm:MaterialFieldViewModel">
+												<Grid ColumnDefinitions="200,*"
+												      Margin="0,1">
+													<TextBlock Grid.Column="0"
+													           Classes="Readable"
+													           VerticalAlignment="Center"
+													           Text="{Binding Label}"
+													           ToolTip.Tip="{Binding JsonKey}" />
 
-												<CheckBox Grid.Column="1"
-												          MinHeight="0"
-												          IsChecked="{Binding BoolValue, Mode=TwoWay}"
-												          IsVisible="{Binding IsBool}" />
+													<CheckBox Grid.Column="1"
+													          MinHeight="0"
+													          IsChecked="{Binding BoolValue, Mode=TwoWay}"
+													          IsVisible="{Binding IsBool}" />
+
+													<TextBox Grid.Column="1"
+													         Classes="Small"
+													         Text="{Binding Text, Mode=TwoWay}"
+													         IsVisible="{Binding IsPlainText}" />
 
 												<TextBox Grid.Column="1"
 												         Text="{Binding Text, Mode=TwoWay}"
 												         IsVisible="{Binding IsText}" />
 
-												<NumericUpDown Grid.Column="1"
-												               Classes="Small"
-												               HorizontalAlignment="Left"
-												               MinWidth="160"
-												               Minimum="0"
-												               Maximum="{Binding NumberMaximum}"
-												               Increment="{Binding NumberIncrement}"
-												               FormatString="{Binding NumberFormat}"
-												               Value="{Binding Number, Mode=TwoWay}"
-												               IsVisible="{Binding IsNumber}" />
+													<NumericUpDown Grid.Column="1"
+													               Classes="Small"
+													               HorizontalAlignment="Left"
+													               MinWidth="160"
+													               Minimum="0"
+													               Maximum="{Binding NumberMaximum}"
+													               Increment="{Binding NumberIncrement}"
+													               FormatString="{Binding NumberFormat}"
+													               Value="{Binding Number, Mode=TwoWay}"
+													               IsVisible="{Binding IsNumber}" />
 
-												<ComboBox Grid.Column="1"
-												          HorizontalAlignment="Left"
-												          MinWidth="160"
-												          ItemsSource="{Binding Options}"
-												          SelectedItem="{Binding Text, Mode=TwoWay}"
-												          IsVisible="{Binding IsEnum}" />
+													<ComboBox Grid.Column="1"
+													          Classes="Small"
+													          HorizontalAlignment="Left"
+													          MinWidth="160"
+													          ItemsSource="{Binding Options}"
+													          SelectedItem="{Binding Text, Mode=TwoWay}"
+													          IsVisible="{Binding IsEnum}" />
 
-												<StackPanel Grid.Column="1"
-												            Orientation="Horizontal"
-												            Spacing="6"
-												            IsVisible="{Binding IsColor}">
-													<Button Width="28"
-													        Height="28"
-													        Padding="0"
-													        ToolTip.Tip="Pick a color">
-														<Border Width="20"
-														        Height="20"
-														        CornerRadius="3"
-														        BorderThickness="1"
-														        BorderBrush="{DynamicResource StrokeBrightBrush}"
-														        Background="{Binding Swatch}" />
-														<Button.Flyout>
-															<Flyout Placement="BottomEdgeAlignedLeft">
-																<ColorView Color="{Binding PickerColor, Mode=TwoWay}"
-																           IsAlphaEnabled="False"
-																           IsColorPaletteVisible="False" />
-															</Flyout>
-														</Button.Flyout>
-													</Button>
-													<TextBox Width="100"
-													         Classes.Invalid="{Binding IsInvalid}"
-													         Text="{Binding Text, Mode=TwoWay}" />
-												</StackPanel>
-											</Grid>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-							</StackPanel>
+													<StackPanel Grid.Column="1"
+													            Orientation="Horizontal"
+													            Spacing="6"
+													            IsVisible="{Binding IsColor}">
+														<Button Width="28"
+														        Height="28"
+														        Padding="0"
+														        ToolTip.Tip="Pick a color">
+															<Border Width="20"
+															        Height="20"
+															        CornerRadius="3"
+															        BorderThickness="1"
+															        BorderBrush="{DynamicResource StrokeBrightBrush}"
+															        Background="{Binding Swatch}" />
+															<Button.Flyout>
+																<Flyout Placement="BottomEdgeAlignedLeft">
+																	<ColorView Color="{Binding PickerColor, Mode=TwoWay}"
+																	           IsAlphaEnabled="False"
+																	           IsColorPaletteVisible="False" />
+																</Flyout>
+															</Button.Flyout>
+														</Button>
+														<TextBox Width="100"
+														         Classes.Invalid="{Binding IsInvalid}"
+														         Text="{Binding Text, Mode=TwoWay}" />
+													</StackPanel>
+												</Grid>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</StackPanel>
+							</ctrl:GroupBox>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>

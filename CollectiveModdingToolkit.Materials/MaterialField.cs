@@ -80,6 +80,9 @@ public sealed class MaterialField
 	/// <summary>The section this field is shown in.</summary>
 	public string Group { get; }
 
+	/// <summary>True for fields every material has, which the editor shows apart from the type-specific ones.</summary>
+	public bool IsCommon { get; internal set; }
+
 	public string Label { get; }
 
 	/// <summary>The property name used by JSON materials, e.g. "sDiffuseTexture".</summary>

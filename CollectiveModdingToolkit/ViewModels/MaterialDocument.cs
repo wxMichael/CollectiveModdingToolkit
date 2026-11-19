@@ -55,6 +55,19 @@ public sealed partial class MaterialDocument : ObservableObject
 	[ObservableProperty]
 	public partial IReadOnlyList<MaterialGroupViewModel> Groups { get; private set; } = [];
 
+	/// <summary>True to show the fields every material has, false to show the ones specific to its type.</summary>
+	public bool ShowGeneral
+	{
+		get;
+		set
+		{
+			if (field == value) return;
+
+			field = value;
+			RebuildGroups();
+		}
+	} = true;
+
 	[ObservableProperty] public partial bool IsDirty { get; private set; }
 
 	/// <summary>Every version the editor can write.</summary>
@@ -65,11 +78,16 @@ public sealed partial class MaterialDocument : ObservableObject
 
 	public string TypeName => File.Signature;
 
+	/// <summary>The label of the type-specific section: BGEM files are effects, BGSM files are materials.</summary>
+	public string SpecificLabel => File is Bgem ? "Effect" : "Material";
+
+	public string SpecificToolTip => File is Bgem ? "Affects only BGEM files." : "Affects only BGSM files.";
+
 	public bool IsFallout4Format => File.IsFallout4Format;
 
 	/// <summary>A line about what the file is, e.g. "BGSM v2 (Fallout 4)".</summary>
 	public string Description =>
-		$"{File.Signature} v{File.Version} ({(File.IsFallout4Format ? "Fallout 4" : "Fallout 76")} format)"
+		$"{File.Signature} v{File.Version} ({(File.IsFallout4Format ? "Fallout 4" : "Fallout 76")})"
 		+ (SourceFormat == MaterialFormat.Json ? ", read from JSON" : string.Empty);
 
 	/// <summary>An in-memory sample material for the XAML previewer.</summary>
@@ -144,7 +162,7 @@ public sealed partial class MaterialDocument : ObservableObject
 	private void RebuildGroups() =>
 		Groups =
 		[
-			.. _fields.Where(f => f.AppliesToVersion)
+			.. _fields.Where(f => f.AppliesToVersion && f.IsCommon == ShowGeneral)
 				.GroupBy(f => f.Group)
 				.Select(g => new MaterialGroupViewModel(g.Key, [.. g])),
 		];

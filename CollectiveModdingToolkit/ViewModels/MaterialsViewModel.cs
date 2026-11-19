@@ -73,6 +73,16 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		_ = RefreshListAsync();
 	}
 
+	/// <summary>True to show the fields every material has; false to show the type-specific ones.</summary>
+	[ObservableProperty]
+	public partial bool GroupByGeneral { get; set; } = true;
+
+	public bool GroupBySpecific
+	{
+		get => !GroupByGeneral;
+		set => GroupByGeneral = !value;
+	}
+
 	public ObservableCollection<MaterialListItem> Items { get; } = [];
 
 	[ObservableProperty] public partial string Filter { get; set; } = string.Empty;
@@ -102,6 +112,12 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 
 	/// <summary>Whether the open material is in a newer game's format, and can be converted back.</summary>
 	public bool CanConvert => Document is { IsFallout4Format: false };
+
+	partial void OnGroupByGeneralChanged(bool value)
+	{
+		OnPropertyChanged(nameof(GroupBySpecific));
+		if (Document != null) Document.ShowGeneral = value;
+	}
 
 	/// <summary>Fills the list and editor with mock data so the XAML previewer has something to show.</summary>
 	private void LoadDesignData()
@@ -186,6 +202,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		try
 		{
 			Document = MaterialDocument.Load(path);
+			Document.ShowGeneral = GroupByGeneral;
 			SetStatus(Document.SourceFormat == MaterialFormat.Json
 				? "This material is JSON. Saving will convert it to the binary format."
 				: string.Empty);

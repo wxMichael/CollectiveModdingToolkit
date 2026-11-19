@@ -160,7 +160,7 @@ public abstract class MaterialFile
 		var rf = CommonBuilder("Refraction");
 		var e = CommonBuilder("Environment Mapping");
 		var m = CommonBuilder("Mask Writes");
-		return
+		List<MaterialField> fields =
 		[
 			t.Bool("Tile U", "bTileU", f => f.TileU, (f, v) => f.TileU = v),
 			t.Bool("Tile V", "bTileV", f => f.TileV, (f, v) => f.TileV = v),
@@ -206,6 +206,9 @@ public abstract class MaterialFile
 			Mask(m, "Emissive", "bWriteMaskEmissive", MaskWriteFlags.Emissive),
 			Mask(m, "Gloss", "bWriteMaskGloss", MaskWriteFlags.Gloss),
 		];
+		foreach (var field in fields) field.IsCommon = true;
+
+		return fields;
 	}
 
 	private static MaterialField Mask(FieldBuilder<MaterialFile> b, string label, string key, MaskWriteFlags flag) =>
