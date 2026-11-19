@@ -212,9 +212,20 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 													         Text="{Binding Text, Mode=TwoWay}"
 													         IsVisible="{Binding IsPlainText}" />
 
-												<TextBox Grid.Column="1"
-												         Text="{Binding Text, Mode=TwoWay}"
-												         IsVisible="{Binding IsText}" />
+													<Grid Grid.Column="1"
+													      ColumnDefinitions="*,Auto"
+													      IsVisible="{Binding HasPicker}">
+														<TextBox Grid.Column="0"
+														         Classes="Small"
+														         PlaceholderText="{Binding PickerPlaceholder}"
+														         Text="{Binding Text, Mode=TwoWay}" />
+														<Button Grid.Column="1"
+														        Classes="Small"
+														        Margin="6,0,0,0"
+														        Content="&#x2026;"
+														        Command="{Binding PickFileCommand}"
+														        ToolTip.Tip="Choose a file" />
+													</Grid>
 
 													<NumericUpDown Grid.Column="1"
 													               Classes="Small"

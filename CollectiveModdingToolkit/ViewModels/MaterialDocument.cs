@@ -18,9 +18,11 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CollectiveModdingToolkit.Materials;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -37,9 +39,20 @@ public sealed partial class MaterialDocument : ObservableObject
 		File = file;
 		SourceFormat = sourceFormat;
 		Version = (int)file.Version;
-		_fields = [.. file.Fields.Select(f => new MaterialFieldViewModel(file, f, OnEdited))];
+		_fields =
+		[
+			.. file.Fields.Select(f => new MaterialFieldViewModel(file, f, OnEdited,
+				() => TexturePicker?.Invoke() ?? Task.FromResult<string?>(null),
+				() => MaterialPicker?.Invoke() ?? Task.FromResult<string?>(null))),
+		];
 		RebuildGroups();
 	}
+
+	/// <summary>Asks the user for a texture and returns its path as a material stores it. Null if cancelled.</summary>
+	public Func<Task<string?>>? TexturePicker { get; set; }
+
+	/// <summary>Asks the user for a material and returns its path as a material stores it. Null if cancelled.</summary>
+	public Func<Task<string?>>? MaterialPicker { get; set; }
 
 	/// <summary>Where the material was read from, and where Save writes it.</summary>
 	public string Path { get; private set; }

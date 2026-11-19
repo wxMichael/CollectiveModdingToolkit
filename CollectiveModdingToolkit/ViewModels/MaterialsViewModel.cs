@@ -25,6 +25,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
@@ -203,6 +204,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		{
 			Document = MaterialDocument.Load(path);
 			Document.ShowGeneral = GroupByGeneral;
+			Document.TexturePicker = PickTextureAsync;
+			Document.MaterialPicker = PickMaterialPathAsync;
 			SetStatus(Document.SourceFormat == MaterialFormat.Json
 				? "This material is JSON. Saving will convert it to the binary format."
 				: string.Empty);
@@ -353,8 +356,33 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		}
 	}
 
+	/// <summary>Lets the user choose a texture, returned the way the open material stores texture paths.</summary>
+	private async Task<string?> PickTextureAsync()
+	{
+		var start = Session.Game?.DataPath is { } data ? Path.Combine(data, "Textures") : null;
+		if (await _dialogs.PickTextureAsync(start) is not { } picked) return null;
+
+		// Outside a Textures folder the path can't be worked out; fall back to just the file name.
+		var relative = DataRelativePath(picked, "Textures") ?? Path.GetFileName(picked);
+
+		// Fallout 4's materials leave out the leading "Textures\".
+		return Document is { IsFallout4Format: true } &&
+		       relative.StartsWith(@"Textures\", StringComparison.OrdinalIgnoreCase)
+			? relative[9..]
+			: relative;
+	}
+
+	/// <summary>Lets the user choose a material, returned as a path below Data (or the file name if that's unknown).</summary>
+	private async Task<string?> PickMaterialPathAsync()
+	{
+		var start = Session.Game?.DataPath is { } data ? Path.Combine(data, "Materials") : null;
+		return await _dialogs.PickMaterialAsync(start) is { } picked
+			? DataRelativePath(picked) ?? Path.GetFileName(picked)
+			: null;
+	}
+
 	/// <summary>A material's path below Data, e.g. "Materials\Foo\Bar.bgsm". Null if it can't be worked out.</summary>
-	private string? DataRelativePath(string path)
+	private string? DataRelativePath(string path, string marker = "Materials")
 	{
 		var full = Path.GetFullPath(path);
 		var roots = new List<string>();
@@ -367,7 +395,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		}
 
 		// Elsewhere (a download, a working folder): use the last Materials folder in the path.
-		var marker = Path.DirectorySeparatorChar + "Materials" + Path.DirectorySeparatorChar;
+		marker = Path.DirectorySeparatorChar + marker + Path.DirectorySeparatorChar;
 		var index = full.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
 		return index >= 0 ? full[(index + 1)..] : null;
 	}

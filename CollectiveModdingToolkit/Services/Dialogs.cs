@@ -42,6 +42,12 @@ public interface IDialogService
 	/// <summary>Asks for a material file to open. Null if cancelled.</summary>
 	Task<string?> PickMaterialToOpenAsync(string? folder);
 
+	/// <summary>Asks for a texture file. Null if cancelled.</summary>
+	Task<string?> PickTextureAsync(string? folder);
+
+	/// <summary>Asks for a material file to point at. Null if cancelled.</summary>
+	Task<string?> PickMaterialAsync(string? folder);
+
 	/// <summary>Asks where to save a material. Null if cancelled.</summary>
 	Task<string?> PickMaterialToSaveAsync(string suggestedName, string? folder);
 }
@@ -87,6 +93,34 @@ public sealed class DialogService : IDialogService
 			Title = "Open Material",
 			AllowMultiple = false,
 			FileTypeFilter = [MaterialFiles],
+			SuggestedStartLocation = await Folder(storage, folder),
+		});
+		return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+	}
+
+	public async Task<string?> PickMaterialAsync(string? folder)
+	{
+		if (AppWindow.Main?.StorageProvider is not { CanOpen: true } storage) return null;
+
+		var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+		{
+			Title = "Choose Material",
+			AllowMultiple = false,
+			FileTypeFilter = [new FilePickerFileType("Materials (BGSM, BGEM)") { Patterns = ["*.bgsm", "*.bgem"] }],
+			SuggestedStartLocation = await Folder(storage, folder),
+		});
+		return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+	}
+
+	public async Task<string?> PickTextureAsync(string? folder)
+	{
+		if (AppWindow.Main?.StorageProvider is not { CanOpen: true } storage) return null;
+
+		var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+		{
+			Title = "Choose Texture",
+			AllowMultiple = false,
+			FileTypeFilter = [new FilePickerFileType("Textures (DDS)") { Patterns = ["*.dds"] }],
 			SuggestedStartLocation = await Folder(storage, folder),
 		});
 		return files.Count > 0 ? files[0].TryGetLocalPath() : null;

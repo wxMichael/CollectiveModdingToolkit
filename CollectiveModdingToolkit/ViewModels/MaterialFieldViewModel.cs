@@ -21,9 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using Avalonia.Media;
 using CollectiveModdingToolkit.Materials;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
@@ -33,10 +35,15 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 	private readonly Action _changed;
 	private readonly MaterialField _field;
 	private readonly MaterialFile _file;
+	private readonly Func<Task<string?>>? _pickMaterial;
+	private readonly Func<Task<string?>>? _pickTexture;
 	private bool _refreshing;
 
-	public MaterialFieldViewModel(MaterialFile file, MaterialField field, Action changed)
+	public MaterialFieldViewModel(MaterialFile file, MaterialField field, Action changed,
+		Func<Task<string?>>? pickTexture = null, Func<Task<string?>>? pickMaterial = null)
 	{
+		_pickTexture = pickTexture;
+		_pickMaterial = pickMaterial;
 		_file = file;
 		_field = field;
 		_changed = changed;
@@ -62,6 +69,12 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 	public bool IsColor => Kind == MaterialFieldKind.Color;
 	public bool IsEnum => Kind == MaterialFieldKind.Enum;
 	public bool IsText => Kind is MaterialFieldKind.Text or MaterialFieldKind.Texture;
+	public bool IsTexture => Kind == MaterialFieldKind.Texture;
+	public bool IsMaterialPath => Kind == MaterialFieldKind.Text && JsonKey == "sRootMaterialPath";
+	public bool IsPlainText => Kind == MaterialFieldKind.Text && !IsMaterialPath;
+	public bool HasPicker => IsTexture || IsMaterialPath;
+
+	public string PickerPlaceholder => IsTexture ? "<no texture>" : "<no material>";
 	public bool IsNumber => Kind is MaterialFieldKind.Float or MaterialFieldKind.Byte;
 
 	public decimal NumberMaximum => Kind == MaterialFieldKind.Byte ? byte.MaxValue : decimal.MaxValue;
@@ -135,6 +148,15 @@ public sealed partial class MaterialFieldViewModel : ObservableObject
 	public IBrush? Swatch => IsColor && _field.GetValue(_file) is MaterialColor c
 		? new SolidColorBrush(Color.FromRgb(ToByte(c.R), ToByte(c.G), ToByte(c.B)))
 		: null;
+
+	[RelayCommand]
+	private async Task PickFileAsync()
+	{
+		var pick = IsMaterialPath ? _pickMaterial : _pickTexture;
+		if (pick == null || await pick() is not { } path) return;
+
+		Text = path;
+	}
 
 	/// <summary>Re-reads the value from the material, e.g. after the version changed what's stored.</summary>
 	public void Refresh()
