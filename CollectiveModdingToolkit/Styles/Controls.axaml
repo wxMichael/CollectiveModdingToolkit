@@ -36,23 +36,10 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	<!-- Semi defines Danger; declared empty here so the IDE recognizes the class -->
 	<Style Selector="Button.Danger" />
 
-	<!-- Text-style link button, colored with the accent -->
-	<Style Selector="Button.Link">
-		<Setter Property="Background" Value="Transparent" />
-		<Setter Property="BorderThickness" Value="0" />
+	<!-- Colors come from the HyperlinkButton* keys in Theme/SemiOverrides.axaml -->
+	<Style Selector="HyperlinkButton">
 		<Setter Property="Padding" Value="0" />
-		<Setter Property="Cursor" Value="Hand" />
-		<Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
 		<Setter Property="FontFamily" Value="{StaticResource Readable}" />
-		<Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-			<Setter Property="TextBlock.TextDecorations" Value="Underline" />
-		</Style>
-		<Style Selector="^:pointerover, ^:pressed">
-			<Setter Property="Foreground" Value="{DynamicResource AccentHoverBrush}" />
-			<Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
-				<Setter Property="Background" Value="Transparent" />
-			</Style>
-		</Style>
 	</Style>
 
 	<Style Selector="ProgressBar">

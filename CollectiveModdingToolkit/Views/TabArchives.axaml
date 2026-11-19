@@ -137,11 +137,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		            IsVisible="{Binding PatchSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
 			<TextBlock VerticalAlignment="Center"
 			           Text="{Binding PatchSummary}" />
-			<Button Classes="Link"
-			        Content="Show failures"
-			        VerticalAlignment="Center"
-			        IsVisible="{Binding HasPatchFailures}"
-			        Command="{Binding ShowPatchFailuresCommand}" />
+			<HyperlinkButton Classes="Underline"
+			                 Content="Show failures"
+			                 VerticalAlignment="Center"
+			                 IsVisible="{Binding HasPatchFailures}"
+			                 Command="{Binding ShowPatchFailuresCommand}" />
 		</StackPanel>
 
 		<DataGrid Grid.Row="2"

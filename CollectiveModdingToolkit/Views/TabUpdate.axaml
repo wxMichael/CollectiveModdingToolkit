@@ -38,11 +38,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 	            Spacing="10">
 		<TextBlock HorizontalAlignment="Center"
 		           Text="A new version of Collective Modding Toolkit is available" />
-		<Button Classes="Link"
-		        HorizontalAlignment="Center"
-		        FontSize="{StaticResource FontSizeBase}"
-		        Content="{Binding LinkText}"
-		        Command="{Binding OpenNexusPageCommand}"
-		        ToolTip.Tip="https://www.nexusmods.com/site/mods/1597" />
+		<HyperlinkButton Classes="Underline"
+		                 HorizontalAlignment="Center"
+		                 FontSize="{StaticResource FontSizeBase}"
+		                 Content="{Binding LinkText}"
+		                 Command="{Binding OpenNexusPageCommand}"
+		                 ToolTip.Tip="https://www.nexusmods.com/site/mods/1597" />
 	</StackPanel>
 </UserControl>

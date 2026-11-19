@@ -71,9 +71,9 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 							           VerticalAlignment="Center"
 							           Text="{Binding Name}" />
 
-							<Button Content="{Binding License}"
-							        Classes="Link"
-							        Click="Button_Click_ShowLicense" />
+							<HyperlinkButton Content="{Binding License}"
+							                 Classes="Underline"
+							                 Click="Button_Click_ShowLicense" />
 
 						</StackPanel>
 					</DataTemplate>
