@@ -98,6 +98,8 @@ internal class ModOrganizer : ObservableObject, IModManager
 	public string GameIniFolderPath { get; private set; } = string.Empty;
 	public string PluginsTxtPath { get; private set; } = string.Empty;
 	public IReadOnlyList<string> StagePaths => _stagePaths;
+
+	public string? OverwritePath => _overwriteDirectory.Length > 0 ? _overwriteDirectory : null;
 	public IReadOnlyList<string> SkipFileSuffixes { get; private set; } = [".mohidden"];
 	public IReadOnlyList<string> SkipDirectories { get; private set; } = [".git"];
 

@@ -25,7 +25,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CollectiveModdingToolkit.Controls;
 using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Services;
@@ -48,6 +47,10 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	private readonly IDialogService _dialogs;
 	private readonly IShellService _shell;
 	private List<MaterialListItem> _all = [];
+
+	/// <summary>The existing file a pending Save to Overwrite would replace. Set by the first click, confirmed by the second.</summary>
+	private string? _pendingOverwrite;
+
 	private bool _reverting;
 
 	/// <summary>Design-time only.</summary>
@@ -59,9 +62,12 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	{
 		_shell = shell;
 		_dialogs = dialogs;
-		session.PropertyChanged += (_, e) =>
+		session.PropertyChanged += (sender, e) =>
 		{
-			if (e.PropertyName == nameof(GameSession.Game)) _ = RefreshListAsync();
+			if (e.PropertyName != nameof(GameSession.Game)) return;
+
+			OnPropertyChanged(nameof(HasOverwrite));
+			_ = RefreshListAsync();
 		};
 		_ = RefreshListAsync();
 	}
@@ -74,7 +80,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(SaveCommand), nameof(SaveAsCommand), nameof(RevertCommand),
-		nameof(ConvertToFallout4Command), nameof(RevealCommand))]
+		nameof(ConvertToFallout4Command), nameof(RevealCommand), nameof(SaveToOverwriteCommand))]
 	public partial MaterialDocument? Document { get; private set; }
 
 	[ObservableProperty] public partial string StatusText { get; private set; } = string.Empty;
@@ -90,6 +96,9 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 
 	public bool HasDocument => Document != null;
 
+	/// <summary>True when the mod manager has an Overwrite folder to save to (MO2).</summary>
+	public bool HasOverwrite => Session.Game?.Manager.OverwritePath != null;
+
 	/// <summary>Whether the open material is in a newer game's format, and can be converted back.</summary>
 	public bool CanConvert => Document is { IsFallout4Format: false };
 
@@ -100,6 +109,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		if (oldValue != null) oldValue.PropertyChanged -= OnDocumentPropertyChanged;
 		if (newValue != null) newValue.PropertyChanged += OnDocumentPropertyChanged;
 
+		_pendingOverwrite = null;
 		OnPropertyChanged(nameof(HasDocument));
 		OnPropertyChanged(nameof(CanConvert));
 	}
@@ -195,7 +205,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 			{
 				var index = Scanner.IndexFolder(game, "Materials");
 				return index.Values
-					.Where(e => ListedExtensions.Contains(Path.GetExtension(e.Relative), StringComparer.OrdinalIgnoreCase))
+					.Where(e => ListedExtensions.Contains(Path.GetExtension(e.Relative),
+						StringComparer.OrdinalIgnoreCase))
 					.Select(e => new MaterialListItem(e.Relative, Scanner.GetSourcePath(game.Manager, e),
 						Scanner.GetMod(game.Manager, e)))
 					.OrderBy(i => i.Relative, StringComparer.OrdinalIgnoreCase)
@@ -286,7 +297,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		var suggested = document.FileName;
 		if (!suggested.EndsWith(document.File.Kind == MaterialKind.Bgem ? ".bgem" : ".bgsm",
 			    StringComparison.OrdinalIgnoreCase))
-			suggested = Path.GetFileNameWithoutExtension(suggested) + (document.File.Kind == MaterialKind.Bgem ? ".bgem" : ".bgsm");
+			suggested = Path.GetFileNameWithoutExtension(suggested) +
+			            (document.File.Kind == MaterialKind.Bgem ? ".bgem" : ".bgsm");
 
 		var path = await _dialogs.PickMaterialToSaveAsync(suggested, Path.GetDirectoryName(document.Path));
 		if (path == null) return;
@@ -300,6 +312,60 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
 		{
 			SetStatus($"Couldn't save {Path.GetFileName(path)}: {e.Message}", true);
+		}
+	}
+
+	/// <summary>A material's path below Data, e.g. "Materials\Foo\Bar.bgsm". Null if it can't be worked out.</summary>
+	private string? DataRelativePath(string path)
+	{
+		var full = Path.GetFullPath(path);
+		var roots = new List<string>();
+		if (Session.Game is { } game) roots.AddRange([game.DataPath, .. game.Manager.StagePaths]);
+
+		foreach (var root in roots.Where(r => r.Length > 0))
+		{
+			var prefix = Path.GetFullPath(root).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+			if (full.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return full[prefix.Length..];
+		}
+
+		// Elsewhere (a download, a working folder): use the last Materials folder in the path.
+		var marker = Path.DirectorySeparatorChar + "Materials" + Path.DirectorySeparatorChar;
+		var index = full.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
+		return index >= 0 ? full[(index + 1)..] : null;
+	}
+
+	[RelayCommand(CanExecute = nameof(HasOpenDocument))]
+	private async Task SaveToOverwriteAsync()
+	{
+		if (Document is not { } document || Session.Game?.Manager.OverwritePath is not { } overwrite) return;
+
+		if (DataRelativePath(document.Path) is not { } relative)
+		{
+			SetStatus("Can't tell where this material belongs in Data, so it can't be placed in Overwrite.", true);
+			return;
+		}
+
+		var target = Path.GetFullPath(Path.Combine(overwrite, relative));
+		var same = string.Equals(target, Path.GetFullPath(document.Path), StringComparison.OrdinalIgnoreCase);
+		if (!same && File.Exists(target) && _pendingOverwrite != target)
+		{
+			_pendingOverwrite = target;
+			SetStatus($"A file already exists in Overwrite at {relative}. Press Save to Overwrite again to replace it.",
+				true);
+			return;
+		}
+
+		try
+		{
+			Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+			document.Save(target);
+			_pendingOverwrite = null;
+			SetStatus($"Saved to Overwrite as {relative}.");
+			await RefreshListAsync();
+		}
+		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+		{
+			SetStatus($"Couldn't save to Overwrite: {e.Message}", true);
 		}
 	}
 

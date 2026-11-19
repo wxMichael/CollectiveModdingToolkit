@@ -49,6 +49,9 @@ public interface IModManager
 	/// </summary>
 	IReadOnlyList<string> StagePaths { get; }
 
+	/// <summary>Where new files for the game are collected (MO2's Overwrite folder). Null if the manager has none.</summary>
+	string? OverwritePath => null;
+
 	/// <summary>Lowercase file name endings the manager ignores (MO2: <c>skip_file_suffixes</c>; Vortex: its backups).</summary>
 	IReadOnlyList<string> SkipFileSuffixes { get; }
 
