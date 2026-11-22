@@ -203,7 +203,7 @@ public class Binary : ObservableObject, IFile
 
 	/// <summary>
 	///     Some files (e.g. steam_api64.dll) are shared by Next-Gen and Anniversary.<br />
-	///     Once the game's own version is known, adopt it.
+	///     Once the game's version is known, adopt it.
 	/// </summary>
 	internal void ResolveSharedVersion(string gameVersion)
 	{

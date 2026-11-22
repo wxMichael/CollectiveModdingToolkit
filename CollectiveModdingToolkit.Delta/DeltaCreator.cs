@@ -32,7 +32,7 @@ namespace CollectiveModdingToolkit.Delta;
 ///     Makes patches. Only the generator tool needs this; the app only applies them.
 ///     <para>
 ///         The matching is Colin Percival's bsdiff 4 (suffix array by Larsson-Sadakane, then greedy approximate matching
-///         with forward and backward extension). The output is stored in this project's own container, see
+///         with forward and backward extension). The output is stored in this project's container, see
 ///         <see cref="DeltaFormat" />.
 ///     </para>
 ///     <para>

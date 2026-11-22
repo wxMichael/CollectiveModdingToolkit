@@ -220,7 +220,7 @@ public partial class Game
 		AddressLibraryPath = null;
 		if (!Directory.Exists(DataPath)) return;
 
-		// Address Library ships one file per game version, e.g. version-1-11-240-0.bin
+		// Address Library uses one file per game version, e.g. version-1-11-240-0.bin
 		var exe = Binaries.FirstOrDefault(b => b.Name.Equals(Binary.MainExeName, StringComparison.OrdinalIgnoreCase));
 		if (exe?.Version == null || !Version.TryParse(exe.Version, out var version)) return;
 

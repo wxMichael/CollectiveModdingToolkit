@@ -36,7 +36,7 @@ namespace CollectiveModdingToolkit.Models;
 ///         desktop and
 ///         USB display drivers add, and flags software renderers, so those are never reported as the user's GPU. DXGI
 ///         holds back a
-///         little video memory, so the larger of its figure and the driver's own registry figure is used.
+///         little video memory, so the larger of its figure and the driver's registry figure is used.
 ///     </para>
 ///     <para>
 ///         The registry alone isn't enough: virtual display drivers appear there too, sometimes first, with no memory
