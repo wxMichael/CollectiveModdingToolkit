@@ -29,7 +29,13 @@ namespace CollectiveModdingToolkit;
 
 public class App : Application
 {
-	public override void Initialize() => AvaloniaXamlLoader.Load(this);
+	public override void Initialize()
+	{
+		AvaloniaXamlLoader.Load(this);
+#if DEBUG
+		this.AttachDeveloperTools(); // F12 opens DevTools
+#endif
+	}
 
 	public override void OnFrameworkInitializationCompleted()
 	{
