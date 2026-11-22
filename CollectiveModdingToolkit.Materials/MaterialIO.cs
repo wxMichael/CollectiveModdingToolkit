@@ -28,7 +28,7 @@ namespace CollectiveModdingToolkit.Materials;
 /// <summary>Reads the little-endian values materials are made of.</summary>
 internal sealed class MaterialReader(ReadOnlySpan<byte> data)
 {
-	private readonly byte[] _data = data.ToArray();
+	private readonly byte[] _data = [.. data];
 	private int _position;
 
 	public int Remaining => _data.Length - _position;

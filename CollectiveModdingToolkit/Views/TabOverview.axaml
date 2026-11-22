@@ -217,7 +217,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Game Binaries -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
-					   Name="GameBinariesGroupBox"
+		               Name="GameBinariesGroupBox"
 		               Grid.Row="1"
 		               Grid.Column="0"
 		               Header="Game (EXE/DLL)">
@@ -294,7 +294,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Creation Kit Binaries -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
-				 Name="CKBinariesGroupBox"
+		               Name="CKBinariesGroupBox"
 		               Grid.Row="2"
 		               Grid.Column="0"
 		               Header="Creation Kit (EXE/DLL)">

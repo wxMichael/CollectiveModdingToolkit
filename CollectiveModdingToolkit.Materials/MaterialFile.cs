@@ -323,7 +323,7 @@ public abstract class MaterialFile
 		output.Single(Alpha);
 		var (a, b, c) = AlphaBlendMode == AlphaBlendMode.Custom
 			? CustomAlphaBlend
-			: BlendValues.FirstOrDefault(v => v.Mode == AlphaBlendMode) is { Mode: not AlphaBlendMode.Custom } v
+			: BlendValues.FirstOrDefault(bv => bv.Mode == AlphaBlendMode) is { Mode: not AlphaBlendMode.Custom } v
 				? (v.A, v.B, v.C)
 				: (default(byte), 0u, 0u);
 		output.Byte(a);
