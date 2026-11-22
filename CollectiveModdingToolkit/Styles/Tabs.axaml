@@ -29,6 +29,18 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 		<Setter Property="Margin" Value="2,0,0,0" />
 	</Style>
 
+	<Style Selector="TabItem">
+		<Setter Property="FontSize" Value="16" />
+	</Style>
+
+	<Style Selector="TabItem:selected">
+		<Setter Property="Background" Value="{DynamicResource BgBrush}" />
+	</Style>
+
+	<Style Selector="TabItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+		<Setter Property="FontWeight" Value="Normal" />
+	</Style>
+
 	<!-- The Update tab is filled with the accent, so its header text needs the contrasting color -->
 	<Style Selector="TabItem.Update /template/ ContentPresenter#PART_HeaderPresenter">
 		<Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />

@@ -46,8 +46,6 @@ SOFTWARE.
 						        Value="{DynamicResource StrokeMidBrush}" />
 						<Setter Property="CornerRadius"
 						        Value="3" />
-						<Setter Property="FontWeight"
-						        Value="Bold" />
 						<Setter Property="Padding"
 						        Value="8" />
 						<Setter Property="Template">

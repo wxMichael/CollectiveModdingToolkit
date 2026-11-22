@@ -38,6 +38,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 	<!-- Text -->
 	<SolidColorBrush x:Key="TextBrush" Color="{DynamicResource Grey11}" />
+	<SolidColorBrush x:Key="TextBrushBright" Color="{DynamicResource Grey10}" />
 	<SolidColorBrush x:Key="TextFaintBrush" Color="DimGray" />
 	<SolidColorBrush x:Key="NeutralBrush" Color="{DynamicResource NeutralColor}" />
 	<SolidColorBrush x:Key="NeutralBrushBright" Color="{DynamicResource Grey7}" />

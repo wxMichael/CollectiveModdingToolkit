@@ -72,14 +72,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			<Setter Property="Margin"
 			        Value="5,0,5,5" />
 
-			<!-- Color all text except first column -->
 			<Style Selector="^ TextBlock">
 				<Setter Property="Foreground"
 				        Value="{DynamicResource Neutral2Brush}" />
 			</Style>
+
 			<Style Selector="^ > TextBlock[(Grid.Column)=0]">
 				<Setter Property="Foreground"
-				        Value="{DynamicResource TextBrush}" />
+				        Value="{DynamicResource TextBrushBright}" />
 			</Style>
 		</Style>
 
@@ -110,6 +110,16 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 			</Style>
 		</Style>
 
+		<Style Selector="#GameBinariesGroupBox, #CKBinariesGroupBox, #ArchivesGroupBox, #ModulesGroupBox">
+			<Style Selector="^ Grid.Table TextBlock">
+				<Style Selector="^[(Grid.Column)=0], ^[(Grid.Column)=1]">
+					<Setter Property="TextAlignment"
+					        Value="Right" />
+				</Style>
+				<Setter Property="FontFamily"
+				        Value="{StaticResource MonoFont}" />
+			</Style>
+		</Style>
 
 	</UserControl.Styles>
 
@@ -207,6 +217,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Game Binaries -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
+					   Name="GameBinariesGroupBox"
 		               Grid.Row="1"
 		               Grid.Column="0"
 		               Header="Game (EXE/DLL)">
@@ -233,8 +244,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 										<TextBlock
 											Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
 											VerticalAlignment="Center"
-											HorizontalAlignment="Right"
-											Classes="Small" />
+											HorizontalAlignment="Right" />
 									</DataGridCell>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
@@ -251,13 +261,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 											           VerticalAlignment="Center"
 											           HorizontalAlignment="Left"
 											           Margin="5,0,0,0"
-											           Classes="Small Short"
+											           Classes="Short"
 											           ctrl:Status.Level="{Binding Level}" />
 											<TextBlock Text="{Binding FullVersion}"
 											           VerticalAlignment="Center"
 											           HorizontalAlignment="Left"
 											           Margin="5,0,0,0"
-											           Classes="Small Full"
+											           Classes="Full"
 											           ctrl:Status.Level="{Binding Level}" />
 										</Panel>
 									</DataGridCell>
@@ -271,12 +281,10 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 				      IsVisible="{Binding AddressLibraryPath, Converter={x:Static ObjectConverters.IsNotNull}}">
 					<TextBlock Grid.Column="0"
 					           Text="Address Library:"
-					           HorizontalAlignment="Right"
-					           Classes="Small" />
+					           HorizontalAlignment="Right" />
 					<TextBlock Grid.Column="1"
 					           MinWidth="95"
 					           Padding="5,0,0,0"
-					           Classes="Small"
 					           Text="{Binding AddressLibraryText}"
 					           ctrl:Status.Level="{Binding AddressLibraryStatus}"
 					           ToolTip.Tip="{Binding AddressLibraryTip}" />
@@ -286,6 +294,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Creation Kit Binaries -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
+				 Name="CKBinariesGroupBox"
 		               Grid.Row="2"
 		               Grid.Column="0"
 		               Header="Creation Kit (EXE/DLL)">
@@ -313,8 +322,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									<TextBlock
 										Text="{Binding Name, StringFormat='{}{0}:', Converter={StaticResource RemoveFileExtConverter}}"
 										VerticalAlignment="Center"
-										HorizontalAlignment="Right"
-										Classes="Small" />
+										HorizontalAlignment="Right" />
 								</DataGridCell>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
@@ -331,13 +339,13 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 										           VerticalAlignment="Center"
 										           HorizontalAlignment="Left"
 										           Margin="5,0,5,0"
-										           Classes="Small Short"
+										           Classes="Short"
 										           ctrl:Status.Level="{Binding Level}" />
 										<TextBlock Text="{Binding FullVersion}"
 										           VerticalAlignment="Center"
 										           HorizontalAlignment="Left"
 										           Margin="5,0,5,0"
-										           Classes="Small Full"
+										           Classes="Full"
 										           ctrl:Status.Level="{Binding Level}" />
 									</Panel>
 								</DataGridCell>
@@ -346,11 +354,11 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					</DataGridTemplateColumn>
 				</DataGrid.Columns>
 			</DataGrid>
-
 		</ctrl:GroupBox>
 
 		<!-- Archives -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Name="ArchivesGroupBox"
 		               Grid.Row="1"
 		               Grid.Column="1"
 		               Header="Archives (BA2)">
@@ -381,7 +389,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="General:" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesGeneral.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesGeneral.Count, StringFormat='{}{0,5}'}"
 					           ctrl:Status.Level="{Binding ArchivesGeneralStatus}" />
 					<TextBlock Grid.Row="0"
 					           Grid.Column="2"
@@ -392,7 +400,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="Texture:" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesTexture.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesTexture.Count, StringFormat='{}{0,5}'}"
 					           ctrl:Status.Level="{Binding ArchivesTextureStatus}" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="2"
@@ -403,7 +411,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="Total:" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding TotalArchives, StringFormat='{}{0,4}'}"
+					           Text="{Binding TotalArchives, StringFormat='{}{0,5}'}"
 					           ctrl:Status.Level="{Binding TotalArchivesStatus}" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="2"
@@ -416,7 +424,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Classes.Bad="{Binding HasArchivesUnreadable}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesUnreadable.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesUnreadable.Count, StringFormat='{}{0,5}'}"
 					           Classes="Neutral"
 					           Classes.Bad="{Binding HasArchivesUnreadable}" />
 				</Grid>
@@ -449,14 +457,14 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Text="(OG) v1   :" />
 					<TextBlock Grid.Row="1"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesOG.Count, StringFormat='{}{0,4}'}" />
+					           Text="{Binding ArchivesOG.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="2"
 					           Grid.Column="0"
 					           Text="(NG) v7/8 :" />
 					<TextBlock Grid.Row="2"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesNG.Count, StringFormat='{}{0,4}'}" />
+					           Text="{Binding ArchivesNG.Count, StringFormat='{}{0,5}'}" />
 
 					<TextBlock Grid.Row="3"
 					           Grid.Column="0"
@@ -465,7 +473,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 					           Classes.Bad="{Binding HasArchivesUnknown}" />
 					<TextBlock Grid.Row="3"
 					           Grid.Column="1"
-					           Text="{Binding ArchivesUnknown.Count, StringFormat='{}{0,4}'}"
+					           Text="{Binding ArchivesUnknown.Count, StringFormat='{}{0,5}'}"
 					           Classes="Neutral"
 					           Classes.Bad="{Binding HasArchivesUnknown}" />
 				</Grid>
@@ -474,6 +482,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 		<!-- Modules -->
 		<ctrl:GroupBox DataContext="{Binding Game}"
+		               Name="ModulesGroupBox"
 		               Grid.Row="2"
 		               Grid.Column="1"
 		               Header="Modules (ESM/ESL/ESP)">

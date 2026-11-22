@@ -24,7 +24,6 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 	<Style Selector="Button">
 		<Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-		<Setter Property="FontFamily" Value="{StaticResource CascadiaMono}" />
 		<Setter Property="Padding" Value="5" />
 	</Style>
 

@@ -1,6 +1,5 @@
 {
 	"_readme": "Inputs to tools/GenerateThirdPartyNotices.cs. NuGet packages are discovered automatically from the restored project; this file only holds what cannot be discovered.",
-
 	"static": [
 		{
 			"name": "bsdiff",
@@ -34,19 +33,17 @@
 			"textFile": "tools/third-party/material-editor-LICENSE.txt"
 		},
 		{
-			"name": "Cascadia Code",
+			"name": "Fira Sans / Fira Mono",
 			"license": "SIL Open Font License 1.1",
 			"details": [
-				"CascadiaMono.ttf, CascadiaMonoItalic.ttf",
-				"https://github.com/microsoft/cascadia-code"
+				"FiraMono-Bold.ttf, FiraMono-Medium.ttf, FiraMono-Regular.ttf, FiraSans-Black.ttf, FiraSans-BlackItalic.ttf, FiraSans-Bold.ttf, FiraSans-BoldItalic.ttf, FiraSans-ExtraBold.ttf, FiraSans-ExtraBoldItalic.ttf, FiraSans-ExtraLight.ttf, FiraSans-ExtraLightItalic.ttf, FiraSans-Italic.ttf, FiraSans-Light.ttf, FiraSans-LightItalic.ttf, FiraSans-Medium.ttf, FiraSans-MediumItalic.ttf, FiraSans-Regular.ttf, FiraSans-SemiBold.ttf, FiraSans-SemiBoldItalic.ttf, FiraSans-Thin.ttf, FiraSans-ThinItalic.ttf",
+				"https://github.com/mozilla/Fira/"
 			],
-			"textFile": "CollectiveModdingToolkit/Assets/Fonts/LICENSE"
+			"textFile": "CollectiveModdingToolkit/Assets/Fonts/Fira/Fira-LICENSE.txt"
 		}
 	],
-
 	"overrides": {
 		"_readme": "Keyed by NuGet package id; a trailing * matches a prefix, the longest match wins. Fields: repo (GitHub URL, when the package metadata has none or only a redirect link), ref (commit/tag/branch; default is the commit from the package metadata), licensePath (path of the license file in the repo), name (display name of the group), skipBundledNotices (do not include the THIRD-PARTY-NOTICES file shipped inside the package), note (why).",
-
 		"SkiaSharp*": {
 			"repo": "https://github.com/mono/SkiaSharp",
 			"name": "SkiaSharp and HarfBuzzSharp",
