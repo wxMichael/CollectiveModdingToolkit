@@ -299,10 +299,13 @@ public static class Scanner
 		var archived = inner != null;
 
 		// Nothing else can be checked in a file with no contents, and the fomod folder is reported as a whole.
-		if (options.EmptyFiles && root != "fomod" && !IsPlaceholder(fileName) && IsEmpty(entry, inner))
+		// Skip check for Python app _internal folders.
+		if (options.EmptyFiles && root != "fomod" && !IsPlaceholder(fileName)
+		    && !dirs.Any(d => d.Equals("_internal", StringComparison.OrdinalIgnoreCase))
+		    && IsEmpty(entry, inner))
 		{
 			AddFileProblem(problems, game, manager, entry, ProblemType.EmptyFile, EmptyFileSeverity(fileName),
-				"This file is [bad]empty[/bad] (0 bytes).",
+				"This file is [bad]empty (0 bytes)[/bad].",
 				null, EmptyFileSolution, inner);
 			return;
 		}
