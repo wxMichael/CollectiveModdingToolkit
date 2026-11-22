@@ -54,6 +54,7 @@ public static class ModManagerDetector
 			return () => FromExePath(debugPath)!;
 #endif
 
+		Log.Debug("Detector: inspecting parent processes");
 		var processHandle = Computer.CurrentProcess;
 		var bufferSize = (uint)Marshal.SizeOf<PROCESS_BASIC_INFORMATION>();
 		PROCESS_BASIC_INFORMATION pbi = new();
@@ -75,6 +76,7 @@ public static class ModManagerDetector
 				break;
 			}
 
+			Log.Debug($"Detector: parent #{i} is {parent.ProcessName} (pid {parent.Id})");
 			if (parent.ProcessName == "explorer") break;
 
 			if (parent.ProcessName is "ModOrganizer" or "Vortex")
@@ -90,6 +92,7 @@ public static class ModManagerDetector
 					break;
 				}
 
+				Log.Debug($"Detector: manager exe is {exePath}");
 				if (exePath != null && FromExePath(exePath, parent) is not null)
 					return () => FromExePath(exePath, parent)!;
 				break;
@@ -100,6 +103,7 @@ public static class ModManagerDetector
 		}
 
 		GC.KeepAlive(keepAlive);
+		Log.Debug("Detector: no supported mod manager found");
 		return () => new Unmanaged();
 	}
 

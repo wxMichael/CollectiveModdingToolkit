@@ -50,24 +50,31 @@ public sealed partial class GameSession : ObservableObject
 
 	public async Task LoadAsync()
 	{
+		Log.Debug("Session: initial load started");
 		var computerTask = LoadComputerAsync();
 		try
 		{
 			var (modManager, game) = await Task.Run(() =>
 			{
+				Log.Debug("Session: detecting mod manager");
 				var manager = ModManagerDetector.Detect();
+				Log.Debug($"Session: using {manager.AppName}");
 				return (manager, new Game(manager, GameName));
 			});
 			ModManager = modManager;
 			Game = game;
 			CanRefresh = true;
+			Log.Debug("Session: game loaded");
 		}
 		catch (Exception e)
 		{
+			Log.Error("Initial load failed", e);
 			ErrorReporter.Current.Critical(e.GetType(), e.ToString());
 		}
 
+		Log.Debug("Session: waiting for hardware detection");
 		await computerTask;
+		Log.Debug("Session: initial load finished");
 	}
 
 	private static Task<Computer> GetSharedComputer()
@@ -84,6 +91,7 @@ public sealed partial class GameSession : ObservableObject
 	{
 		try
 		{
+			Log.Debug("Session: detecting hardware");
 			Computer = await GetSharedComputer();
 		}
 		catch (Exception e)

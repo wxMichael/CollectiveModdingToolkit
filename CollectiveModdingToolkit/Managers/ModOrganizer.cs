@@ -56,6 +56,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 	/// <param name="process">The running MO2 process, used to read the instance it was launched with.</param>
 	public ModOrganizer(string exePath, Process? process = null)
 	{
+		Log.Debug($"MO2: starting setup for {exePath}");
 		AppPath = exePath;
 		if (process != null)
 		{
@@ -82,7 +83,13 @@ internal class ModOrganizer : ObservableObject, IModManager
 		var fileVersion = FileVersionInfo.GetVersionInfo(AppPath).FileVersion;
 		if (fileVersion != null && fileVersion.Contains("-ML")) AppVersionString = fileVersion;
 
-		if (ReadSettings()) GetStagePaths();
+		Log.Debug("MO2: reading settings");
+		if (ReadSettings())
+		{
+			Log.Debug($"MO2: profile \"{Profile}\", game at {GamePath}; reading mod list");
+			GetStagePaths();
+			Log.Debug($"MO2: {_stagePaths.Count} mod folders");
+		}
 	}
 
 	public DirectoryInfo AppFolder { get; }
@@ -200,6 +207,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 	{
 		var iniPath = FindIniPath();
 		if (iniPath == null) return false;
+		Log.Debug($"MO2: using {iniPath}");
 
 		QSettingsIni ini;
 		try

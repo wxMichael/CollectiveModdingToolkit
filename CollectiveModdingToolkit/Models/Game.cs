@@ -73,6 +73,7 @@ public partial class Game : ObservableObject
 	{
 		Manager = manager;
 		Name = name;
+		Log.Debug($"Game: loading {name} via {manager.AppName}");
 
 		BA2Suffixes = [.. DefaultBA2Suffixes]; // TODO: Remove
 		var gamePath = FindGamePath(manager);
@@ -82,6 +83,7 @@ public partial class Game : ObservableObject
 			return;
 		}
 
+		Log.Debug($"Game: install folder is {gamePath}");
 		GamePath = gamePath;
 		DataPath = Path.Combine(GamePath, "Data");
 		F4SEPath = Path.Combine(DataPath, "F4SE", "Plugins");
@@ -113,17 +115,24 @@ public partial class Game : ObservableObject
 				"The folder with the game's INI files was not found, so archive lists can't be read and archive counts will be inaccurate.",
 				manager.GameIniFolderPath, solution: "Run the Fallout 4 Launcher once to create the INI files.");
 
+		Log.Debug("Game: reading binaries");
 		GetBinaryInfo();
 
 		if (hasData)
 		{
+			Log.Debug("Game: listing modules");
 			GetModuleLists(manager);
+			Log.Debug("Game: listing archives");
 			GetArchiveLists();
 
+			Log.Debug("Game: reading module headers");
 			GetModuleInfo();
+			Log.Debug("Game: reading archive headers");
 			GetArchiveInfo();
 
+			Log.Debug("Game: listing DLLs");
 			GetDllLists();
+			Log.Debug("Game: reading DLL info");
 			GetDllInfo();
 		}
 
@@ -133,6 +142,7 @@ public partial class Game : ObservableObject
 		else if (F4SEMessage == null && Dlls.Count == 0)
 			F4SEMessage = "No DLLs were found in Data/F4SE/Plugins.";
 
+		Log.Debug("Game: checking for problems");
 		FindProblems();
 		Log.Info(
 			$"Game: {GameVersion} at {GamePath} via {manager.AppName}; {ModulesEnabled.Count} modules, {ArchivesEnabled.Count} archives, {Dlls.Count} DLLs, {Problems.Count} problems.");
