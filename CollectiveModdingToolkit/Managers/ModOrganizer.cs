@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -37,6 +38,11 @@ internal class ModOrganizer : ObservableObject, IModManager
 	private const string MO2RegistryPath = @"Software\Mod Organizer Team\Mod Organizer";
 	private const string SupportedGameName = "Fallout 4";
 	private const string DefaultProfileName = "Default";
+
+	/// <summary>
+	///     File names in each folder looked up so far (keyed by folder).
+	/// </summary>
+	private readonly ConcurrentDictionary<string, HashSet<string>> _folderFiles = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	///     The instance MO2 was told to use on its command line, or null if none. An empty string means the portable instance.
@@ -134,7 +140,7 @@ internal class ModOrganizer : ObservableObject, IModManager
 		for (var i = StagePaths.Count - 1; i >= 0; i--)
 		{
 			var candidate = Path.Combine(StagePaths[i], dataRelativePath);
-			if (!File.Exists(candidate)) continue;
+			if (!FileExistsCached(candidate)) continue;
 
 			var isOverwrite = string.Equals(Path.GetFullPath(StagePaths[i]), overwriteFull,
 				StringComparison.OrdinalIgnoreCase);
@@ -147,6 +153,28 @@ internal class ModOrganizer : ObservableObject, IModManager
 		}
 
 		return File.Exists(fullPath) ? new FileOrigin(FileOriginKind.GameFolder, fullPath) : null;
+	}
+
+	private bool FileExistsCached(string path)
+	{
+		var folder = Path.GetDirectoryName(path);
+		if (folder == null) return File.Exists(path);
+
+		var files = _folderFiles.GetOrAdd(folder, static f =>
+		{
+			HashSet<string> names = new(StringComparer.OrdinalIgnoreCase);
+			try
+			{
+				foreach (var file in Directory.EnumerateFiles(f)) names.Add(Path.GetFileName(file));
+			}
+			catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+			{
+				// A missing or unreadable folder has no files.
+			}
+
+			return names;
+		});
+		return files.Contains(Path.GetFileName(path));
 	}
 
 	/// <summary>
