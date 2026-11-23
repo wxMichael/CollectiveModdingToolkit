@@ -202,19 +202,23 @@ public static partial class TextureChecker
 		var facts = new TextureFacts(dds.Format, dds.IsCubemap);
 		foreach (var problem in TextureSlotRules.Evaluate(role.Slot, relative, facts, false))
 		{
-			var summary = problem.Kind switch
+			// WrongFormat breaks the texture; the others are suggestions (Best Practices).
+			var (summary, severity) = problem.Kind switch
 			{
 				TextureProblemKind.WrongFormat =>
-					$"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold data it needs.",
+					($"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold data it needs.",
+						Error),
 				TextureProblemKind.NonStandardFormat =>
-					$"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] instead of [accent]BC5[/accent], which vanilla files use.",
+					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] instead of [accent]BC5[/accent], which vanilla files use.",
+						Warning),
 				TextureProblemKind.UnneededAlpha =>
-					$"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] with an [warning]alpha channel[/warning] it doesn't use. Vanilla files use [accent]BC5[/accent].",
-				_ => null,
+					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] with an [warning]alpha channel[/warning] it doesn't use. Vanilla files use [accent]BC5[/accent].",
+						Warning),
+				_ => (null, Warning),
 			};
 
 			if (summary != null)
-				issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning, summary,
+				issues.Add(new TextureIssue(ProblemType.InvalidTexture, severity, summary,
 					ReportSolution + " It works in-game, but may not look as intended."));
 		}
 	}

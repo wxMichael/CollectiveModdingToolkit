@@ -417,12 +417,12 @@ public static class Scanner
 		var ext = fileName[(dot + 1)..].ToLowerInvariant();
 		var stem = fileName[..dot];
 
-		if (options.TextureIssues && ext == "dds")
+		if ((options.TextureIssues || options.BestPractices) && ext == "dds")
 		{
 			if (inner != null)
 				CheckArchivedTexture(c, entry, inner);
 			else
-				CheckTexture(problems, game, manager, entry);
+				CheckTexture(problems, game, manager, entry, options);
 		}
 
 		if ((options.MaterialIssues || options.BestPractices) && root == "materials" &&
@@ -625,6 +625,8 @@ public static class Scanner
 
 		if (dds.IsReadable != true)
 		{
+			if (!c.Options.TextureIssues) return;
+
 			AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidTexture, Severity.Medium,
 				dds.Signature == null
 					? "This texture's [accent]DDS header[/accent] is [bad]missing, corrupted, or unreadable[/bad]."
@@ -635,13 +637,16 @@ public static class Scanner
 			return;
 		}
 
+		// Suggestions (Low) belong to Best Practices; everything else to Texture Issues.
 		foreach (var issue in TextureChecker.Check(dds, relative, length))
-			AddFileProblem(c.Problems, c.Game, c.Manager, entry, issue.Type, issue.Severity,
-				issue.Summary, null, issue.Solution, file);
+			if (IsTextureIssueEnabled(c.Options, issue))
+				AddFileProblem(c.Problems, c.Game, c.Manager, entry, issue.Type, issue.Severity,
+					issue.Summary, null, issue.Solution, file);
 	}
 
 	/// <summary>Reports DDS textures with invalid headers, dimensions, formats, or naming.</summary>
-	private static void CheckTexture(List<ProblemInfo> problems, Game game, IModManager manager, Entry entry)
+	private static void CheckTexture(List<ProblemInfo> problems, Game game, IModManager manager, Entry entry,
+		ScanOptions options)
 	{
 		var path = GetSourcePath(manager, entry);
 		DDS dds = new(Path.GetFileName(path), path, null);
@@ -649,6 +654,8 @@ public static class Scanner
 
 		if (dds.IsReadable != true)
 		{
+			if (!options.TextureIssues) return;
+
 			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, Severity.Medium,
 				dds.Signature == null
 					? "This texture's [accent]DDS header[/accent] is [bad]missing, corrupted, or unreadable[/bad]."
@@ -672,9 +679,14 @@ public static class Scanner
 		// TODO: Check for use in Materials
 		// TODO: Check for use in Meshes
 		foreach (var issue in TextureChecker.Check(dds, entry.Relative, length))
-			AddFileProblem(problems, game, manager, entry, issue.Type, issue.Severity, issue.Summary,
-				null, issue.Solution);
+			if (IsTextureIssueEnabled(options, issue))
+				AddFileProblem(problems, game, manager, entry, issue.Type, issue.Severity, issue.Summary,
+					null, issue.Solution);
 	}
+
+	/// <summary>Suggestions (Low) belong to Best Practices; everything else to Texture Issues.</summary>
+	private static bool IsTextureIssueEnabled(ScanOptions options, TextureIssue issue) =>
+		issue.Severity == Severity.Low ? options.BestPractices : options.TextureIssues;
 
 	/// <summary>
 	///     Reports a loose precombined or AnimTextData folder under Meshes, once. True if the file is inside one and
