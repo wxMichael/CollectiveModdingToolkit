@@ -183,7 +183,7 @@ public static class MaterialChecker
 
 	private static void CheckTextures(List<MaterialIssue> issues, MaterialFile material, ITextureLookup textures)
 	{
-		List<(Severity Severity, string Line)> lines = [];
+		List<(Severity Severity, string Line, bool ExtensionOnly)> lines = [];
 		foreach (var (field, slot, raw) in material.TextureSlots)
 		{
 			if (string.IsNullOrWhiteSpace(raw)) continue;
@@ -192,9 +192,22 @@ public static class MaterialChecker
 			var path = NormalizeTexturePath(raw);
 			if (!path.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
 			{
+				if (string.IsNullOrEmpty(Path.GetExtension(path)))
+				{
+					// Tested in-game; the texture isn't found even when the .dds exists.
+					var withExtension = path + ".dds";
+					var found = textures.Exists(withExtension);
+					lines.Add((Error, found
+							? $"{label}: [bad]is missing its .dds extension[/bad]. The game won't find it, though [accent]{withExtension[9..]}[/accent] exists."
+							: $"{label}: [bad]is missing its .dds extension[/bad], so the game won't find it. No matching .dds file was found either.",
+						found));
+					continue;
+				}
+
 				// Always an error as it's the wrong file type. Tested in-game; a .tga crashes, a .png loads with wrong colors.
 				lines.Add((Error,
-					$"{label}: [bad]isn't a DDS file[/bad]. The game can only load .dds textures, and may crash or show the wrong colors."));
+					$"{label}: [bad]isn't a DDS file[/bad]. The game can only load .dds textures, and may crash or show the wrong colors.",
+					false));
 				continue;
 			}
 
@@ -202,12 +215,13 @@ public static class MaterialChecker
 			if (!exists)
 				// Always an error even where the game copes (a missing normal just looks flat, a missing diffuse is
 				// magenta), a missing file means the author forgot it or used the wrong path.
-				lines.Add((Error, $"{label}: [bad]texture not found[/bad] in Data, your mods, or any loaded archive."));
+				lines.Add((Error, $"{label}: [bad]texture not found[/bad] in Data, your mods, or any loaded archive.",
+					false));
 
 			// Tested in-game; wrong formats, slots, and cubemaps look odd but never crash or go invisible.
 			foreach (var problem in TextureSlotRules.Evaluate(slot, path, exists ? textures.GetFacts(path) : null,
 				         material.UsesAlpha))
-				lines.Add((Warning, $"{label}: {Describe(problem)}"));
+				lines.Add((Warning, $"{label}: {Describe(problem)}", false));
 		}
 
 		// Errors and warnings are separate results, so the ones that matter aren't buried among suggestions.
@@ -216,14 +230,19 @@ public static class MaterialChecker
 	}
 
 	private static void AddTextureIssue(List<MaterialIssue> issues, ProblemType type, Severity severity,
-		List<(Severity Severity, string Line)> lines)
+		List<(Severity Severity, string Line, bool ExtensionOnly)> lines)
 	{
-		var matching = lines.Where(l => l.Severity == severity).Select(l => l.Line).ToList();
-		if (matching.Count == 0) return;
+		var all = lines.Where(l => l.Severity == severity).ToList();
+		if (all.Count == 0) return;
+
+		var matching = all.Select(l => l.Line).ToList();
+		var extensionOnly = all.All(l => l.ExtensionOnly);
 
 		issues.Add(new MaterialIssue(type, severity, string.Join('\n', matching),
 			type == ProblemType.MaterialTextures
-				? "[accent]Report it[/accent] to the mod author. Check that the texture exists, is in the right slot, and is saved in the right format."
+				? extensionOnly
+					? "[accent]Report it[/accent] to the mod author. The material needs to reference the texture [accent]with its .dds extension[/accent]."
+					: "[accent]Report it[/accent] to the mod author. Check that the texture exists, is in the right slot, and is saved in the right format."
 				: "These work in-game, but [accent]tell the mod author[/accent] if you think the texture is in the wrong slot or the wrong format."));
 	}
 
