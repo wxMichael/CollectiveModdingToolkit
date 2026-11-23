@@ -636,7 +636,7 @@ public static class Scanner
 		}
 
 		foreach (var issue in TextureChecker.Check(dds, relative, length))
-			AddFileProblem(c.Problems, c.Game, c.Manager, entry, ProblemType.InvalidTexture, issue.Severity,
+			AddFileProblem(c.Problems, c.Game, c.Manager, entry, issue.Type, issue.Severity,
 				issue.Summary, null, issue.Solution, file);
 	}
 
@@ -672,7 +672,7 @@ public static class Scanner
 		// TODO: Check for use in Materials
 		// TODO: Check for use in Meshes
 		foreach (var issue in TextureChecker.Check(dds, entry.Relative, length))
-			AddFileProblem(problems, game, manager, entry, ProblemType.InvalidTexture, issue.Severity, issue.Summary,
+			AddFileProblem(problems, game, manager, entry, issue.Type, issue.Severity, issue.Summary,
 				null, issue.Solution);
 	}
 

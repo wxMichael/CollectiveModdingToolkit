@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
 using CollectiveModdingToolkit.Models.FileTypes;
@@ -30,12 +31,16 @@ using CollectiveModdingToolkit.Models.FileTypes;
 namespace CollectiveModdingToolkit.Services;
 
 /// <summary>One problem found with a texture.</summary>
-internal readonly record struct TextureIssue(Severity Severity, string Summary, string? Solution = null);
+public readonly record struct TextureIssue(
+	ProblemType Type,
+	Severity Severity,
+	string Summary,
+	string? Solution = null);
 
 /// <summary>
 ///     Header-level checks for DDS textures, based on vanilla Fallout 4 headers and D3D11's limits.
 /// </summary>
-internal static class TextureChecker
+public static partial class TextureChecker
 {
 	/// <summary>Largest texture edge D3D11 (feature level 11) can create.</summary>
 	private const uint MaxEdge = 16384;
@@ -53,11 +58,20 @@ internal static class TextureChecker
 	/// <summary>Problems that may crash the game or break rendering.</summary>
 	private const Severity Error = Severity.Medium;
 
-	/// <summary>Problems that are unusual but probably load.</summary>
+	/// <summary>Problems that work but are suboptimal or confusing.</summary>
 	private const Severity Warning = Severity.Low;
 
+	private const string ReportSolution = "[accent]Report it[/accent] to the mod author.";
+
 	private const string ResaveSolution =
-		"[accent]Report it[/accent] to the mod author. [accent]Resaving the file[/accent] [i]might[/i] repair it.";
+		ReportSolution + " [accent]Resaving the file[/accent] [i]might[/i] repair it.";
+
+	/// <summary>Suffixes of regular (non-cubemap) textures.</summary>
+	private static readonly HashSet<string> RegularSuffixes = ["d", "n", "s", "g", "r", "l", "msn", "h"];
+
+	/// <summary>Names Windows (" - Copy", " - Copy (2)", " (2)") and macOS (" copy", " copy 2") give copies.</summary>
+	[GeneratedRegex(@" - copy( \(\d+\))?$| copy( \d+)?$| \(\d+\)$", RegexOptions.IgnoreCase)]
+	private static partial Regex CopyNameRegex();
 
 	/// <summary>Checks a texture whose header was read successfully.</summary>
 	/// <param name="dds">The texture, with its header read.</param>
@@ -69,37 +83,36 @@ internal static class TextureChecker
 
 		if (dds.Width == 0 || dds.Height == 0)
 		{
-			issues.Add(new TextureIssue(Error, "This texture has [bad]a width or height of 0[/bad].", ResaveSolution));
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
+				"This texture has [bad]a width or height of 0[/bad].", ResaveSolution));
 			return issues;
 		}
 
 		if (!IsFormatValid(dds))
 		{
-			issues.Add(new TextureIssue(Error,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				"This texture's [accent]pixel format[/accent] is [bad]unknown or invalid[/bad].", ResaveSolution));
 			return issues;
 		}
 
-		// ReSharper disable once UnusedVariable
-		var stem = Stem(relative, out var suffix);
+		var stem = Stem(relative);
+		var suffix = TextureSlotRules.SuffixOf(relative);
 
 		CheckCubemap(issues, dds, relative, suffix);
 		CheckDimensions(issues, dds);
 		CheckMips(issues, dds);
+		CheckFormat(issues, dds, relative, suffix);
 		CheckSize(issues, dds, fileLength);
+		CheckName(issues, relative, stem);
 		return issues;
 	}
 
-	/// <summary>Strips the extension from a file path and splits off its map suffix ('_d', '_n', ...), lowercase.</summary>
-	private static string Stem(string path, out string suffix)
+	/// <summary>The file name without its directory or extension.</summary>
+	private static string Stem(string path)
 	{
 		var name = path[(path.LastIndexOfAny(['\\', '/']) + 1)..];
 		var dot = name.LastIndexOf('.');
-		if (dot >= 0) name = name[..dot];
-
-		var underscore = name.LastIndexOf('_');
-		suffix = underscore >= 0 ? name[(underscore + 1)..].ToLowerInvariant() : string.Empty;
-		return name;
+		return dot >= 0 ? name[..dot] : name;
 	}
 
 	private static void CheckCubemap(List<TextureIssue> issues, DDS dds, string relative, string suffix)
@@ -108,12 +121,12 @@ internal static class TextureChecker
 		{
 			// DX10 cubemaps carry no per-face bits.
 			if (!dds.HasExtendedHeader && (dds.Caps2 & CubeFaceMask) != CubeFaceMask)
-				issues.Add(new TextureIssue(Error,
+				issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 					"This [accent]cubemap[/accent] [bad]doesn't contain all 6 faces[/bad].",
-					"[accent]Report it[/accent] to the mod author."));
+					ReportSolution));
 
-			if (suffix is "d" or "n" or "s" or "g" or "r" or "l" or "msn" or "h")
-				issues.Add(new TextureIssue(Warning,
+			if (RegularSuffixes.Contains(suffix))
+				issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
 					$"This is a [accent]cubemap[/accent] but is [warning]named like a regular texture ([b]'_{suffix}'[/b])[/warning].",
 					"Cubemaps are expected in [accent]environment map[/accent] slots. Check how this texture is used or [accent]report it[/accent] to the mod author."));
 
@@ -121,16 +134,17 @@ internal static class TextureChecker
 		}
 
 		const string solution =
-			"[i]If this texture is being used as a [accent]cubemap[/accent][/i] it [warning]will not render properly[/warning]. [accent]Report it[/accent] to the mod author.";
+			"[i]If this texture is being used as a [accent]cubemap[/accent][/i] it [warning]will not render properly[/warning]. " +
+			ReportSolution;
 
 		// Color grading LUTs are named '_e' but are plain textures.
 		if (suffix == "e" && !relative.Contains(@"\LUTs\", StringComparison.OrdinalIgnoreCase))
-			issues.Add(new TextureIssue(Severity.Medium,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				"This texture is named like a [accent]cubemap[/accent] ([b]'_e'[/b]), but [warning]isn't saved as a cubemap[/warning].",
 				solution));
 
 		if (relative.Contains("Cubemap", StringComparison.OrdinalIgnoreCase))
-			issues.Add(new TextureIssue(Severity.Medium,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				"This texture is in a [accent]cubemap folder[/accent], but [warning]isn't saved as a cubemap[/warning].",
 				solution));
 	}
@@ -138,13 +152,13 @@ internal static class TextureChecker
 	private static void CheckDimensions(List<TextureIssue> issues, DDS dds)
 	{
 		const string solution =
-			"[accent]Report it[/accent] to the mod author, and [accent]resize[/accent] the texture. Using it [bad]will cause a crash[/bad].";
+			ReportSolution + " [accent]Resize[/accent] the texture. Using it [bad]will cause a crash[/bad].";
 		var size = $"{dds.Width} x {dds.Height}";
 		var compressed = dds.IsBlockCompressed;
 
 		if (dds.Width > MaxEdge || dds.Height > MaxEdge)
 		{
-			issues.Add(new TextureIssue(Error,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				$"This texture is [bad]{size}[/bad]. The largest size the game can load is [accent]{MaxEdge}[/accent].",
 				solution));
 			return;
@@ -153,7 +167,7 @@ internal static class TextureChecker
 		if ((compressed || dds.IsCubemap) &&
 		    ((dds.Width >= 4 && dds.Width % 4 != 0) || (dds.Height >= 4 && dds.Height % 4 != 0)))
 			// TODO: Test <4 is valid for cubemaps
-			issues.Add(new TextureIssue(Error,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				$"This texture is [bad]{size}[/bad]. Dimensions must be a [accent]multiple of 4[/accent] for a [accent]{(dds.IsCubemap ? "cubemap" : "block-compressed texture")}[/accent].",
 				solution));
 	}
@@ -167,9 +181,42 @@ internal static class TextureChecker
 		var full = FullMipCount(dds);
 
 		if (dds.MipMapCount > full)
-			issues.Add(new TextureIssue(Error,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				$"This texture claims [bad]{dds.MipMapCount}[/bad] mipmaps, but at most [accent]{full}[/accent] are possible for its size.",
 				ResaveSolution));
+	}
+
+	private static void CheckFormat(List<TextureIssue> issues, DDS dds, string relative, string suffix)
+	{
+		// TODO: Verify these work in-game
+		if (dds.IsVolume || (dds.ArraySize > 1 && !dds.IsCubemap))
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
+				"This is a [warning]volume or array[/warning] texture, which Fallout 4 doesn't normally use.",
+				"These work in-game, but [accent]tell the mod author[/accent] they might have saved the file in the wrong format."));
+
+		// Environment maps and cubemaps are covered by CheckCubemap.
+		if (dds.IsCubemap || TextureSlotRules.RoleOfSuffix(suffix) is not
+			    { Slot: not TextureSlotKind.Environment } role)
+			return;
+
+		var facts = new TextureFacts(dds.Format, dds.IsCubemap);
+		foreach (var problem in TextureSlotRules.Evaluate(role.Slot, relative, facts, false))
+		{
+			var summary = problem.Kind switch
+			{
+				TextureProblemKind.WrongFormat =>
+					$"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold data it needs.",
+				TextureProblemKind.NonStandardFormat =>
+					$"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] instead of [accent]BC5[/accent], which vanilla files use.",
+				TextureProblemKind.UnneededAlpha =>
+					$"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] with an [warning]alpha channel[/warning] it doesn't use. Vanilla files use [accent]BC5[/accent].",
+				_ => null,
+			};
+
+			if (summary != null)
+				issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning, summary,
+					ReportSolution + " It works in-game, but may not look as intended."));
+		}
 	}
 
 	private static void CheckSize(List<TextureIssue> issues, DDS dds, long fileLength)
@@ -179,7 +226,7 @@ internal static class TextureChecker
 		var actual = fileLength - dds.DataOffset;
 		if (actual < expected)
 		{
-			issues.Add(new TextureIssue(Error,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 				$"This texture's pixel data is incomplete ([bad]{Math.Max(0, actual):N0} of {expected:N0} bytes[/bad]). The file may be truncated or its header wrong.",
 				ResaveSolution));
 		}
@@ -192,16 +239,41 @@ internal static class TextureChecker
 			// Six faces of data but no cubemap flag: the other five faces are ignored.
 			if (!dds.IsCubemap && !dds.IsVolume && dds.ArraySize == 1 && actual == expected * 6)
 			{
-				issues.Add(new TextureIssue(Error,
+				issues.Add(new TextureIssue(ProblemType.InvalidTexture, Error,
 					"This texture contains [accent]six faces[/accent] of pixel data, but its header is [bad]not flagged as a cubemap[/bad]. Only the first face will be used.",
 					ResaveSolution));
 				return;
 			}
 
-			issues.Add(new TextureIssue(Warning,
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
 				$"This texture has [warning]{actual - expected:N0} unexpected bytes[/warning] after its pixel data.",
 				ResaveSolution));
 		}
+	}
+
+	private static void CheckName(List<TextureIssue> issues, string relative, string stem)
+	{
+		var name = relative[(relative.LastIndexOfAny(['\\', '/']) + 1)..];
+		if (name.EndsWith(".dds.dds", StringComparison.OrdinalIgnoreCase))
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
+				"This file has a double extension ([warning].dds.dds[/warning]).",
+				ReportSolution + " If the mod doesn't reference it using the same typo, it will not work in-game."));
+
+		if (stem.EndsWith(' '))
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
+				"This file name has [warning]a space before its extension[/warning].",
+				ReportSolution + " If the mod doesn't reference it using the same typo, it will not work in-game."));
+
+		if (CopyNameRegex().IsMatch(stem))
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
+				"This looks like [warning]an accidental copy[/warning] of another file.",
+				ReportSolution + " It might be a junk file or mistake."));
+
+		if (stem.Length > 1 && stem[0] == '_' && (RegularSuffixes.Contains(stem[1..].ToLowerInvariant()) ||
+		                                          stem[1..].Equals("e", StringComparison.OrdinalIgnoreCase)))
+			issues.Add(new TextureIssue(ProblemType.InvalidTexture, Warning,
+				"This file has [warning]no name besides its suffix[/warning].",
+				ReportSolution + " If the mod doesn't reference it using the same name, it will not work in-game."));
 	}
 
 	private static bool IsFormatValid(DDS dds)
