@@ -28,19 +28,24 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
+using CollectiveModdingToolkit.Models.FileTypes;
 using CollectiveModdingToolkit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace CollectiveModdingToolkit.ViewModels;
 
-/// <summary>A material file found in Data or a mod.</summary>
-public sealed record MaterialListItem(string Relative, string FullPath, string? Mod)
+/// <summary>A material file found in Data, a mod, or an archive the game loads.</summary>
+/// <param name="FullPath">The file's path, or for a material in an archive, a key combining the archive and the material.</param>
+/// <param name="Archive">The archive holding the material, or null for a loose file.</param>
+public sealed record MaterialListItem(string Relative, string FullPath, string? Mod, string? Archive = null)
 {
 	public string Name => Path.GetFileName(Relative);
+
+	public bool IsArchived => Archive != null;
 }
 
-/// <summary>Browses the game's loose materials and edits one at a time.</summary>
+/// <summary>Browses the game's materials and edits one at a time.</summary>
 public sealed partial class MaterialsViewModel : GameViewModelBase
 {
 	private static readonly string[] ListedExtensions = [".bgsm", ".bgem", ".json"];
@@ -48,6 +53,9 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	private readonly IDialogService _dialogs;
 	private readonly IShellService _shell;
 	private List<MaterialListItem> _all = [];
+
+	/// <summary>The archived materials in the list, by their <see cref="MaterialListItem.FullPath" /> key.</summary>
+	private Dictionary<string, Ba2Entry> _archived = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>The existing file a pending Save to Overwrite would replace. Set by the first click, confirmed by the second.</summary>
 	private string? _pendingOverwrite;
@@ -154,6 +162,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 
 	private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
+		if (e.PropertyName == nameof(MaterialDocument.IsArchived)) SaveCommand.NotifyCanExecuteChanged();
+
 		if (e.PropertyName == nameof(MaterialDocument.IsDirty))
 		{
 			SaveCommand.NotifyCanExecuteChanged();
@@ -192,8 +202,17 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 			return false;
 		}
 
+		// An archived material is only known from the list, and the archive may not be one the game loads.
+		var known = _all.FirstOrDefault(i => i.FullPath.Equals(path, StringComparison.OrdinalIgnoreCase));
+		if (known == null && path.Contains("::", StringComparison.Ordinal))
+		{
+			SetStatus("That material is in an archive the game doesn't load, so it isn't listed.", true);
+			return false;
+		}
+
+		path = known?.FullPath ?? path;
 		_reverting = true;
-		SelectedItem = Items.FirstOrDefault(i => i.FullPath.Equals(path, StringComparison.OrdinalIgnoreCase));
+		SelectedItem = Items.FirstOrDefault(i => i.FullPath == path);
 		_reverting = false;
 		return LoadDocument(path);
 	}
@@ -202,19 +221,36 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	{
 		try
 		{
-			Document = MaterialDocument.Load(path);
+			var item = Items.FirstOrDefault(i => i.FullPath == path) ?? _all.FirstOrDefault(i => i.FullPath == path);
+			if (item is { Archive: { } archive } && _archived.TryGetValue(path, out var entry))
+			{
+				var size = entry.UnpackedSize;
+				if (size > MaterialChecker.MaxSize)
+					throw new InvalidDataException(
+						$"It's unusually large ({size:N0} bytes) and probably isn't a material.");
+
+				var data = Ba2Reader.ReadStart(archive, entry, (int)size);
+				Document = MaterialDocument.LoadArchived(data, path, archive, item.Relative);
+			}
+			else
+			{
+				Document = MaterialDocument.Load(path);
+			}
+
 			Document.ShowGeneral = GroupByGeneral;
 			Document.TexturePicker = PickTextureAsync;
 			Document.MaterialPicker = PickMaterialPathAsync;
-			SetStatus(Document.SourceFormat == MaterialFormat.Json
-				? "This material is JSON. Saving will convert it to the binary format."
-				: string.Empty);
+			SetStatus(Document.IsArchived
+				? $"This material is inside {Path.GetFileName(Document.ArchivePath)}. Use Save As or Save to Overwrite to save an edited copy."
+				: Document.SourceFormat == MaterialFormat.Json
+					? "This material is JSON. Saving will convert it to the binary format."
+					: string.Empty);
 			return true;
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
 		{
 			Document = null;
-			SetStatus($"Couldn't open {Path.GetFileName(path)}: {e.Message}", true);
+			SetStatus($"Couldn't open {Path.GetFileName(path.Split("::")[^1])}: {e.Message}", true);
 			return false;
 		}
 	}
@@ -242,22 +278,27 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		ListInfo = "Looking for materials...";
 		try
 		{
-			var found = await Task.Run(() =>
+			var (found, archived) = await Task.Run(() =>
 			{
 				var index = Scanner.IndexFolder(game, "Materials");
-				return index.Values
-					.Where(e => ListedExtensions.Contains(Path.GetExtension(e.Relative),
-						StringComparer.OrdinalIgnoreCase))
+				var items = index.Values
+					.Where(e => IsListed(e.Relative))
 					.Select(e => new MaterialListItem(e.Relative, Scanner.GetSourcePath(game.Manager, e),
 						Scanner.GetMod(game.Manager, e)))
-					.OrderBy(i => i.Relative, StringComparer.OrdinalIgnoreCase)
 					.ToList();
+
+				// Loose files win over archives.
+				var inArchives = IndexArchives(game, index.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase));
+				items.AddRange(inArchives.Items);
+				items.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.Relative, b.Relative));
+				return (items, inArchives.Entries);
 			});
 
 			// A refresh may have replaced the game while this ran.
 			if (!ReferenceEquals(game, Session.Game)) return;
 
 			_all = found;
+			_archived = archived;
 			ApplyFilter();
 		}
 		catch (Exception e) when (e is IOException or UnauthorizedAccessException)
@@ -267,6 +308,46 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 			ApplyFilter();
 			ListInfo = "Couldn't read the Materials folder.";
 		}
+	}
+
+	private static bool IsListed(string relative) =>
+		ListedExtensions.Contains(Path.GetExtension(relative), StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>Lists the materials inside the archives the game loads, skipping any a loose file replaces.</summary>
+	private static (List<MaterialListItem> Items, Dictionary<string, Ba2Entry> Entries) IndexArchives(Game game,
+		HashSet<string> loose)
+	{
+		List<MaterialListItem> items = [];
+		Dictionary<string, Ba2Entry> entries = new(StringComparer.OrdinalIgnoreCase);
+		HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+		// The archive loaded last wins, so go through them from the end.
+		foreach (var name in Enumerable.Reverse(game.ArchivesLoadOrder))
+		{
+			if (!game.ArchivesWinning.TryGetValue(Game.ArchiveKey(name), out var archive)) continue;
+
+			var archivePath = archive.RealPath;
+			try
+			{
+				foreach (var entry in Ba2Reader.Read(archivePath))
+				{
+					var relative = entry.Path.Replace('/', '\\');
+					if (!relative.StartsWith(@"materials\", StringComparison.OrdinalIgnoreCase) ||
+					    !IsListed(relative) || loose.Contains(relative) || !seen.Add(relative))
+						continue;
+
+					var key = $"{archivePath}::{relative}";
+					entries[key] = entry;
+					items.Add(new MaterialListItem(relative, key, archive.Mod ?? name, archivePath));
+				}
+			}
+			catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
+			{
+				// Damaged or unsupported archives are reported by the scanner.
+				Log.Warning($"Materials: unable to read archive {name}: {e.Message}");
+			}
+		}
+
+		return (items, entries);
 	}
 
 	private void ApplyFilter()
@@ -285,10 +366,10 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		_reverting = false;
 
 		ListInfo = _all.Count == 0
-			? "No loose materials found."
+			? "No materials found."
 			: shown.Count == _all.Count
-				? $"{_all.Count} loose materials"
-				: $"{shown.Count} of {_all.Count} loose materials";
+				? $"{_all.Count} materials"
+				: $"{shown.Count} of {_all.Count} materials";
 	}
 
 	// ---- The open material ----
@@ -308,7 +389,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 		if (path != null) TryOpen(path);
 	}
 
-	private bool CanSave() => Document is { } d && (d.IsDirty || d.SourceFormat == MaterialFormat.Json);
+	private bool CanSave() =>
+		Document is { IsArchived: false } d && (d.IsDirty || d.SourceFormat == MaterialFormat.Json);
 
 	[RelayCommand(CanExecute = nameof(CanSave))]
 	private void Save()
@@ -341,7 +423,8 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 			suggested = Path.GetFileNameWithoutExtension(suggested) +
 			            (document.File.Kind == MaterialKind.Bgem ? ".bgem" : ".bgsm");
 
-		var path = await _dialogs.PickMaterialToSaveAsync(suggested, Path.GetDirectoryName(document.Path));
+		var path = await _dialogs.PickMaterialToSaveAsync(suggested,
+			Path.GetDirectoryName(document.ArchivePath ?? document.Path));
 		if (path == null) return;
 
 		try
@@ -405,7 +488,7 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	{
 		if (Document is not { } document || Session.Game?.Manager.OverwritePath is not { } overwrite) return;
 
-		if (DataRelativePath(document.Path) is not { } relative)
+		if ((document.ArchiveRelative ?? DataRelativePath(document.Path)) is not { } relative)
 		{
 			SetStatus("Can't tell where this material belongs in Data, so it can't be placed in Overwrite.", true);
 			return;
@@ -455,6 +538,6 @@ public sealed partial class MaterialsViewModel : GameViewModelBase
 	[RelayCommand(CanExecute = nameof(HasOpenDocument))]
 	private void Reveal()
 	{
-		if (Document != null) _shell.Reveal(Document.Path);
+		if (Document != null) _shell.Reveal(Document.ArchivePath ?? Document.Path);
 	}
 }

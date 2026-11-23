@@ -57,7 +57,15 @@ public sealed partial class MaterialDocument : ObservableObject
 	/// <summary>Where the material was read from, and where Save writes it.</summary>
 	public string Path { get; private set; }
 
-	public string FileName => System.IO.Path.GetFileName(Path);
+	/// <summary>The archive the material was read from, or null if it was a loose file (or has since been saved).</summary>
+	public string? ArchivePath { get; private set; }
+
+	/// <summary>The material's path below Data when it came from an archive.</summary>
+	public string? ArchiveRelative { get; private set; }
+
+	public bool IsArchived => ArchivePath != null;
+
+	public string FileName => System.IO.Path.GetFileName(ArchiveRelative ?? Path);
 
 	public MaterialFile File { get; }
 
@@ -135,15 +143,35 @@ public sealed partial class MaterialDocument : ObservableObject
 		return new MaterialDocument(path, MaterialLoader.Parse(data, System.IO.Path.GetFileName(path)), format);
 	}
 
+	/// <summary>Reads a material that was extracted from an archive. It can only be saved elsewhere.</summary>
+	/// <param name="key">Identifies the material in the list. Stands in for a path until the material is saved.</param>
+	/// <param name="archivePath">The archive it came from.</param>
+	/// <param name="relative">Its path below Data.</param>
+	/// <exception cref="InvalidDataException">The data isn't a valid material.</exception>
+	public static MaterialDocument LoadArchived(byte[] data, string key, string archivePath, string relative)
+	{
+		var format = MaterialLoader.Inspect(data).Format;
+		var name = System.IO.Path.GetFileName(relative);
+		return new MaterialDocument(key, MaterialLoader.Parse(data, name), format)
+		{
+			ArchivePath = archivePath, ArchiveRelative = relative,
+		};
+	}
+
 	/// <summary>Writes the material as binary, in place so hard links and virtual file systems stay intact.</summary>
 	/// <param name="path">Where to write, or null for <see cref="Path" />.</param>
 	public void Save(string? path = null)
 	{
 		// Serialize first so a failure can't leave a half-written file.
-		var bytes = File.Write();
 		var target = path ?? Path;
+		if (IsArchived && path == null) throw new IOException("Materials in an archive can't be saved in place.");
+
+		var bytes = File.Write();
 		System.IO.File.WriteAllBytes(target, bytes);
 		Path = target;
+		ArchivePath = null;
+		ArchiveRelative = null;
+		OnPropertyChanged(nameof(IsArchived));
 		OnPropertyChanged(nameof(Path));
 		OnPropertyChanged(nameof(FileName));
 		IsDirty = false;
