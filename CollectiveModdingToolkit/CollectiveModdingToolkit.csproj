@@ -63,9 +63,9 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.12.3" />
 		<PackageReference Include="ini-parser-netstandard" Version="2.5.3" />
-		<PackageReference Include="Semi.Avalonia" Version="12.1.0.1" />
-		<PackageReference Include="Semi.Avalonia.ColorPicker" Version="12.1.0.1" />
-		<PackageReference Include="Semi.Avalonia.DataGrid" Version="12.1.0.1" />
+		<PackageReference Include="Semi.Avalonia" Version="12.1.0.2" />
+		<PackageReference Include="Semi.Avalonia.ColorPicker" Version="12.1.0.2" />
+		<PackageReference Include="Semi.Avalonia.DataGrid" Version="12.1.0.2" />
 		<PackageReference Include="System.IO.Hashing" Version="11.0.0" />
 	</ItemGroup>
 
