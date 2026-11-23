@@ -401,7 +401,7 @@ public static class Scanner
 
 		if ((options.MaterialIssues || options.BestPractices) && root == "materials" &&
 		    ext is "bgsm" or "bgem" or "json")
-			CheckMaterial(c, entry, relative, inner);
+			CheckMaterial(c, entry, relative, inner, exists);
 
 		if (!options.WrongFormat) return;
 
@@ -534,7 +534,8 @@ public static class Scanner
 	}
 
 	/// <summary>Reports problems with a material and the textures it uses.</summary>
-	private static void CheckMaterial(ScanContext c, Entry entry, string relative, Ba2Entry? inner)
+	private static void CheckMaterial(ScanContext c, Entry entry, string relative, Ba2Entry? inner,
+		Func<string, bool> exists)
 	{
 		if (c.Textures == null) return;
 
@@ -563,7 +564,7 @@ public static class Scanner
 		}
 
 		// Suggestions (Low) belong to Best Practices; everything else to Material Issues.
-		foreach (var issue in MaterialChecker.Check(relative, data, c.Textures))
+		foreach (var issue in MaterialChecker.Check(relative, data, c.Textures, exists))
 			if (issue.Severity == Severity.Low ? c.Options.BestPractices : c.Options.MaterialIssues)
 				AddFileProblem(c.Problems, c.Game, c.Manager, entry, issue.Type, issue.Severity, issue.Summary, null,
 					issue.Solution, inner);

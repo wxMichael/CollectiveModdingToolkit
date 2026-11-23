@@ -64,12 +64,27 @@ public static class MaterialChecker
 	/// <param name="relative">The material's path inside Data, e.g. "Materials\Foo\Bar.bgsm".</param>
 	/// <param name="data">The whole file.</param>
 	/// <param name="textures">Where to find the textures it names.</param>
-	public static List<MaterialIssue> Check(string relative, ReadOnlySpan<byte> data, ITextureLookup textures)
+	/// <param name="exists">Whether another file exists at a path relative to Data, in the same place as this one.</param>
+	public static List<MaterialIssue> Check(string relative, ReadOnlySpan<byte> data, ITextureLookup textures,
+		Func<string, bool>? exists = null)
 	{
 		List<MaterialIssue> issues = [];
 		var fileName = Path.GetFileName(relative);
 		var ext = Path.GetExtension(fileName).ToLowerInvariant();
 		var header = MaterialLoader.Inspect(data);
+
+		if (exists != null && header.Format != MaterialFormat.Empty && HasProperSibling(relative, exists))
+		{
+			var wrongContent = header.Format is MaterialFormat.Json or MaterialFormat.Unknown;
+			var wrongExtension = !wrongContent && ext == ".json";
+			if (wrongContent || wrongExtension)
+			{
+				issues.Add(new MaterialIssue(ProblemType.InvalidMaterial, Warning,
+					"This file isn't a usable material, but a [accent]proper material with the same name[/accent] exists next to it. It's most likely an [warning]unused leftover[/warning] from development.",
+					"[accent]Tell the mod author[/accent] they can remove it. It's harmless unless something points to this file."));
+				return issues;
+			}
+		}
 
 		switch (header.Format)
 		{
@@ -118,6 +133,13 @@ public static class MaterialChecker
 
 		CheckTextures(issues, material, textures);
 		return issues;
+	}
+
+	private static bool HasProperSibling(string relative, Func<string, bool> exists)
+	{
+		var stem = Path.ChangeExtension(relative, null);
+		return (exists(stem + ".bgsm") && !relative.EndsWith(".bgsm", StringComparison.OrdinalIgnoreCase))
+		       || (exists(stem + ".bgem") && !relative.EndsWith(".bgem", StringComparison.OrdinalIgnoreCase));
 	}
 
 	// Tested in-game; whatever the extension (.bgsm or .json), JSON text makes the mesh invisible or crashes the game.
