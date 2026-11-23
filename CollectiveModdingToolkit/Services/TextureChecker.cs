@@ -186,6 +186,32 @@ public static partial class TextureChecker
 				ResaveSolution));
 	}
 
+	/// <summary>Says what about a format breaks a slot. Continues the sentence "which ...".</summary>
+	internal static string WrongFormatReason(string? format) => format switch
+	{
+		"BC4" or "single-channel" =>
+			"stores only [bad]one channel[/bad], so the other channels the slot needs are missing",
+		"BC5" => "stores only [bad]two channels[/bad], so the [bad]blue channel[/bad] is missing",
+		"BC6H" => "is an [bad]HDR[/bad] format with [bad]no alpha channel[/bad], not meant for standard textures",
+		_ => "can't hold data it needs",
+	};
+
+	/// <summary>
+	///     Says what about a format makes it a poor fit for a slot that vanilla files save as BC5 (two channels, high
+	///     precision). Continues the sentence "which ...".
+	/// </summary>
+	internal static string FormatDrawback(string? format) => format switch
+	{
+		"BC1" =>
+			"stores color at [warning]low precision[/warning] (5:6:5), which causes banding, and has a third channel the slot doesn't need",
+		"BC2" or "BC3" =>
+			"stores color at [warning]low precision[/warning] (5:6:5), which causes banding, and has an [warning]alpha channel[/warning] the slot doesn't use",
+		"BC7" => "spreads its precision across [warning]channels the slot doesn't use[/warning]",
+		"uncompressed RGB" or "uncompressed RGBA" =>
+			"is [warning]uncompressed[/warning], using several times the memory of BC5 and storing channels the slot doesn't use",
+		_ => "isn't the format vanilla files use for this slot",
+	};
+
 	private static void CheckFormat(List<TextureIssue> issues, DDS dds, string relative, string suffix)
 	{
 		// TODO: Verify these work in-game
@@ -209,13 +235,10 @@ public static partial class TextureChecker
 					($"This [accent]model-space normal map[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold the [accent]blue channel[/accent] it needs. Model-space normals use all three channels.",
 						Error),
 				TextureProblemKind.WrongFormat =>
-					($"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold data it needs.",
+					($"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which {WrongFormatReason(problem.Detail)}.",
 						Error),
-				TextureProblemKind.NonStandardFormat =>
-					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] instead of [accent]BC5[/accent], which vanilla files use.",
-						Warning),
-				TextureProblemKind.UnneededAlpha =>
-					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning] with an [warning]alpha channel[/warning] it doesn't use. Vanilla files use [accent]BC5[/accent].",
+				TextureProblemKind.NonStandardFormat or TextureProblemKind.UnneededAlpha =>
+					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning], which {FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent].",
 						Warning),
 				_ => (null, Warning),
 			};

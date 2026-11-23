@@ -254,11 +254,9 @@ public static class MaterialChecker
 			TextureProblemKind.UnexpectedCubemap =>
 				"this slot isn't for environment maps, but the texture [bad]is a cubemap[/bad].",
 			TextureProblemKind.WrongFormat =>
-				$"the texture is [bad]{problem.Detail}[/bad], which can't hold data this slot needs.",
-			TextureProblemKind.NonStandardFormat =>
-				$"the texture is [warning]{problem.Detail}[/warning] instead of [accent]BC5[/accent], which vanilla files use for this slot.",
-			TextureProblemKind.UnneededAlpha =>
-				$"the texture is [warning]{problem.Detail}[/warning] and has an [warning]alpha channel[/warning] this slot doesn't use. Vanilla files use [accent]BC5[/accent].",
+				$"the texture is [bad]{problem.Detail}[/bad], which {TextureChecker.WrongFormatReason(problem.Detail)}.",
+			TextureProblemKind.NonStandardFormat or TextureProblemKind.UnneededAlpha =>
+				$"the texture is [warning]{problem.Detail}[/warning], which {TextureChecker.FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent] for this slot.",
 			TextureProblemKind.MissingAlpha =>
 				$"the material uses alpha, but the texture is [warning]{problem.Detail}[/warning] and has [warning]no alpha channel[/warning].",
 			TextureProblemKind.SuffixMismatch =>

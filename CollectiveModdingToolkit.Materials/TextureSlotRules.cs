@@ -165,8 +165,7 @@ public static class TextureSlotRules
 				{
 					case TextureFormatClass.Bc5 or TextureFormatClass.Unknown:
 						break;
-					case TextureFormatClass.Bc4 or TextureFormatClass.Bc6H or TextureFormatClass.SingleChannel
-						or TextureFormatClass.Bc2:
+					case TextureFormatClass.Bc4 or TextureFormatClass.Bc6H or TextureFormatClass.SingleChannel:
 						problems.Add(new TextureProblem(TextureProblemKind.WrongFormat, texture.FormatName));
 						break;
 					default:
