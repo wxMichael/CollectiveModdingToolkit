@@ -50,7 +50,7 @@ public readonly record struct MaterialIssue(
 /// </summary>
 public static class MaterialChecker
 {
-	/// <summary>Problems that break rendering.</summary>
+	/// <summary>Problems that may crash the game or break rendering.</summary>
 	private const Severity Error = Severity.Medium;
 
 	/// <summary>Problems that work but are suboptimal or confusing.</summary>
