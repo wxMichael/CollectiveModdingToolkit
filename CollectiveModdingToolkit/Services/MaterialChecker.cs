@@ -221,7 +221,7 @@ public static class MaterialChecker
 			// Tested in-game; wrong formats, slots, and cubemaps look odd but never crash or go invisible.
 			foreach (var problem in TextureSlotRules.Evaluate(slot, path, exists ? textures.GetFacts(path) : null,
 				         material.UsesAlpha))
-				lines.Add((Warning, $"{label}: {Describe(problem)}", false));
+				lines.Add((Warning, $"{label}: {Describe(problem, slot)}", false));
 		}
 
 		// Errors and warnings are separate results, so the ones that matter aren't buried among suggestions.
@@ -246,7 +246,7 @@ public static class MaterialChecker
 				: "These work in-game, but [accent]tell the mod author[/accent] if you think the texture is in the wrong slot or the wrong format."));
 	}
 
-	private static string Describe(TextureProblem problem) =>
+	private static string Describe(TextureProblem problem, TextureSlotKind slot) =>
 		problem.Kind switch
 		{
 			TextureProblemKind.NotCubemap =>
@@ -256,7 +256,7 @@ public static class MaterialChecker
 			TextureProblemKind.WrongFormat =>
 				$"the texture is [bad]{problem.Detail}[/bad], which {TextureChecker.WrongFormatReason(problem.Detail)}.",
 			TextureProblemKind.NonStandardFormat or TextureProblemKind.UnneededAlpha =>
-				$"the texture is [warning]{problem.Detail}[/warning], which {TextureChecker.FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent] for this slot.",
+				$"the texture is [warning]{problem.Detail}[/warning], which {TextureChecker.FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent] for this slot.{TextureChecker.AlphaCaveat(problem.Kind, slot)}",
 			TextureProblemKind.MissingAlpha =>
 				$"the material uses alpha, but the texture is [warning]{problem.Detail}[/warning] and has [warning]no alpha channel[/warning].",
 			TextureProblemKind.SuffixMismatch =>

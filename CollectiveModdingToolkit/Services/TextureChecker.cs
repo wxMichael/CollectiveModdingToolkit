@@ -186,6 +186,15 @@ public static partial class TextureChecker
 				ResaveSolution));
 	}
 
+	/// <summary>
+	///     Complex Parallax stores data in a specular map's alpha channel, which isn't detected, so warnings about it say
+	///     so.
+	/// </summary>
+	internal static string AlphaCaveat(TextureProblemKind kind, TextureSlotKind slot) =>
+		kind == TextureProblemKind.UnneededAlpha && slot is TextureSlotKind.Specular or TextureSlotKind.SmoothSpec
+			? " [accent]Complex Parallax[/accent] needs an alpha channel, so ignore this if the mod uses it."
+			: "";
+
 	/// <summary>Says what about a format breaks a slot. Continues the sentence "which ...".</summary>
 	internal static string WrongFormatReason(string? format) => format switch
 	{
@@ -238,7 +247,7 @@ public static partial class TextureChecker
 					($"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which {WrongFormatReason(problem.Detail)}.",
 						Error),
 				TextureProblemKind.NonStandardFormat or TextureProblemKind.UnneededAlpha =>
-					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning], which {FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent].",
+					($"This [accent]{role.Role}[/accent] is saved as [warning]{problem.Detail}[/warning], which {FormatDrawback(problem.Detail)}. Vanilla files use [accent]BC5[/accent].{AlphaCaveat(problem.Kind, role.Slot)}",
 						Warning),
 				_ => (null, Warning),
 			};
