@@ -186,11 +186,15 @@ public class ProblemInfo : ObservableObject
 
 	/// <summary>True if this is about a loose material file the Materials tab can open.</summary>
 	public bool IsMaterialFile =>
-		PathType == PathType.File && HasPath &&
-		Path.GetExtension(FullPath) is { } ext &&
-		(ext.Equals(".bgsm", StringComparison.OrdinalIgnoreCase) ||
-		 ext.Equals(".bgem", StringComparison.OrdinalIgnoreCase) ||
-		 ext.Equals(".json", StringComparison.OrdinalIgnoreCase));
+		PathType == PathType.File && HasPath && (IsMaterialName(FullPath) || IsArchivedMaterial);
+
+	/// <summary>True if this is about a material inside a BA2, which <see cref="Title" /> names.</summary>
+	private bool IsArchivedMaterial =>
+		Title != null && Path.GetExtension(FullPath).Equals(".ba2", StringComparison.OrdinalIgnoreCase) &&
+		IsMaterialName(Title);
+
+	/// <summary>What the Materials tab opens this by: the file's path, or for an archived material the archive and name.</summary>
+	public string MaterialKey => IsArchivedMaterial ? $"{FullPath}::{Title!.Replace('/', '\\')}" : FullPath;
 
 	public bool IsCritical => Severity == Severity.Critical;
 	public bool IsWarning => Severity is Severity.Medium or Severity.Low;
@@ -206,6 +210,12 @@ public class ProblemInfo : ObservableObject
 		Severity.Medium or Severity.Low => "⚠️",
 		_ => "ℹ️",
 	};
+
+	private static bool IsMaterialName(string path) =>
+		Path.GetExtension(path) is { } ext &&
+		(ext.Equals(".bgsm", StringComparison.OrdinalIgnoreCase) ||
+		 ext.Equals(".bgem", StringComparison.OrdinalIgnoreCase) ||
+		 ext.Equals(".json", StringComparison.OrdinalIgnoreCase));
 
 	/// <summary>
 	///     Path relative to <paramref name="basePath" />, or the full path if it lies outside it (avoids "..\..\"

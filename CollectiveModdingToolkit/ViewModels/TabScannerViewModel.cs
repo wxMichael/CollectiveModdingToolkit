@@ -182,7 +182,7 @@ public partial class TabScannerViewModel : ViewModelBase
 	[RelayCommand(CanExecute = nameof(CanEditMaterial))]
 	private void EditMaterial()
 	{
-		if (CurrentIssue is { IsMaterialFile: true } issue) _editMaterial?.Invoke(issue.FullPath);
+		if (CurrentIssue is { IsMaterialFile: true } issue) _editMaterial?.Invoke(issue.MaterialKey);
 	}
 
 	[RelayCommand]
