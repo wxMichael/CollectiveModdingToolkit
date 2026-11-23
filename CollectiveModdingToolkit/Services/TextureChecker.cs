@@ -205,6 +205,9 @@ public static partial class TextureChecker
 			// WrongFormat breaks the texture; the others are suggestions (Best Practices).
 			var (summary, severity) = problem.Kind switch
 			{
+				TextureProblemKind.WrongFormat when suffix == "msn" =>
+					($"This [accent]model-space normal map[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold the [accent]blue channel[/accent] it needs. Model-space normals use all three channels.",
+						Error),
 				TextureProblemKind.WrongFormat =>
 					($"This [accent]{role.Role}[/accent] is saved as [bad]{problem.Detail}[/bad], which can't hold data it needs.",
 						Error),
