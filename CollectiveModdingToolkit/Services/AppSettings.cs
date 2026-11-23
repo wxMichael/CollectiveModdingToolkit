@@ -83,6 +83,9 @@ public sealed partial class AppSettings : ObservableObject
 	[ObservableProperty] public partial bool ScanMaterialIssues { get; set; } = true;
 	[ObservableProperty] public partial bool ScanBestPractices { get; set; } = false;
 	[ObservableProperty] public partial bool ScanReadArchives { get; set; } = true;
+	[ObservableProperty] public partial bool ScanBaseGame { get; set; } = false;
+	[ObservableProperty] public partial bool ScanDLC { get; set; } = false;
+	[ObservableProperty] public partial bool ScanCC { get; set; } = false;
 
 	partial void OnLogLevelChanged(LogLevel value) => Log.Level = value;
 
@@ -106,19 +109,23 @@ public sealed partial class AppSettings : ObservableObject
 				if (document.RootElement.ValueKind == JsonValueKind.Object)
 				{
 					var root = document.RootElement;
-					if (TryReadEnum(root, "logLevel", out LogLevel level)) settings.LogLevel = level;
+					if (TryReadEnum(root, "logLevel", out LogLevel level))
+						settings.LogLevel = level;
 
 					if (TryReadBool(root, "checkForUpdates", out var checkUpdates))
 						settings.CheckForUpdates = checkUpdates;
 
-					if (TryReadDate(root, "lastUpdateCheck", out var lastCheck)) settings.LastUpdateCheck = lastCheck;
+					if (TryReadDate(root, "lastUpdateCheck", out var lastCheck))
+						settings.LastUpdateCheck = lastCheck;
 
-					if (TryReadString(root, "latestVersion", out var latest)) settings.LatestVersion = latest;
+					if (TryReadString(root, "latestVersion", out var latest))
+						settings.LatestVersion = latest;
 
-					if (TryReadBool(root, "downgraderKeepBackups", out var keep)) settings.DowngraderKeepBackups = keep;
+					if (TryReadBool(root, "downgraderKeepBackups", out var dgKeepBackups))
+						settings.DowngraderKeepBackups = dgKeepBackups;
 
-					if (TryReadBool(root, "downgraderDeleteDeltas", out var delete))
-						settings.DowngraderDeleteDeltas = delete;
+					if (TryReadBool(root, "downgraderDeleteDeltas", out var dgDeleteDeltas))
+						settings.DowngraderDeleteDeltas = dgDeleteDeltas;
 
 					if (TryReadBool(root, "scannerOverviewIssues", out var scanOverview))
 						settings.ScanOverviewIssues = scanOverview;
@@ -129,7 +136,8 @@ public sealed partial class AppSettings : ObservableObject
 					if (TryReadBool(root, "scannerLoosePrevis", out var scanPrevis))
 						settings.ScanLoosePrevis = scanPrevis;
 
-					if (TryReadBool(root, "scannerJunkFiles", out var scanJunk)) settings.ScanJunkFiles = scanJunk;
+					if (TryReadBool(root, "scannerJunkFiles", out var scanJunk))
+						settings.ScanJunkFiles = scanJunk;
 
 					if (TryReadBool(root, "scannerProblemOverrides", out var scanOverrides))
 						settings.ScanProblemOverrides = scanOverrides;
@@ -151,6 +159,15 @@ public sealed partial class AppSettings : ObservableObject
 
 					if (TryReadBool(root, "scannerReadArchives", out var scanArchives))
 						settings.ScanReadArchives = scanArchives;
+
+					if (TryReadBool(root, "scannerBaseGame", out var scanBase))
+						settings.ScanBaseGame = scanBase;
+
+					if (TryReadBool(root, "scannerDLC", out var scanDLC))
+						settings.ScanDLC = scanDLC;
+
+					if (TryReadBool(root, "scannerCC", out var scanCC))
+						settings.ScanCC = scanCC;
 				}
 				else
 				{
@@ -206,6 +223,9 @@ public sealed partial class AppSettings : ObservableObject
 				writer.WriteBoolean("scannerMaterialIssues", ScanMaterialIssues);
 				writer.WriteBoolean("scannerBestPractices", ScanBestPractices);
 				writer.WriteBoolean("scannerReadArchives", ScanReadArchives);
+				writer.WriteBoolean("scannerBaseGame", ScanBaseGame);
+				writer.WriteBoolean("scannerDLC", ScanDLC);
+				writer.WriteBoolean("scannerCC", ScanCC);
 				writer.WriteEndObject();
 			}
 

@@ -241,6 +241,23 @@ public partial class Game : ObservableObject
 	private IniData? Config { get; set; }
 	private IniData? Prefs { get; set; }
 
+	/// <summary>Whether a plugin (or archive base name) is one of the base game's masters.</summary>
+	internal static bool IsBaseGameName(string name) =>
+		GameMasters.Any(m => !m.StartsWith("DLC", StringComparison.OrdinalIgnoreCase) &&
+		                     Path.GetFileNameWithoutExtension(m).Equals(Path.GetFileNameWithoutExtension(name),
+			                     StringComparison.OrdinalIgnoreCase));
+
+	/// <summary>Whether a plugin (or archive base name) is one of the game's DLC masters.</summary>
+	internal static bool IsDLCName(string name) =>
+		GameMasters.Any(m => m.StartsWith("DLC", StringComparison.OrdinalIgnoreCase) &&
+		                     Path.GetFileNameWithoutExtension(m).Equals(Path.GetFileNameWithoutExtension(name),
+			                     StringComparison.OrdinalIgnoreCase));
+
+	/// <summary>Whether a plugin (or archive base name) is listed in Fallout4.ccc.</summary>
+	internal bool IsCreationClubName(string name) =>
+		ModulesCCC.Any(m => Path.GetFileNameWithoutExtension(m)
+			.Equals(Path.GetFileNameWithoutExtension(name), StringComparison.OrdinalIgnoreCase));
+
 	/// <summary>Keys are lower-cased file names, so lookups ignore case. Use <see cref="ArchiveKey" />.</summary>
 	public static string ArchiveKey(string name) => name.ToLowerInvariant();
 

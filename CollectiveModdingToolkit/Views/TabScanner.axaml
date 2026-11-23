@@ -172,6 +172,18 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 									                    IsChecked="{Binding Settings.ScanRaceSubgraphs}"
 									                    Description="Speculative. Counts race animation subgraph records (RACE \ SADD). Adding too many may cause stutter when loading Cells. Base game count: 37. Warning threshold: 100." />
 
+									<ctrl:SettingOption Header="Scan Base Game Files"
+									                    IsChecked="{Binding Settings.ScanBaseGame}"
+									                    Description="Run enabled checks on files that are part of the base game." />
+
+									<ctrl:SettingOption Header="Scan DLC Files"
+									                    IsChecked="{Binding Settings.ScanDLC}"
+									                    Description="Run enabled checks on files from DLC (Season Pass)." />
+
+									<ctrl:SettingOption Header="Scan Creation Club Files"
+									                    IsChecked="{Binding Settings.ScanCC}"
+									                    Description="Run enabled checks on files from Creation Club mods (Creations Bundle)." />
+
 								</StackPanel>
 							</Flyout>
 						</Button.Flyout>

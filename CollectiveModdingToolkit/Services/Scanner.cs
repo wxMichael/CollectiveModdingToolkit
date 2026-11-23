@@ -42,7 +42,10 @@ public sealed record ScanOptions(
 	bool EmptyFiles,
 	bool MaterialIssues,
 	bool BestPractices,
-	bool ReadArchives)
+	bool ReadArchives,
+	bool BaseGame,
+	bool DLC,
+	bool CC)
 {
 	/// <summary>True if any option needs the Data folder walked. Overview Issues and Race Subgraphs don't.</summary>
 	public bool NeedsFileWalk =>
@@ -55,7 +58,8 @@ public sealed record ScanOptions(
 		new(
 			s.ScanOverviewIssues, s.ScanWrongFormat, s.ScanLoosePrevis, s.ScanJunkFiles, s.ScanProblemOverrides,
 			s.ScanRaceSubgraphs, s.ScanTextureIssues, s.ScanEmptyFiles,
-			s.ScanMaterialIssues, s.ScanBestPractices, s.ScanReadArchives);
+			s.ScanMaterialIssues, s.ScanBestPractices, s.ScanReadArchives,
+			s.ScanBaseGame, s.ScanDLC, s.ScanCC);
 }
 
 public static class Scanner
@@ -248,8 +252,13 @@ public static class Scanner
 
 			// Only archives directly in Data are loaded by the game.
 			var fileName = parts[^1];
-			if (root != null || !fileName.EndsWith(".ba2", StringComparison.OrdinalIgnoreCase) ||
-			    ArchiveNameWhitelist.Contains(fileName))
+			if (root != null || !fileName.EndsWith(".ba2", StringComparison.OrdinalIgnoreCase)) continue;
+
+			var whitelisted = ArchiveNameWhitelist.Contains(fileName);
+			var origin = GetArchiveOrigin(game, fileName, whitelisted);
+			if ((origin == ArchiveOrigin.BaseGame && !options.BaseGame) ||
+			    (origin == ArchiveOrigin.DLC && !options.DLC) ||
+			    (origin == ArchiveOrigin.CC && !options.CC))
 				continue;
 
 			if (readArchives)
@@ -258,8 +267,25 @@ public static class Scanner
 				ScanArchive(context, entry);
 			}
 
-			if (!archivesEnabled.Contains(fileName)) CheckArchiveName(context, entry, fileName);
+			if (!whitelisted && !archivesEnabled.Contains(fileName)) CheckArchiveName(context, entry, fileName);
 		}
+	}
+
+	/// <summary>
+	///     Whether an archive belongs to the base game, a DLC, or a Creation Club mod, going by the plugin it's named
+	///     after. Anything else is from a mod.
+	/// </summary>
+	private static ArchiveOrigin GetArchiveOrigin(Game game, string fileName, bool whitelisted)
+	{
+		var stem = fileName[..fileName.LastIndexOf('.')];
+		var split = stem.LastIndexOf(" - ", StringComparison.Ordinal);
+		var baseName = split < 0 ? stem : stem[..split];
+
+		if (Game.IsDLCName(baseName)) return ArchiveOrigin.DLC;
+
+		if (game.IsCreationClubName(baseName)) return ArchiveOrigin.CC;
+
+		return whitelisted || Game.IsBaseGameName(baseName) ? ArchiveOrigin.BaseGame : ArchiveOrigin.Mod;
 	}
 
 	private static void CheckArchiveName(ScanContext c, Entry entry, string fileName)
@@ -907,6 +933,14 @@ public static class Scanner
 		}
 
 		return count;
+	}
+
+	private enum ArchiveOrigin
+	{
+		Mod,
+		BaseGame,
+		DLC,
+		CC,
 	}
 
 	private sealed record ScanContext(
