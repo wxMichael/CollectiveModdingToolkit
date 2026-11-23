@@ -3,13 +3,14 @@
 //   dotnet run tools/GenerateThirdPartyNotices.cs              regenerate the file
 //   dotnet run tools/GenerateThirdPartyNotices.cs -- --check   exit 1 if the file is stale (offline, fast; for CI)
 //
-// What is included is read from CollectiveModdingToolkit/obj/project.assets.json (run a restore or build first):
+// What is included is read from CollectiveModdingToolkit/obj/project.assets.json (the script restores it as Release first):
 // the resolved win-x64 package graph, keeping only packages that put a managed or native file in the output, plus the
 // self-contained .NET runtime pack. Build-only packages and other platforms' placeholder packages drop out by themselves.
 // License texts are fetched from each package's source repository at the commit named in its NuGet metadata (cached in
 // tools/third-party/.cache). Anything that cannot be discovered (code ported from elsewhere, the bundled font, repository
 // quirks) lives in tools/third-party/config.json.
 
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,6 +31,14 @@ var root = FindRoot();
 var configPath = Path.Combine(root, "tools", "third-party", "config.json");
 var outputPath = Path.Combine(root, "THIRD-PARTY-NOTICES.txt");
 var assetsPath = Path.Combine(root, "CollectiveModdingToolkit", "obj", "project.assets.json");
+
+// Restore as Release so debug-only packages don't raise warnings.
+var restore = Process.Start(new ProcessStartInfo("dotnet", ["restore", Path.Combine(root, "CollectiveModdingToolkit"), "-p:Configuration=Release", "-v", "q"])
+	{ RedirectStandardOutput = true, RedirectStandardError = true })!;
+var restoreOutput = restore.StandardOutput.ReadToEndAsync();
+var restoreErrors = restore.StandardError.ReadToEndAsync();
+await restore.WaitForExitAsync();
+if (restore.ExitCode != 0) return Fail($"dotnet restore failed:\n{await restoreOutput}{await restoreErrors}");
 if (!File.Exists(assetsPath)) return Fail($"{assetsPath} not found. Restore the project first (dotnet restore CollectiveModdingToolkit).");
 
 var configBytes = File.ReadAllBytes(configPath);
