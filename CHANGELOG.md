@@ -18,6 +18,29 @@ Conventions:
 
 ## [Unreleased]
 
+## [3.0] - 2026-11-22
+
+### Added
+
+- Materials: New tab to browse, edit, and save BGSM/BGEM files.
+- Scanner: Check materials for format, extension, and texture problems.
+- Scanner: Texture format issues now state why a format is wrong or not ideal.
+- Scanner: Report empty (0 byte) files.
+- Scanner: Modding Best Practices option: things that aren't necessarily problems, but could be improved.
+- Scanner: Options to check base game, DLC, and CC files.
+
+### Changed
+
+- Scanner: Issue details pane is resizable.
+- Scanner: Speculative and informational options are off by default.
+- Scanner: Texture format and naming suggestions (e.g. unneeded alpha) are only reported with Best
+  Practices enabled.
+- UI: Switched fonts to Fira Sans/Mono.
+
+### Fixed
+
+- MO2: Cache folder listings when resolving file origins for much better performance.
+
 ## [2.1] - 2026-11-18
 
 ### Fixed
@@ -53,7 +76,8 @@ Conventions:
 - Overview: Issues panel which lists basic setup issues such as mismatched game and F4SE versions.
 - Overview: Address Library in Binaries.
 - Vortex support: Files are mapped to their source mod using Vortex's deployment manifests.
-- File origin detection for Vortex and Mod Organizer 2: archives, plugins, and F4SE DLLs now show whether they come from a mod, MO2's Overwrite folder, or the game folder.
+- File origin detection for Vortex and Mod Organizer 2: archives, plugins, and F4SE DLLs now show whether they come from
+  a mod, MO2's Overwrite folder, or the game folder.
 - Update check via Nexus API (can be disabled)
 - Settings: log level, update check, and buttons to show the log and settings files. Settings are saved automatically.
 - A log file (`cm-toolkit.log`) and settings (`settings.json`) in `%LOCALAPPDATA%\CollectiveModdingToolkit`.
@@ -62,7 +86,8 @@ Conventions:
 
 ### Fixed
 
-- A missing plugins.txt, Fallout4.ccc, INI file or Data folder, or an unrecognised game version, no longer stops the app.
+- A missing plugins.txt, Fallout4.ccc, INI file or Data folder, or an unrecognised game version, no longer stops the
+  app.
 - Overview: `Fallout4 - Nvflex.ba2` was never counted because the NVFlex setting was read from the wrong INI.
 - Overview: Fixed counts for Unknown & Unreadable.
 - Overview: Improved PC hardware detection.
@@ -76,6 +101,7 @@ Conventions:
 
 - Modules tab placeholder. It will return when functional.
 
+[3.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v3.0
 [2.1]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.1
 [2.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.0
 [1.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v1.0
