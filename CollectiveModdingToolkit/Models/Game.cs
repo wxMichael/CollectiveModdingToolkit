@@ -177,6 +177,13 @@ public partial class Game : ObservableObject
 
 	public SortedSet<string> ArchivesINI { get; } = new(StringComparer.OrdinalIgnoreCase);
 	public SortedSet<string> ArchivesEnabled { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>The enabled archives in the order the game loads them. When two hold the same file, the later one wins.</summary>
+	public List<string> ArchivesLoadOrder { get; } = [];
+
+	/// <summary>The enabled plugins in load order.</summary>
+	public List<string> ModulesLoadOrder { get; } = [];
+
 	public SortedSet<string> ArchivesGeneral { get; } = new(StringComparer.OrdinalIgnoreCase);
 	public SortedSet<string> ArchivesTexture { get; } = new(StringComparer.OrdinalIgnoreCase);
 	public SortedSet<string> ArchivesOG { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -405,6 +412,7 @@ public partial class Game : ObservableObject
 	private void GetModuleLists(IModManager manager)
 	{
 		ModulesEnabled.Clear();
+		ModulesLoadOrder.Clear();
 
 		foreach (var moduleName in GameMasters) EnableModule(moduleName);
 
@@ -463,7 +471,7 @@ public partial class Game : ObservableObject
 			}
 
 			module.IsEnabled = true;
-			ModulesEnabled.Add(moduleName);
+			if (ModulesEnabled.Add(moduleName)) ModulesLoadOrder.Add(moduleName);
 			return true;
 		}
 	}
@@ -596,7 +604,11 @@ public partial class Game : ObservableObject
 	private void GetArchiveLists()
 	{
 		ArchivesEnabled.Clear();
+		ArchivesLoadOrder.Clear();
 		ArchivesINI.Clear();
+
+		// ArchivesINI is sorted, so keep the INI's own order for load order.
+		List<string> iniOrder = [];
 
 		// TODO: bInvalidateOlderFiles = 1
 		// TODO: sResourceDataDirsFinal =
@@ -609,16 +621,19 @@ public partial class Game : ObservableObject
 			var archives = Config?["Archive"][list];
 			if (archives == null || archives.Trim() == string.Empty) continue;
 
-			ArchivesINI.UnionWith(archives.Split(',',
-				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+			foreach (var archiveName in archives.Split(',',
+				         StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+				if (ArchivesINI.Add(archiveName))
+					iniOrder.Add(archiveName);
 		}
 
 		// TODO: Test with custom Nvflex BA2
 		// bNVFlexEnable lives in Fallout4Prefs.ini, not Fallout4.ini.
 		if ((Prefs?["NVFlex"]["bNVFlexEnable"] ?? Config?["NVFlex"]["bNVFlexEnable"]) == "1")
-			ArchivesINI.Add("Fallout4 - Nvflex.ba2");
+			if (ArchivesINI.Add("Fallout4 - Nvflex.ba2"))
+				iniOrder.Add("Fallout4 - Nvflex.ba2");
 
-		foreach (var archiveName in ArchivesINI)
+		foreach (var archiveName in iniOrder)
 		{
 			var archivePath = Path.Combine(DataPath, archiveName);
 			Archive? archive;
@@ -632,7 +647,7 @@ public partial class Game : ObservableObject
 			if (ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive))
 			{
 				archive.IsEnabled = true;
-				ArchivesEnabled.Add(archiveName);
+				if (ArchivesEnabled.Add(archiveName)) ArchivesLoadOrder.Add(archiveName);
 			}
 
 			// The game still loads without these, but its own base archives being absent means a broken install.
@@ -658,7 +673,7 @@ public partial class Game : ObservableObject
 			if (patch != null)
 			{
 				patch.IsEnabled = true;
-				ArchivesEnabled.Add(texturesPatch);
+				if (ArchivesEnabled.Add(texturesPatch)) ArchivesLoadOrder.Add(texturesPatch);
 			}
 			else
 			{
@@ -668,7 +683,7 @@ public partial class Game : ObservableObject
 			}
 		}
 
-		foreach (var module in ModulesEnabled)
+		foreach (var module in ModulesLoadOrder)
 		{
 			// TODO: Check if this does more than split a string
 			var moduleBaseName = Path.GetFileNameWithoutExtension(module);
@@ -688,7 +703,7 @@ public partial class Game : ObservableObject
 
 				if (!ArchivesWinning.TryGetValue(ArchiveKey(archiveName), out archive)) continue;
 				archive.IsEnabled = true;
-				ArchivesEnabled.Add(archiveName);
+				if (ArchivesEnabled.Add(archiveName)) ArchivesLoadOrder.Add(archiveName);
 			}
 		}
 	}

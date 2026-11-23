@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using CollectiveModdingToolkit.Materials;
 using CollectiveModdingToolkit.Models;
@@ -66,7 +67,8 @@ internal sealed class TextureLookup : ITextureLookup
 		Func<Scanner.Entry, string> sourcePath, Action<string>? progress, CancellationToken token)
 	{
 		TextureLookup lookup = new(loose, sourcePath);
-		foreach (var name in game.ArchivesEnabled)
+		// The archive loaded last wins, so go through them from the end.
+		foreach (var name in Enumerable.Reverse(game.ArchivesLoadOrder))
 		{
 			token.ThrowIfCancellationRequested();
 			if (!game.ArchivesWinning.TryGetValue(Game.ArchiveKey(name), out var archive)) continue;
