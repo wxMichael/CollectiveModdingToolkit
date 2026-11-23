@@ -80,8 +80,16 @@ public class Binary : ObservableObject, IFile
 			["f4se_loader.exe"] =
 				new Dictionary<string, string>
 				{
+					["0.0.6.17"] = GV.Obsolete,
+					["0.0.6.18"] = GV.Obsolete,
+					["0.0.6.19"] = GV.Obsolete,
+					["0.0.6.20"] = GV.Obsolete,
+					["0.0.6.21"] = GV.Obsolete,
+					["0.0.6.22"] = GV.Obsolete,
 					["0.0.6.23"] = GV.OldGen,
+					["0.0.7.0"] = GV.Obsolete,
 					["0.0.7.2"] = GV.NextGen,
+					["0.0.7.3"] = GV.Obsolete,
 					["0.0.7.4"] = GV.Obsolete,
 					["0.0.7.5"] = GV.Obsolete,
 					["0.0.7.6"] = GV.Obsolete,
