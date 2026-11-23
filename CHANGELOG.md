@@ -18,6 +18,23 @@ Conventions:
 
 ## [Unreleased]
 
+## [3.1] - 2026-11-23
+
+### Added
+
+- Materials: List and open materials inside the BA2 archives the game loads. Archived materials are saved as
+  a copy with Save As or Save to Overwrite.
+- Scanner: Edit Material button for materials inside BA2 archives.
+
+### Changed
+
+- Scanner: Archives the game doesn't load are no longer read for problems. Their names are still checked.
+
+### Fixed
+
+- Archives and plugins are now tracked in load order, so the last loaded archive wins when two hold the same
+  file. They were inadvertently loaded in alphabetical order prior.
+
 ## [3.0] - 2026-11-23
 
 ### Added
@@ -101,6 +118,7 @@ Conventions:
 
 - Modules tab placeholder. It will return when functional.
 
+[3.1]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v3.1
 [3.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v3.0
 [2.1]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.1
 [2.0]: https://github.com/wxMichael/CollectiveModdingToolkit/releases/tag/v2.0
