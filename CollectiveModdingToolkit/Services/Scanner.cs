@@ -261,7 +261,8 @@ public static class Scanner
 			    (origin == ArchiveOrigin.CC && !options.CC))
 				continue;
 
-			if (readArchives)
+			// Archives the game doesn't load are never used, so their contents don't matter until the name is fixed.
+			if (readArchives && archivesEnabled.Contains(fileName))
 			{
 				progress?.Report(new Progress($"Reading archive: {fileName}", 100.0));
 				ScanArchive(context, entry);
